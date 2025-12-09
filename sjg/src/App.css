@@ -1,49 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
 
-.header {
-  background-color: #333;
-  color: #fff;
-  padding: 1rem;
-}
-
-.header h1 {
-  margin: 0;
-}
-
-.header nav ul {
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  list-style: none;
 }
 
-.header nav li {
-  display: inline-block;
-  margin-right: 1rem;
+body {
+  font-family: 'Montserrat', sans-serif;
+  line-height: 1.6;
+  background-color: #fff;
+  color: #333;
 }
 
-.header nav a {
-  color: #fff;
+a {
   text-decoration: none;
 }
 
-.product-list {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
+.container {
+  max-width: 1300px;
+  margin: auto;
+  padding: 0 20px;
 }
 
-.product {
-  border: 1px solid #ccc;
-  padding: 1rem;
-  margin: 1rem;
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background-color: #f07b3f;
+  color: #fff;
+  border: 2px solid #f07b3f;
+}
+
+.btn-primary:hover {
+  background-color: transparent;
+  color: #f07b3f;
+}
+
+.page-title {
+  font-size: 2.5rem;
   text-align: center;
-}
-
-.product img {
-  max-width: 100%;
-}
-
-.cart {
-  border: 1px solid #ccc;
-  padding: 1rem;
-  margin: 1rem;
+  margin-bottom: 40px;
+  color: #333;
 }

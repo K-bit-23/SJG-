@@ -1,0 +1,80 @@
+.contact-container {
+  padding: 80px 0;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.page-title {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 40px;
+  color: #333;
+}
+
+.contact-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.contact-info h3, .contact-form h3 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #f07b3f;
+}
+
+.contact-info p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.contact-info p i {
+  margin-right: 15px;
+  color: #f07b3f;
+}
+
+.map-container {
+  margin-top: 30px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.form-group input, .form-group textarea {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.btn-primary {
+  background-color: #f07b3f;
+  color: #fff;
+  border: 2px solid #f07b3f;
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: transparent;
+  color: #f07b3f;
+}
+
+@media screen and (max-width: 960px) {
+  .contact-content {
+    grid-template-columns: 1fr;
+  }
+}
