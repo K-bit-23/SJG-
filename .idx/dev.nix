@@ -10,6 +10,9 @@
     pkgs.python311
     pkgs.python311Packages.pip
     pkgs.nodejs_20
+    pkgs.python311Packages.django
+    pkgs.python311Packages.djangorestframework
+    pkgs.python311Packages.django-cors-headers
     # pkgs.nodePackages.nodemon
   ];
 
