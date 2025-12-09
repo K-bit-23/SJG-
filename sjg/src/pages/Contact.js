@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMapMarkerAlt, faPhoneAlt, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import './Contact.css';
 
 const Contact = () => {
@@ -27,9 +29,9 @@ const Contact = () => {
         <div className="contact-content">
           <div className="contact-info">
             <h3>Get in Touch</h3>
-            <p><i className="fas fa-map-marker-alt"></i> Sakthi Nagar, 5th Street, Sengodam Pallam, Thindal, Erode – 638012</p>
-            <p><i className="fas fa-phone-alt"></i> +91 98765 43210</p>
-            <p><i className="fas fa-envelope"></i> info@sjgstationary.com</p>
+            <p><FontAwesomeIcon icon={faMapMarkerAlt} /> Sakthi Nagar, 5th Street, Sengodam Pallam, Thindal, Erode – 638012</p>
+            <p><FontAwesomeIcon icon={faPhoneAlt} /> +91 98765 43210</p>
+            <p><FontAwesomeIcon icon={faEnvelope} /> info@sjgstationary.com</p>
             <div className="map-container">
               {/* Replace with your actual Google Maps embed code */}
               <iframe
