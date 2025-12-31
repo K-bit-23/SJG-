@@ -1,3 +1,5 @@
+@import url('../theme.css');
+
 /* General Styles */
 .container {
   max-width: 1200px;
@@ -15,17 +17,17 @@
 }
 
 .btn-primary {
-  background-color: #6e8efb;
+  background: var(--gradient-primary);
   color: #fff;
 }
 
 .btn-primary:hover {
-  background-color: #5a78e8;
+  opacity: 0.9;
 }
 
 .btn-secondary {
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: var(--secondary-color);
+  color: var(--text-color);
 }
 
 .btn-secondary:hover {
@@ -70,7 +72,7 @@
 }
 
 .product-card {
-  background-color: #fff;
+  background-color: var(--background-color);
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -96,13 +98,13 @@
 .product-card p {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #6e8efb;
+  color: var(--primary-color);
   margin-bottom: 20px;
 }
 
 /* Services Section */
 .services {
-  background-color: #f8f9fa;
+  background-color: var(--secondary-color);
   padding: 80px 0;
 }
 
@@ -124,7 +126,7 @@
 
 .service-item i {
   font-size: 3rem;
-  color: #6e8efb;
+  color: var(--primary-color);
   margin-bottom: 20px;
 }
 
@@ -135,7 +137,7 @@
 
 /* CTA Section */
 .cta {
-  background-color: #6e8efb;
+  background: var(--gradient-primary);
   color: #fff;
   padding: 60px 0;
   text-align: center;
