@@ -1,13 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css';
+import logo from '../assets/logo.svg';
 
 const Navbar = ({ cartCount }) => {
   return (
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="navbar-logo">
-          SJG Stationary & Xerox
+          <img src={logo} alt="SJG Stationary & Xerox" />
         </Link>
         <ul className="nav-menu">
           <li className="nav-item">
