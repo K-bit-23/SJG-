@@ -28,6 +28,8 @@ const Navbar = ({ cartCount }) => {
           <li className="nav-item">
             <Link to="/contact" className="nav-links">Contact</Link>
           </li>
+        </ul>
+        <ul className="nav-menu-right">
           <li className="nav-item">
             <Link to="/cart" className="nav-links cart-icon">
               <i className="fas fa-shopping-cart"></i>
