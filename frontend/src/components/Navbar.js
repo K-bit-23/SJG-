@@ -110,10 +110,10 @@ const Navbar = () => {
                     <span>Settings</span>
                   </button>
                   {user.role === 'admin' && (
-                    <button className="dropdown-item">
+                    <Link to="/admin" className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
                       <i className="fas fa-shield-alt"></i>
                       <span>Admin Panel</span>
-                    </button>
+                    </Link>
                   )}
                   <div className="user-dropdown-divider"></div>
                   <button className="dropdown-item logout" onClick={handleLogout}>
