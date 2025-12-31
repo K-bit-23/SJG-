@@ -12,22 +12,22 @@ const Navbar = ({ cartCount }) => {
         </Link>
         <ul className="nav-menu">
           <li className="nav-item">
-            <Link to="/" className="nav-links">Home</Link>
+            <Link to="/" className="nav-links"><i className="fas fa-home"></i>Home</Link>
           </li>
           <li className="nav-item dropdown">
-            <Link to="/products" className="nav-links">Products</Link>
+            <Link to="/products" className="nav-links"><i className="fas fa-box-open"></i>Products</Link>
             <div className="dropdown-content">
               {/* Product cards will be rendered here */}
             </div>
           </li>
           <li className="nav-item">
-            <Link to="/services" className="nav-links">Services</Link>
+            <Link to="/services" className="nav-links"><i className="fas fa-concierge-bell"></i>Services</Link>
           </li>
           <li className="nav-item">
-            <Link to="/orders" className="nav-links">Your Orders</Link>
+            <Link to="/orders" className="nav-links"><i className="fas fa-receipt"></i>Your Orders</Link>
           </li>
           <li className="nav-item">
-            <Link to="/contact" className="nav-links">Contact</Link>
+            <Link to="/contact" className="nav-links"><i className="fas fa-address-book"></i>Contact</Link>
           </li>
         </ul>
         <ul className="nav-menu-right">
@@ -38,16 +38,16 @@ const Navbar = ({ cartCount }) => {
             </Link>
           </li>
           <li className="nav-item dropdown">
-            <span className="nav-links">Admin</span>
+            <span className="nav-links"><i className="fas fa-user-shield"></i>Admin</span>
             <div className="dropdown-content">
               <Link to="/admin/users">Users</Link>
             </div>
           </li>
           <li className="nav-item">
-            <Link to="/login" className="nav-links">Login</Link>
+            <Link to="/login" className="nav-links"><i className="fas fa-sign-in-alt"></i>Login</Link>
           </li>
           <li className="nav-item">
-            <Link to="/register" className="nav-links">Register</Link>
+            <Link to="/register" className="nav-links"><i className="fas fa-user-plus"></i>Register</Link>
           </li>
         </ul>
       </div>
