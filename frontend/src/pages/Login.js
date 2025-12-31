@@ -1,38 +1,37 @@
-import React, { useState } from 'react';
-import './Contact.css';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import '../pages/Login.css';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle login logic here
-    console.log('Form submitted:', formData);
+  const handleGoogleLogin = () => {
+    // Handle Google login logic here
   };
 
   return (
-    <div className="contact-container">
-      <div className="contact-form">
-        <h3>Login</h3>
-        <form onSubmit={handleSubmit}>
+    <div className="login-container">
+      <div className="login-form">
+        <h2>Login</h2>
+        <form>
           <div className="form-group">
             <label htmlFor="email">Email</label>
-            <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required />
+            <input type="email" id="email" required />
           </div>
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input type="password" id="password" name="password" value={formData.password} onChange={handleChange} required />
+            <input type="password" id="password" required />
           </div>
           <button type="submit" className="btn btn-primary">Login</button>
         </form>
+        <div className="separator">or</div>
+        <button onClick={handleGoogleLogin} className="btn-google">
+          <i className="fab fa-google"></i> Login with Google
+        </button>
+        <p>
+          <Link to="/forgot-password">Forgot Password?</Link>
+        </p>
+        <p>
+          Don't have an account? <Link to="/register">Register here</Link>
+        </p>
       </div>
     </div>
   );
