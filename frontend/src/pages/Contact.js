@@ -26,9 +26,9 @@ const Contact = () => {
         <div className="contact-wrapper">
           <div className="contact-details">
             <h2>Get in Touch</h2>
-            <p><i className="fas fa-map-marker-alt"></i> Sakthi Nagar, 5th Street, Sengodam Pallam, Thindal, Erode – 638012</p>
-            <p><i className="fas fa-phone-alt"></i> +91 98765 43210</p>
-            <p><i className="fas fa-envelope"></i> info@sjgstationary.com</p>
+            <p><i className="fas fa-map-marker-alt"></i> SAKTHI NAGAR THINDAL-638012, ERODE</p>
+            <p><i className="fas fa-phone-alt"></i> 9360024821</p>
+            <p><i className="fas fa-envelope"></i> sjgvxerox@gmail.com</p>
           </div>
           <div className="contact-form">
             <h2>Send us a Message</h2>
