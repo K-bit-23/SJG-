@@ -1,56 +1,94 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
+import CartDropdown from './CartDropdown';
 import './Navbar.css';
 
-const Navbar = ({ cartCount }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+const Navbar = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { getCartItemsCount } = useCart();
+  const location = useLocation();
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const cartItemsCount = getCartItemsCount();
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const toggleCart = () => {
+    setIsCartOpen(!isCartOpen);
+  };
+
+  const closeCart = () => {
+    setIsCartOpen(false);
+  };
+
+  const isActive = (path) => {
+    return location.pathname === path ? 'active' : '';
   };
 
   return (
-    <header className="header">
-      <div className="container">
-        <div className="header-content">
-          <Link to="/" className="logo">
-            SJG Stationary
+    <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
+      <div className="navbar-container">
+        <Link to="/" className="navbar-logo">
+          <i className="fas fa-store"></i>
+          <span>SJG Stationery</span>
+        </Link>
+
+        <div className={`navbar-menu ${isMobileMenuOpen ? 'active' : ''}`}>
+          <Link
+            to="/"
+            className={`navbar-link ${isActive('/')}`}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <i className="fas fa-home"></i>
+            <span>Home</span>
           </Link>
-          <nav className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
-            <ul className="nav-list">
-              <li className="nav-item">
-                <Link to="/" className="nav-link" onClick={() => setIsMenuOpen(false)}>Home</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/products" className="nav-link" onClick={() => setIsMenuOpen(false)}>Shop</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/" className="nav-link" onClick={() => setIsMenuOpen(false)}>Portfolio</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/services" className="nav-link" onClick={() => setIsMenuOpen(false)}>Services</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/contact" className="nav-link" onClick={() => setIsMenuOpen(false)}>Address</Link>
-              </li>
-            </ul>
-          </nav>
-          <div className="header-actions">
-            <Link to="/profile" className="nav-link">
-              <i className="fas fa-user"></i>
-            </Link>
-            <Link to="/cart" className="cart-link">
-              <i className="fas fa-shopping-cart"></i>
-              {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
-            </Link>
-            <Link to="/login" className="btn btn-primary">Login</Link>
-            <button className="menu-toggle" onClick={toggleMenu}>
-              <i className={isMenuOpen ? 'fas fa-times' : 'fas fa-bars'}></i>
-            </button>
-          </div>
+          <Link
+            to="/products"
+            className={`navbar-link ${isActive('/products')}`}
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <i className="fas fa-box"></i>
+            <span>Products</span>
+          </Link>
+        </div>
+
+        <div className="navbar-actions">
+          <button
+            className="cart-button"
+            onClick={toggleCart}
+            aria-label="Shopping Cart"
+          >
+            <i className="fas fa-shopping-cart"></i>
+            {cartItemsCount > 0 && (
+              <span className="cart-badge">{cartItemsCount}</span>
+            )}
+          </button>
+
+          <button
+            className="mobile-menu-toggle"
+            onClick={toggleMobileMenu}
+            aria-label="Toggle Menu"
+          >
+            <i className={`fas ${isMobileMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
+          </button>
         </div>
       </div>
-    </header>
+
+      {isCartOpen && <CartDropdown onClose={closeCart} />}
+    </nav>
   );
 };
 
