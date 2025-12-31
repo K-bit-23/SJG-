@@ -41,6 +41,13 @@
   text-align: center;
 }
 
+.nav-menu-right {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  text-align: center;
+}
+
 .nav-item {
   height: 80px;
 }
@@ -70,6 +77,10 @@
   }
 
   .nav-menu {
-    display: none; 
+    display: none;
+  }
+
+  .nav-menu-right {
+    display: none;
   }
 }
