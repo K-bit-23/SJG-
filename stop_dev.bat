@@ -1,3 +1,4 @@
+echo Stopping servers...
 @echo off
 setlocal enabledelayedexpansion
 
