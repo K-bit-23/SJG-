@@ -32,13 +32,9 @@ const Services = () => {
         <div className="services-grid">
           {services.map((service, index) => (
             <div key={index} className="service-card">
-              <div className="service-icon">
-                <i className={service.icon}></i>
-              </div>
-              <div className="service-content">
-                <h3 className="service-title">{service.title}</h3>
-                <p className="service-description">{service.description}</p>
-              </div>
+              <i className={service.icon}></i>
+              <h3>{service.title}</h3>
+              <p>{service.description}</p>
             </div>
           ))}
         </div>

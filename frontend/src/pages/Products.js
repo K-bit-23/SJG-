@@ -40,53 +40,42 @@ const Products = ({ products, addToCart }) => {
     <div className="products-page">
       <div className="container">
         <h1 className="page-title">Our Products</h1>
-        <div className="products-layout">
-          <aside className="sidebar">
-            <div className="filter-widget">
-              <h3 className="widget-title">Categories</h3>
-              <select value={category} onChange={handleCategoryChange}>
-                <option value="all">All</option>
-                <option value="notebooks">Notebooks</option>
-                <option value="pens">Pens</option>
-                <option value="art-supplies">Art Supplies</option>
-              </select>
+
+        <div className="filters-bar">
+          <div className="filter-item">
+            <input
+              type="text"
+              placeholder="Search for products..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+          </div>
+          <div className="filter-item">
+            <select value={category} onChange={handleCategoryChange}>
+              <option value="all">All Categories</option>
+              <option value="notebooks">Notebooks</option>
+              <option value="pens">Pens</option>
+              <option value="art-supplies">Art Supplies</option>
+            </select>
+          </div>
+          <div className="filter-item">
+            <select value={sortBy} onChange={handleSortByChange}>
+              <option value="default">Sort By</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="product-grid">
+          {sortedProducts.map(product => (
+            <div key={product.id} className="product-card">
+              <img src={product.image} alt={product.name} />
+              <h3>{product.name}</h3>
+              <p>${product.price.toFixed(2)}</p>
+              <button className="btn btn-primary" onClick={() => addToCart(product)}>Add to Cart</button>
             </div>
-            <div className="filter-widget">
-              <h3 className="widget-title">Sort By</h3>
-              <select value={sortBy} onChange={handleSortByChange}>
-                <option value="default">Default</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-              </select>
-            </div>
-          </aside>
-          <main className="main-content">
-            <div className="search-bar">
-              <input
-                type="text"
-                placeholder="Search for products..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-              />
-              <i className="fas fa-search"></i>
-            </div>
-            <div className="product-grid">
-              {sortedProducts.map(product => (
-                <div key={product.id} className="product-card">
-                  <div className="product-image">
-                    <img src={product.image} alt={product.name} />
-                    <div className="product-overlay">
-                      <button className="btn btn-primary" onClick={() => addToCart(product)}>Add to Cart</button>
-                    </div>
-                  </div>
-                  <div className="product-info">
-                    <h3 className="product-name">{product.name}</h3>
-                    <p className="product-price">${product.price.toFixed(2)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </main>
+          ))}
         </div>
       </div>
     </div>
