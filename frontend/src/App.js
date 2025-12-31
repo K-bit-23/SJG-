@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Footer from './components/Footer';
 import Home from './pages/Home';
 import Products from './pages/Products';
 import Services from './pages/Services';
@@ -54,7 +53,6 @@ function App() {
             <Route path="/register" element={<Register />} />
           </Routes>
         </main>
-        <Footer />
       </div>
     </Router>
   );
