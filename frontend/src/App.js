@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Home from './pages/Home';
 import About from './pages/About';
 import Products from './pages/Products';
@@ -11,6 +12,7 @@ import Orders from './pages/Orders';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
+import Profile from './pages/Profile';
 import './App.css';
 
 function App() {
@@ -52,11 +54,16 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/cart" element={<Cart cart={cart} removeFromCart={removeFromCart} updateCart={updateCart} />} />
             <Route path="/orders" element={<Orders />} />
-            <Route path="/login" element={<Login />} />
+            <Routae path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
         </main>
+        <a href="https://wa.me/1234567890" className="whatsapp-icon" target="_blank" rel="noopener noreferrer">
+          <i className="fab fa-whatsapp"></i>
+        </a>
+        <Footer />
       </div>
     </Router>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './Footer.css';
 
 const Footer = () => {
@@ -6,32 +7,33 @@ const Footer = () => {
     <footer className="footer">
       <div className="container">
         <div className="footer-content">
-          <div className="footer-section">
+          <div className="footer-section about">
             <h3 className="footer-title">SJG Stationary</h3>
-            <p className="footer-text">
-              Your one-stop shop for all your stationary and xerox needs.
+            <p>
+              Your one-stop shop for all your stationary needs. We offer a wide
+              variety of products to help you stay organized and creative.
             </p>
           </div>
-          <div className="footer-section">
+          <div className="footer-section links">
             <h3 className="footer-title">Quick Links</h3>
-            <ul className="footer-links">
-              <li><a href="/">Home</a></li>
-              <li><a href="/products">Products</a></li>
-              <li><a href="/services">Services</a></li>
-              <li><a href="/contact">Contact</a></li>
+            <ul>
+              <li><Link to="/">Home</Link></li>
+              <li><Link to="/products">Shop</Link></li>
+              <li><Link to="/services">Services</Link></li>
+              <li><Link to="/contact">Address</Link></li>
             </ul>
           </div>
-          <div className="footer-section">
-            <h3 className="footer-title">Follow Us</h3>
-            <div className="social-links">
-              <a href="#" className="social-link"><i className="fab fa-facebook-f"></i></a>
-              <a href="#" className="social-link"><i className="fab fa-twitter"></i></a>
-              <a href="#" className="social-link"><i className="fab fa-instagram"></i></a>
-            </div>
+          <div className="footer-section contact">
+            <h3 className="footer-title">Contact Us</h3>
+            <ul>
+              <li><i className="fas fa-map-marker-alt"></i> 123 Main Street, Anytown, USA</li>
+              <li><i className="fas fa-phone"></i> (123) 456-7890</li>
+              <li><i className="fas fa-envelope"></i> info@sjgstationary.com</li>
+            </ul>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>&copy; 2023 SJG Stationary. All Rights Reserved.</p>
+          <p>&copy; 2024 SJG Stationary. All Rights Reserved.</p>
         </div>
       </div>
     </footer>
