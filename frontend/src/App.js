@@ -54,7 +54,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/cart" element={<Cart cart={cart} removeFromCart={removeFromCart} updateCart={updateCart} />} />
             <Route path="/orders" element={<Orders />} />
-            <Routae path="/login" element={<Login />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/profile" element={<Profile />} />
