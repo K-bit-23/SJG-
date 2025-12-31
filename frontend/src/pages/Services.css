@@ -1,76 +1,48 @@
-.services-container {
+.services-page {
   padding: 80px 0;
-  font-family: 'Montserrat', sans-serif;
 }
 
 .page-title {
+  font-size: 3rem;
+  font-weight: 700;
   text-align: center;
-  font-size: 2.5rem;
-  margin-bottom: 40px;
-  color: #333;
+  margin-bottom: 60px;
 }
 
-.service-grid-full {
+.services-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 40px;
 }
 
-.service-card-full {
-  background-color: #fff;
+.service-card {
+  background: #fff;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  display: flex;
-  overflow: hidden;
-}
-
-.service-card-header {
-  background-color: #f07b3f;
-  color: #fff;
   padding: 40px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  flex: 0 0 250px;
+  align-items: flex-start;
+  gap: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
 }
 
-.service-card-header i {
-  font-size: 4rem;
-  margin-bottom: 20px;
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
-.service-card-header h3 {
-  font-size: 1.8rem;
+.service-icon {
+  font-size: 2.5rem;
+  color: #6e8efb;
 }
 
-.service-card-body {
-  padding: 40px;
-}
-
-.service-card-body p {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin-bottom: 20px;
-}
-
-.service-card-body ul {
-  list-style: disc;
-  padding-left: 20px;
-}
-
-.service-card-body ul li {
-  font-size: 1rem;
+.service-title {
+  font-size: 1.5rem;
+  font-weight: 600;
   margin-bottom: 10px;
 }
 
-@media screen and (max-width: 768px) {
-  .service-card-full {
-    flex-direction: column;
-  }
-
-  .service-card-header {
-    flex: 0 0 auto;
-  }
+.service-description {
+  font-size: 1rem;
+  line-height: 1.6;
 }

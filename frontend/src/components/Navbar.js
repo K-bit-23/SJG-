@@ -1,57 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Navbar.css';
-import logo from '../assets/logo.svg';
 
 const Navbar = ({ cartCount }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        <Link to="/" className="navbar-logo">
-          <img src={logo} alt="SJG Stationary & Xerox" />
-        </Link>
-        <ul className="nav-menu">
-          <li className="nav-item">
-            <Link to="/" className="nav-links"><i className="fas fa-home"></i>Home</Link>
-          </li>
-          <li className="nav-item dropdown">
-            <Link to="/products" className="nav-links"><i className="fas fa-box-open"></i>Products</Link>
-            <div className="dropdown-content">
-              {/* Product cards will be rendered here */}
-            </div>
-          </li>
-          <li className="nav-item">
-            <Link to="/services" className="nav-links"><i className="fas fa-concierge-bell"></i>Services</Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/orders" className="nav-links"><i className="fas fa-receipt"></i>Your Orders</Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/contact" className="nav-links"><i className="fas fa-address-book"></i>Contact</Link>
-          </li>
-        </ul>
-        <ul className="nav-menu-right">
-          <li className="nav-item">
-            <Link to="/cart" className="nav-links cart-icon">
+    <header className="header">
+      <div className="container">
+        <div className="header-content">
+          <Link to="/" className="logo">
+            SJG Stationary
+          </Link>
+          <nav className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
+            <ul className="nav-list">
+              <li className="nav-item">
+                <Link to="/" className="nav-link" onClick={() => setIsMenuOpen(false)}>Home</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/products" className="nav-link" onClick={() => setIsMenuOpen(false)}>Products</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/services" className="nav-link" onClick={() => setIsMenuOpen(false)}>Services</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/contact" className="nav-link" onClick={() => setIsMenuOpen(false)}>Contact</Link>
+              </li>
+            </ul>
+          </nav>
+          <div className="header-actions">
+            <Link to="/cart" className="cart-link">
               <i className="fas fa-shopping-cart"></i>
               {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
             </Link>
-          </li>
-          <li className="nav-item dropdown">
-            <span className="nav-links"><i className="fas fa-user-shield"></i>Admin</span>
-            <div className="dropdown-content">
-              <Link to="/admin/users">Users</Link>
-            </div>
-          </li>
-          <li className="nav-item">
-            <Link to="/login" className="nav-links"><i className="fas fa-sign-in-alt"></i>Login</Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/register" className="nav-links"><i className="fas fa-user-plus"></i>Register</Link>
-          </li>
-        </ul>
+            <Link to="/login" className="btn btn-primary">Login</Link>
+            <button className="menu-toggle" onClick={toggleMenu}>
+              <i className={isMenuOpen ? 'fas fa-times' : 'fas fa-bars'}></i>
+            </button>
+          </div>
+        </div>
       </div>
-    </nav>
+    </header>
   );
 };
 
