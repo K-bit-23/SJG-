@@ -1,0 +1,207 @@
+@import url('../../animations.css');
+@import url('./ProductManagement.css');
+
+.filters-bar {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.filters-bar .search-bar {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.status-filter select {
+    padding: 15px 20px;
+    border: none;
+    border-radius: 12px;
+    background: white;
+    font-size: 1rem;
+    color: #333;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    outline: none;
+}
+
+.order-id {
+    font-family: monospace;
+    font-weight: 600;
+    color: #6e8efb;
+}
+
+.customer-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.customer-name {
+    font-weight: 600;
+    color: #333;
+}
+
+.customer-email {
+    font-size: 0.85rem;
+    color: #999;
+}
+
+.order-total {
+    font-weight: 700;
+    color: #333;
+}
+
+.status-select {
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.status-select.status-pending {
+    background: linear-gradient(90deg, #ffa500, #ff8c00);
+}
+
+.status-select.status-processing {
+    background: linear-gradient(90deg, #6e8efb, #a777e3);
+}
+
+.status-select.status-shipped {
+    background: linear-gradient(90deg, #43e97b, #38f9d7);
+}
+
+.status-select.status-delivered {
+    background: linear-gradient(90deg, #00c9ff, #92fe9d);
+}
+
+.btn-view {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(110, 142, 251, 0.1);
+    color: #6e8efb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-view:hover {
+    background: #6e8efb;
+    color: white;
+}
+
+/* Order Modal Styles */
+.order-modal {
+    max-width: 800px;
+}
+
+.order-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.order-section h3 {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.order-section p {
+    margin: 8px 0;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.order-section strong {
+    color: #333;
+    width: 100px;
+    display: inline-block;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+}
+
+.status-badge.status-pending {
+    background: linear-gradient(90deg, #ffa500, #ff8c00);
+}
+
+.status-badge.status-processing {
+    background: linear-gradient(90deg, #6e8efb, #a777e3);
+}
+
+.status-badge.status-shipped {
+    background: linear-gradient(90deg, #43e97b, #38f9d7);
+}
+
+.status-badge.status-delivered {
+    background: linear-gradient(90deg, #00c9ff, #92fe9d);
+}
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.items-table th {
+    text-align: left;
+    padding: 12px;
+    background: #f8f9fa;
+    color: #666;
+    font-weight: 600;
+}
+
+.items-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.item-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.total-amount {
+    font-weight: 700;
+    color: #6e8efb;
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .filters-bar {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .order-details-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}

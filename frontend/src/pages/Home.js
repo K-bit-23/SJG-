@@ -40,7 +40,7 @@ const Home = () => {
                 <i className="fas fa-store"></i>
               </div>
               <h3>Who We Are</h3>
-              <p>SJG Stationery has been serving the community for over 10 years, providing high-quality stationery products and printing services.</p>
+              <p>SJG Stationery has been serving Erode for over 10 years, providing high-quality stationery products and printing services to students, professionals, and businesses.</p>
             </div>
             <div className="detail-card">
               <div className="detail-icon">
@@ -55,9 +55,9 @@ const Home = () => {
                 <i className="fas fa-map-marker-alt"></i>
               </div>
               <h3>Location</h3>
-              <p>123 Main Street, Downtown</p>
-              <p>City, State 12345</p>
-              <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="map-link">
+              <p>Sakthi Nagar, Thindal</p>
+              <p>Erode - 638012</p>
+              <a href="https://maps.google.com/?q=Sakthi+Nagar+Thindal+Erode" target="_blank" rel="noopener noreferrer" className="map-link">
                 <i className="fas fa-directions"></i> Get Directions
               </a>
             </div>
@@ -197,21 +197,21 @@ const Home = () => {
                 <i className="fas fa-phone"></i>
               </div>
               <h3>Phone</h3>
-              <a href="tel:+1234567890">+1 (234) 567-890</a>
+              <a href="tel:+919360024821">+91 93600 24821</a>
             </div>
             <div className="contact-card">
               <div className="contact-icon">
                 <i className="fas fa-envelope"></i>
               </div>
               <h3>Email</h3>
-              <a href="mailto:info@sjgstationery.com">info@sjgstationery.com</a>
+              <a href="mailto:sjgvxerox@gmail.com">sjgvxerox@gmail.com</a>
             </div>
             <div className="contact-card">
               <div className="contact-icon">
                 <i className="fab fa-whatsapp"></i>
               </div>
               <h3>WhatsApp</h3>
-              <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer">Chat with us</a>
+              <a href="https://wa.me/919360024821" target="_blank" rel="noopener noreferrer">Chat with us</a>
             </div>
           </div>
         </div>

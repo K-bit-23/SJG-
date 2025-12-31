@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import CartDropdown from './CartDropdown';
 import './Navbar.css';
 
@@ -8,7 +9,9 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { getCartItemsCount } = useCart();
+  const { user, isAuthenticated, openAuthModal, logout } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
@@ -32,6 +35,15 @@ const Navbar = () => {
 
   const closeCart = () => {
     setIsCartOpen(false);
+  };
+
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen(!isUserMenuOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIsUserMenuOpen(false);
   };
 
   const isActive = (path) => {
@@ -66,6 +78,62 @@ const Navbar = () => {
         </div>
 
         <div className="navbar-actions">
+          {isAuthenticated ? (
+            <div className="user-menu-wrapper">
+              <button
+                className="user-button"
+                onClick={toggleUserMenu}
+                aria-label="User Menu"
+              >
+                <img src={user.avatar} alt={user.name} className="user-avatar" />
+                <span className="user-name">{user.name}</span>
+                <span className={`user-role ${user.role}`}>{user.role}</span>
+                <i className={`fas fa-chevron-down ${isUserMenuOpen ? 'rotate' : ''}`}></i>
+              </button>
+
+              {isUserMenuOpen && (
+                <div className="user-dropdown">
+                  <div className="user-dropdown-header">
+                    <img src={user.avatar} alt={user.name} />
+                    <div>
+                      <p className="dropdown-name">{user.name}</p>
+                      <p className="dropdown-email">{user.email}</p>
+                    </div>
+                  </div>
+                  <div className="user-dropdown-divider"></div>
+                  <button className="dropdown-item">
+                    <i className="fas fa-user"></i>
+                    <span>Profile</span>
+                  </button>
+                  <button className="dropdown-item">
+                    <i className="fas fa-cog"></i>
+                    <span>Settings</span>
+                  </button>
+                  {user.role === 'admin' && (
+                    <Link to="/admin" className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
+                      <i className="fas fa-shield-alt"></i>
+                      <span>Admin Panel</span>
+                    </Link>
+                  )}
+                  <div className="user-dropdown-divider"></div>
+                  <button className="dropdown-item logout" onClick={handleLogout}>
+                    <i className="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              className="login-button"
+              onClick={openAuthModal}
+              aria-label="Login"
+            >
+              <i className="fas fa-user"></i>
+              <span>Login</span>
+            </button>
+          )}
+
           <button
             className="cart-button"
             onClick={toggleCart}

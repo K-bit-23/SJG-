@@ -1,74 +1,102 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { CartProvider } from './context/CartContext';
+import { AuthProvider } from './context/AuthContext';
+import { OrderProvider } from './context/OrderContext';
+import { ProductProvider } from './context/ProductContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import AuthModal from './components/AuthModal';
+import FloatingContactIcons from './components/FloatingContactIcons';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
-import About from './pages/About';
 import Products from './pages/Products';
-import Services from './pages/Services';
-import Contact from './pages/Contact';
-import Cart from './pages/Cart';
-import Orders from './pages/Orders';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import Profile from './pages/Profile';
+import Checkout from './pages/Checkout';
+import OrderConfirmation from './pages/OrderConfirmation';
+import MyOrders from './pages/MyOrders';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import ProductManagement from './pages/admin/ProductManagement';
+import OrderManagement from './pages/admin/OrderManagement';
+import CustomerManagement from './pages/admin/CustomerManagement';
 import './App.css';
+import './animations.css';
 
 function App() {
-  const [cart, setCart] = useState([]);
-  const [products, setProducts] = useState([]);
-
-  useEffect(() => {
-    fetch('/api/products/')
-      .then(response => response.json())
-      .then(data => setProducts(data));
-  }, []);
-
-  const addToCart = (product) => {
-    setCart([...cart, { ...product, quantity: 1 }]);
-  };
-
-  const removeFromCart = (productId) => {
-    setCart(cart.filter(product => product.id !== productId));
-  };
-
-  const updateCart = (productId, quantity) => {
-    setCart(
-      cart.map(product =>
-        product.id === productId ? { ...product, quantity: quantity } : product
-      )
-    );
-  };
-
   return (
-    <Router>
-      <div className="app-container">
-        <Navbar cartCount={cart.length} />
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/products" element={<Products products={products} addToCart={addToCart} />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/cart" element={<Cart cart={cart} removeFromCart={removeFromCart} updateCart={updateCart} />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/profile" element={<Profile />} />
-          </Routes>
-        </main>
-        <a href="https://wa.me/919360024821" className="whatsapp-icon" target="_blank" rel="noopener noreferrer">
-          <i className="fab fa-whatsapp"></i>
-        </a>
-        <a href="mailto:sjgvxerox@gmail.com" className="mail-icon" target="_blank" rel="noopener noreferrer">
-          <i className="fas fa-envelope"></i>
-        </a>
-        <Footer />
-      </div>
-    </Router>
+    <AuthProvider>
+      <ProductProvider>
+        <OrderProvider>
+          <CartProvider>
+            <Router>
+              <div className="App">
+                <Navbar />
+                <AuthModal />
+                <FloatingContactIcons />
+                <main className="main-content">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/products" element={<Products />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+                    <Route path="/my-orders" element={<MyOrders />} />
+
+                    {/* Admin Routes */}
+                    <Route
+                      path="/admin"
+                      element={
+                        <ProtectedRoute adminOnly={true}>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/products"
+                      element={
+                        <ProtectedRoute adminOnly={true}>
+                          <div className="admin-layout">
+                            <AdminDashboard />
+                            <div className="admin-page-content">
+                              <ProductManagement />
+                            </div>
+                          </div>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/orders"
+                      element={
+                        <ProtectedRoute adminOnly={true}>
+                          <div className="admin-layout">
+                            <AdminDashboard />
+                            <div className="admin-page-content">
+                              <OrderManagement />
+                            </div>
+                          </div>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/admin/customers"
+                      element={
+                        <ProtectedRoute adminOnly={true}>
+                          <div className="admin-layout">
+                            <AdminDashboard />
+                            <div className="admin-page-content">
+                              <CustomerManagement />
+                            </div>
+                          </div>
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </main>
+                <Footer />
+              </div>
+            </Router>
+          </CartProvider>
+        </OrderProvider>
+      </ProductProvider>
+    </AuthProvider>
   );
 }
 

@@ -43,16 +43,16 @@ echo.
 
 REM Start backend server
 echo [%TIME%] Starting backend server on port 8000... >> "!LOG_FILE!"
-echo Starting backend server on port 8000...
-start "Backend Server" cmd /k "cd /d !PROJECT_DIR! && cd backend && (echo [%TIME%] Backend initialized >> !LOG_FILE!) && python manage.py runserver"
+echo Starting backend server on 0.0.0.0:8000 (all devices)...
+start "Backend Server" cmd /k "cd /d !PROJECT_DIR! && cd backend && (echo [%TIME%] Backend initialized >> !LOG_FILE!) && python manage.py runserver 0.0.0.0:8000"
 
 REM Wait a moment
 timeout /t 2 /nobreak
 
 REM Start frontend server
 echo [%TIME%] Starting frontend server on port 3000... >> "!LOG_FILE!"
-echo Starting frontend server on port 3000...
-start "Frontend Server" cmd /k "cd /d !PROJECT_DIR! && cd frontend && (echo [%TIME%] Frontend initialized >> !LOG_FILE!) && npm start"
+echo Starting frontend server on 0.0.0.0:3000 (all devices)...
+start "Frontend Server" cmd /k "cd /d !PROJECT_DIR! && cd frontend && (echo [%TIME%] Frontend initialized >> !LOG_FILE!) && set HOST=0.0.0.0 && npm start"
 
 echo. >> "!LOG_FILE!"
 echo [%TIME%] All servers started >> "!LOG_FILE!"
@@ -62,7 +62,8 @@ echo.
 echo ========================================
 echo Both servers are starting!
 echo ========================================
-echo Backend: http://localhost:8000
-echo Frontend: http://localhost:3000
+echo Network IP: %IP%
+echo Backend: http://%IP%:8000
+echo Frontend: http://%IP%:3000
 echo.
 echo Log file: !LOG_FILE!
