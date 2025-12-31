@@ -63,6 +63,9 @@ function App() {
         <a href="https://wa.me/919360024821" className="whatsapp-icon" target="_blank" rel="noopener noreferrer">
           <i className="fab fa-whatsapp"></i>
         </a>
+        <a href="mailto:sjgvxerox@gmail.com" className="mail-icon" target="_blank" rel="noopener noreferrer">
+          <i className="fas fa-envelope"></i>
+        </a>
         <Footer />
       </div>
     </Router>
