@@ -19,33 +19,26 @@ const Navbar = ({ cartCount }) => {
           <nav className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
             <ul className="nav-list">
               <li className="nav-item">
-                <Link to="/" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-                  <i className="fas fa-home"></i> Home
-                </Link>
+                <Link to="/" className="nav-link" onClick={() => setIsMenuOpen(false)}>Home</Link>
               </li>
               <li className="nav-item">
-                <Link to="/about" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-                  <i className="fas fa-info-circle"></i> About
-                </Link>
+                <Link to="/products" className="nav-link" onClick={() => setIsMenuOpen(false)}>Shop</Link>
               </li>
               <li className="nav-item">
-                <Link to="/products" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-                  <i className="fas fa-box-open"></i> Products
-                </Link>
+                <Link to="/" className="nav-link" onClick={() => setIsMenuOpen(false)}>Portfolio</Link>
               </li>
               <li className="nav-item">
-                <Link to="/services" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-                  <i className="fas fa-concierge-bell"></i> Services
-                </Link>
+                <Link to="/services" className="nav-link" onClick={() => setIsMenuOpen(false)}>Services</Link>
               </li>
               <li className="nav-item">
-                <Link to="/contact" className="nav-link" onClick={() => setIsMenuOpen(false)}>
-                  <i className="fas fa-envelope"></i> Contact
-                </Link>
+                <Link to="/contact" className="nav-link" onClick={() => setIsMenuOpen(false)}>Address</Link>
               </li>
             </ul>
           </nav>
           <div className="header-actions">
+            <Link to="/profile" className="nav-link">
+              <i className="fas fa-user"></i>
+            </Link>
             <Link to="/cart" className="cart-link">
               <i className="fas fa-shopping-cart"></i>
               {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
