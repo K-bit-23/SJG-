@@ -1,0 +1,16 @@
+========================================
+Project Startup Log
+========================================
+Date: 2025-12-31
+Time: 14:30
+System IP: 192.168.1.100
+Project: C:\Users\KARTHIKEYAN\Desktop\final\SJG-
+
+[14:30] Initializing servers...
+[14:30] Starting backend server on port 8000...
+[14:30] Backend initialized
+[14:32] Starting frontend server on port 3000...
+[14:32] Frontend initialized
+
+[14:32] All servers started
+
