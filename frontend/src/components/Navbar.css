@@ -1,5 +1,5 @@
 .navbar {
-  background: #fff;
+  background: linear-gradient(90deg, #6e8efb, #a777e3);
   height: 80px;
   display: flex;
   justify-content: center;
@@ -9,6 +9,7 @@
   top: 0;
   z-index: 999;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-family: 'Montserrat', sans-serif;
 }
 
 .navbar-container {
@@ -23,7 +24,6 @@
 }
 
 .navbar-logo {
-  color: #333;
   justify-self: start;
   cursor: pointer;
   text-decoration: none;
@@ -34,6 +34,11 @@
 .navbar-logo img {
   height: 50px;
   width: auto;
+  transition: all 0.3s ease;
+}
+
+.navbar-logo img:hover {
+  transform: scale(1.1);
 }
 
 .nav-menu {
@@ -55,7 +60,7 @@
 }
 
 .nav-links {
-  color: #333;
+  color: #fff;
   display: flex;
   align-items: center;
   text-decoration: none;
@@ -67,11 +72,55 @@
 
 .nav-links:hover {
   color: #f07b3f;
+  border-bottom: 4px solid #f07b3f;
+}
+
+.nav-links i {
+  margin-right: 8px;
+  font-size: 1.5rem;
 }
 
 .cart-icon {
   font-size: 1.5rem;
 }
+
+.cart-count {
+  background: #f07b3f;
+  color: #fff;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  margin-left: 5px;
+  vertical-align: top;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.dropdown-content a:hover {background-color: #f1f1f1;}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
 
 @media screen and (max-width: 960px) {
   .navbar-container {
