@@ -25,17 +25,17 @@ const AdminDashboard = () => {
                         <i className="fas fa-chart-line"></i>
                         <span>Dashboard</span>
                     </Link>
-                    <Link to="/admin/products" className="nav-item">
+                    <Link to="/admin/inventory" className="nav-item">
                         <i className="fas fa-box"></i>
-                        <span>Products</span>
+                        <span>Inventory</span>
                     </Link>
                     <Link to="/admin/orders" className="nav-item">
                         <i className="fas fa-shopping-bag"></i>
                         <span>Orders</span>
                     </Link>
-                    <Link to="/admin/customers" className="nav-item">
+                    <Link to="/admin/users" className="nav-item">
                         <i className="fas fa-users"></i>
-                        <span>Customers</span>
+                        <span>Users</span>
                     </Link>
                     <Link to="/" className="nav-item">
                         <i className="fas fa-home"></i>
@@ -95,7 +95,7 @@ const AdminDashboard = () => {
                 <div className="quick-actions">
                     <h2>Quick Actions</h2>
                     <div className="actions-grid">
-                        <Link to="/admin/products" className="action-card">
+                        <Link to="/admin/inventory" className="action-card">
                             <i className="fas fa-plus-circle"></i>
                             <span>Add New Product</span>
                         </Link>
@@ -103,9 +103,9 @@ const AdminDashboard = () => {
                             <i className="fas fa-list"></i>
                             <span>View All Orders</span>
                         </Link>
-                        <Link to="/admin/customers" className="action-card">
+                        <Link to="/admin/users" className="action-card">
                             <i className="fas fa-users"></i>
-                            <span>Manage Customers</span>
+                            <span>Manage Users</span>
                         </Link>
                         <Link to="/products" className="action-card">
                             <i className="fas fa-store"></i>

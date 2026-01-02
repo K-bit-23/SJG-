@@ -10,16 +10,20 @@ export const useAuth = () => {
     return context;
 };
 
+const initialUsers = [
+    { id: 1, name: 'John Doe', email: 'john.doe@example.com', role: 'Admin', avatar: 'https://ui-avatars.com/api/?name=John+Doe&background=6e8efb&color=fff' },
+    { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Customer', avatar: 'https://ui-avatars.com/api/?name=Jane+Smith&background=6e8efb&color=fff' },
+];
+
 export const AuthProvider = ({ children }) => {
+    const [users, setUsers] = useState(initialUsers);
     const [user, setUser] = useState(() => {
-        // Load user from localStorage on initialization
         const savedUser = localStorage.getItem('user');
         return savedUser ? JSON.parse(savedUser) : null;
     });
 
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-    // Save user to localStorage whenever it changes
     useEffect(() => {
         if (user) {
             localStorage.setItem('user', JSON.stringify(user));
@@ -30,8 +34,6 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password, rememberMe = false) => {
         try {
-            // Simulate API call
-            // In production, this would be an actual API call
             const mockUser = {
                 id: Date.now(),
                 email: email,
@@ -42,6 +44,7 @@ export const AuthProvider = ({ children }) => {
             };
 
             setUser(mockUser);
+            setUsers(prev => [...prev, mockUser]);
             setIsAuthModalOpen(false);
             return { success: true, user: mockUser };
         } catch (error) {
@@ -51,7 +54,6 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (userData) => {
         try {
-            // Simulate API call
             const newUser = {
                 id: Date.now(),
                 email: userData.email,
@@ -62,6 +64,7 @@ export const AuthProvider = ({ children }) => {
             };
 
             setUser(newUser);
+            setUsers(prev => [...prev, newUser]);
             setIsAuthModalOpen(false);
             return { success: true, user: newUser };
         } catch (error) {
@@ -71,7 +74,6 @@ export const AuthProvider = ({ children }) => {
 
     const loginWithGoogle = async () => {
         try {
-            // Simulate Google OAuth
             const mockUser = {
                 id: Date.now(),
                 email: 'user@gmail.com',
@@ -83,6 +85,7 @@ export const AuthProvider = ({ children }) => {
             };
 
             setUser(mockUser);
+            setUsers(prev => [...prev, mockUser]);
             setIsAuthModalOpen(false);
             return { success: true, user: mockUser };
         } catch (error) {
@@ -92,12 +95,10 @@ export const AuthProvider = ({ children }) => {
 
     const loginWithBiometric = async () => {
         try {
-            // Check if WebAuthn is supported
             if (!window.PublicKeyCredential) {
                 throw new Error('Biometric authentication is not supported on this device');
             }
 
-            // Simulate biometric authentication
             const mockUser = {
                 id: Date.now(),
                 email: 'biometric@user.com',
@@ -109,6 +110,7 @@ export const AuthProvider = ({ children }) => {
             };
 
             setUser(mockUser);
+            setUsers(prev => [...prev, mockUser]);
             setIsAuthModalOpen(false);
             return { success: true, user: mockUser };
         } catch (error) {
@@ -129,8 +131,17 @@ export const AuthProvider = ({ children }) => {
         setIsAuthModalOpen(false);
     };
 
+    const updateUserRole = (userId, newRole) => {
+        setUsers(users.map(user => user.id === userId ? { ...user, role: newRole } : user));
+    };
+
+    const deleteUser = (userId) => {
+        setUsers(users.filter(user => user.id !== userId));
+    };
+
     const value = {
         user,
+        users,
         isAuthenticated: !!user,
         isAuthModalOpen,
         login,
@@ -139,7 +150,9 @@ export const AuthProvider = ({ children }) => {
         loginWithBiometric,
         logout,
         openAuthModal,
-        closeAuthModal
+        closeAuthModal,
+        updateUserRole,
+        deleteUser
     };
 
     return (

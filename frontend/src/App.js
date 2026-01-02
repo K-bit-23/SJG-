@@ -15,9 +15,9 @@ import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
 import MyOrders from './pages/MyOrders';
 import AdminDashboard from './pages/admin/AdminDashboard';
-import ProductManagement from './pages/admin/ProductManagement';
+import InventoryManagement from './pages/admin/InventoryManagement';
 import OrderManagement from './pages/admin/OrderManagement';
-import CustomerManagement from './pages/admin/CustomerManagement';
+import UserManagement from './pages/admin/UserManagement';
 import './App.css';
 import './animations.css';
 
@@ -50,13 +50,13 @@ function App() {
                       }
                     />
                     <Route
-                      path="/admin/products"
+                      path="/admin/inventory"
                       element={
                         <ProtectedRoute adminOnly={true}>
                           <div className="admin-layout">
                             <AdminDashboard />
                             <div className="admin-page-content">
-                              <ProductManagement />
+                              <InventoryManagement />
                             </div>
                           </div>
                         </ProtectedRoute>
@@ -76,13 +76,13 @@ function App() {
                       }
                     />
                     <Route
-                      path="/admin/customers"
+                      path="/admin/users"
                       element={
                         <ProtectedRoute adminOnly={true}>
                           <div className="admin-layout">
                             <AdminDashboard />
                             <div className="admin-page-content">
-                              <CustomerManagement />
+                              <UserManagement />
                             </div>
                           </div>
                         </ProtectedRoute>

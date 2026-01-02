@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useProducts } from '../../context/ProductContext';
-import './ProductManagement.css';
+import './InventoryManagement.css';
 
-const ProductManagement = () => {
+const InventoryManagement = () => {
     const { products, addProduct, updateProduct, deleteProduct } = useProducts();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
@@ -80,7 +80,7 @@ const ProductManagement = () => {
     return (
         <div className="admin-page">
             <div className="page-header">
-                <h1>Product Management</h1>
+                <h1>Inventory Management</h1>
                 <button className="btn-add" onClick={() => handleOpenModal()}>
                     <i className="fas fa-plus"></i> Add New Product
                 </button>
@@ -220,4 +220,4 @@ const ProductManagement = () => {
     );
 };
 
-export default ProductManagement;
+export default InventoryManagement;
