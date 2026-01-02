@@ -1,69 +1,72 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
+import { useAuth } from './AuthContext';
 
 const OrderContext = createContext();
 
 export const useOrders = () => {
-    const context = useContext(OrderContext);
-    if (!context) {
-        throw new Error('useOrders must be used within an OrderProvider');
-    }
-    return context;
+    return useContext(OrderContext);
 };
 
 export const OrderProvider = ({ children }) => {
-    const [orders, setOrders] = useState(() => {
-        const savedOrders = localStorage.getItem('orders');
-        return savedOrders ? JSON.parse(savedOrders) : [];
-    });
+    const [orders, setOrders] = useState([]);
+    const { user, isAuthenticated } = useAuth();
 
     useEffect(() => {
-        localStorage.setItem('orders', JSON.stringify(orders));
-    }, [orders]);
-
-    const placeOrder = (orderData) => {
-        const newOrder = {
-            id: `ORD-${Date.now()}`,
-            ...orderData,
-            status: 'Pending',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+        const fetchOrders = async () => {
+            if (isAuthenticated) {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await axios.get('http://localhost:8000/api/orders/', {
+                        headers: { Authorization: `Token ${token}` }
+                    });
+                    setOrders(response.data);
+                } catch (error) {
+                    console.error('Error fetching orders:', error);
+                }
+            }
         };
+        fetchOrders();
+    }, [isAuthenticated]);
 
-        setOrders(prev => [newOrder, ...prev]);
-        return newOrder;
+    const placeOrder = async (orderData) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post('http://localhost:8000/api/orders/', orderData, {
+                headers: { Authorization: `Token ${token}` }
+            });
+            setOrders(prev => [response.data, ...prev]);
+            return response.data;
+        } catch (error) {
+            console.error('Error placing order:', error);
+            throw error;
+        }
     };
 
-    const updateOrderStatus = (orderId, newStatus) => {
-        setOrders(prev =>
-            prev.map(order =>
-                order.id === orderId
-                    ? { ...order, status: newStatus, updatedAt: new Date().toISOString() }
-                    : order
-            )
-        );
+    const updateOrderStatus = async (orderId, newStatus) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.patch(`http://localhost:8000/api/orders/${orderId}/`, { status: newStatus }, {
+                headers: { Authorization: `Token ${token}` }
+            });
+            setOrders(prev =>
+                prev.map(order =>
+                    order.id === orderId ? response.data : order
+                )
+            );
+        } catch (error) {
+            console.error('Error updating order status:', error);
+            throw error;
+        }
     };
-
+    
     const getOrderById = (orderId) => {
         return orders.find(order => order.id === orderId);
     };
-
-    const getUserOrders = (userEmail) => {
-        return orders.filter(order => order.customerEmail === userEmail);
-    };
-
-    const getAllOrders = () => {
-        return orders;
-    };
-
-    const getOrderStats = () => {
-        return {
-            total: orders.length,
-            pending: orders.filter(o => o.status === 'Pending').length,
-            processing: orders.filter(o => o.status === 'Processing').length,
-            shipped: orders.filter(o => o.status === 'Shipped').length,
-            delivered: orders.filter(o => o.status === 'Delivered').length,
-            totalRevenue: orders.reduce((sum, order) => sum + order.total, 0)
-        };
+    
+    const getUserOrders = () => {
+        if (!user) return [];
+        return orders.filter(order => order.customer_email === user.email);
     };
 
     const value = {
@@ -72,8 +75,6 @@ export const OrderProvider = ({ children }) => {
         updateOrderStatus,
         getOrderById,
         getUserOrders,
-        getAllOrders,
-        getOrderStats
     };
 
     return (

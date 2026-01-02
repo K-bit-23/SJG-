@@ -1,175 +1,74 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
+    return useContext(AuthContext);
 };
 
-const initialUsers = [
-    { id: 1, name: 'Admin User', email: 'sjgvxerox@gmail.com', role: 'admin', avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=6e8efb&color=fff' },
-    { id: 2, name: 'karthikeyan', email: 'karthikeyanp.24mca@kongu.edu', role: 'user', avatar: 'https://ui-avatars.com/api/?name=Jane+Smith&background=6e8efb&color=fff' },
-];
-
 export const AuthProvider = ({ children }) => {
-    const [users, setUsers] = useState(initialUsers);
-    const [user, setUser] = useState(() => {
-        const savedUser = localStorage.getItem('user');
-        return savedUser ? JSON.parse(savedUser) : null;
-    });
-
+    const [user, setUser] = useState(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     useEffect(() => {
-        if (user) {
-            localStorage.setItem('user', JSON.stringify(user));
-        } else {
-            localStorage.removeItem('user');
-        }
-    }, [user]);
-
-    const login = async (email, password, rememberMe = false) => {
-        try {
-            // Check for admin credentials
-            if (email === 'sjgvxerox@gmail.com' && password === '@Admin24821') {
-                const adminUser = {
-                    id: 1,
-                    email: email,
-                    name: 'Admin User',
-                    role: 'admin',
-                    avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=6e8efb&color=fff'
-                };
-                setUser(adminUser);
-                setIsAuthModalOpen(false);
-                return { success: true, user: adminUser };
+        const fetchUser = async () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await axios.get('http://localhost:8000/api/auth/user/', {
+                        headers: { Authorization: `Token ${token}` }
+                    });
+                    setUser(response.data);
+                } catch (error) {
+                    localStorage.removeItem('token');
+                }
             }
+        };
+        fetchUser();
+    }, []);
 
-            // Mock logic for other users
-            const mockUser = {
-                id: Date.now(),
-                email: email,
-                name: email.split('@')[0],
-                role: 'user',
-                mobile: '',
-                avatar: `https://ui-avatars.com/api/?name=${email.split('@')[0]}&background=6e8efb&color=fff`
-            };
-
-            setUser(mockUser);
-            setUsers(prev => [...prev, mockUser]);
+    const login = async (email, password) => {
+        try {
+            const response = await axios.post('http://localhost:8000/api/auth/login/', { email, password });
+            localStorage.setItem('token', response.data.token);
+            setUser(response.data.user);
             setIsAuthModalOpen(false);
-            return { success: true, user: mockUser };
+            return { success: true, user: response.data.user };
         } catch (error) {
-            return { success: false, error: error.message };
+            return { success: false, error: error.response.data.error };
         }
     };
 
     const register = async (userData) => {
         try {
-            const newUser = {
-                id: Date.now(),
-                email: userData.email,
-                name: userData.email.split('@')[0],
-                role: 'user', // All new registrations are users
-                mobile: userData.mobile || '',
-                avatar: `https://ui-avatars.com/api/?name=${userData.email.split('@')[0]}&background=6e8efb&color=fff`
-            };
-
-            setUser(newUser);
-            setUsers(prev => [...prev, newUser]);
+            const response = await axios.post('http://localhost:8000/api/auth/register/', userData);
+            localStorage.setItem('token', response.data.token);
+            setUser(response.data.user);
             setIsAuthModalOpen(false);
-            return { success: true, user: newUser };
+            return { success: true, user: response.data.user };
         } catch (error) {
-            return { success: false, error: error.message };
-        }
-    };
-
-    const loginWithGoogle = async () => {
-        try {
-            const mockUser = {
-                id: Date.now(),
-                email: 'user@gmail.com',
-                name: 'Google User',
-                role: 'user',
-                mobile: '',
-                avatar: 'https://ui-avatars.com/api/?name=Google+User&background=6e8efb&color=fff',
-                provider: 'google'
-            };
-
-            setUser(mockUser);
-            setUsers(prev => [...prev, mockUser]);
-            setIsAuthModalOpen(false);
-            return { success: true, user: mockUser };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    };
-
-    const loginWithBiometric = async () => {
-        try {
-            if (!window.PublicKeyCredential) {
-                throw new Error('Biometric authentication is not supported on this device');
-            }
-
-            const mockUser = {
-                id: Date.now(),
-                email: 'biometric@user.com',
-                name: 'Biometric User',
-                role: 'user',
-                mobile: '',
-                avatar: 'https://ui-avatars.com/api/?name=Biometric+User&background=6e8efb&color=fff',
-                provider: 'biometric'
-            };
-
-            setUser(mockUser);
-            setUsers(prev => [...prev, mockUser]);
-            setIsAuthModalOpen(false);
-            return { success: true, user: mockUser };
-        } catch (error) {
-            return { success: false, error: error.message };
+            return { success: false, error: error.response.data.error };
         }
     };
 
     const logout = () => {
+        localStorage.removeItem('token');
         setUser(null);
-        localStorage.removeItem('user');
     };
 
-    const openAuthModal = () => {
-        setIsAuthModalOpen(true);
-    };
-
-    const closeAuthModal = () => {
-        setIsAuthModalOpen(false);
-    };
-
-    const updateUserRole = (userId, newRole) => {
-        setUsers(users.map(user => user.id === userId ? { ...user, role: newRole } : user));
-    };
-
-
-
-    const deleteUser = (userId) => {
-        setUsers(users.filter(user => user.id !== userId));
-    };
+    const openAuthModal = () => setIsAuthModalOpen(true);
+    const closeAuthModal = () => setIsAuthModalOpen(false);
 
     const value = {
         user,
-        users,
         isAuthenticated: !!user,
         isAuthModalOpen,
         login,
         register,
-        loginWithGoogle,
-        loginWithBiometric,
         logout,
         openAuthModal,
-        closeAuthModal,
-        updateUserRole,
-        deleteUser
+        closeAuthModal
     };
 
     return (

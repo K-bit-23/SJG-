@@ -1,65 +1,65 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import productsData from '../data/productsData';
+import axios from 'axios';
 
 const ProductContext = createContext();
 
 export const useProducts = () => {
-    const context = useContext(ProductContext);
-    if (!context) {
-        throw new Error('useProducts must be used within a ProductProvider');
-    }
-    return context;
+    return useContext(ProductContext);
 };
 
 export const ProductProvider = ({ children }) => {
-    const [products, setProducts] = useState(() => {
-        const savedProducts = localStorage.getItem('products');
-        return savedProducts ? JSON.parse(savedProducts) : productsData;
-    });
+    const [products, setProducts] = useState([]);
 
     useEffect(() => {
-        localStorage.setItem('products', JSON.stringify(products));
-    }, [products]);
-
-    const addProduct = (productData) => {
-        const newProduct = {
-            id: Date.now(),
-            ...productData,
-            createdAt: new Date().toISOString()
+        const fetchProducts = async () => {
+            try {
+                const response = await axios.get('http://localhost:8000/api/products/');
+                setProducts(response.data);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
         };
 
-        setProducts(prev => [...prev, newProduct]);
-        return newProduct;
+        fetchProducts();
+    }, []);
+
+    const addProduct = async (productData) => {
+        try {
+            const response = await axios.post('http://localhost:8000/api/products/', productData);
+            setProducts(prev => [...prev, response.data]);
+            return response.data;
+        } catch (error) {
+            console.error('Error adding product:', error);
+            throw error;
+        }
     };
 
-    const updateProduct = (productId, updatedData) => {
-        setProducts(prev =>
-            prev.map(product =>
-                product.id === productId
-                    ? { ...product, ...updatedData, updatedAt: new Date().toISOString() }
-                    : product
-            )
-        );
+    const updateProduct = async (productId, updatedData) => {
+        try {
+            const response = await axios.put(`http://localhost:8000/api/products/${productId}/`, updatedData);
+            setProducts(prev =>
+                prev.map(product =>
+                    product.id === productId ? response.data : product
+                )
+            );
+        } catch (error) {
+            console.error('Error updating product:', error);
+            throw error;
+        }
     };
 
-    const deleteProduct = (productId) => {
-        setProducts(prev => prev.filter(product => product.id !== productId));
+    const deleteProduct = async (productId) => {
+        try {
+            await axios.delete(`http://localhost:8000/api/products/${productId}/`);
+            setProducts(prev => prev.filter(product => product.id !== productId));
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            throw error;
+        }
     };
-
+    
     const getProductById = (productId) => {
         return products.find(product => product.id === productId);
-    };
-
-    const getAllProducts = () => {
-        return products;
-    };
-
-    const getProductStats = () => {
-        return {
-            total: products.length,
-            categories: [...new Set(products.map(p => p.category))].length,
-            avgPrice: products.reduce((sum, p) => sum + p.price, 0) / products.length
-        };
     };
 
     const value = {
@@ -68,8 +68,6 @@ export const ProductProvider = ({ children }) => {
         updateProduct,
         deleteProduct,
         getProductById,
-        getAllProducts,
-        getProductStats
     };
 
     return (

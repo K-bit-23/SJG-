@@ -1,31 +1,37 @@
-import React, { useCallback, useState } from 'react';
-import { useDropzone } from 'react-dropzone';
+import React, { useState, useRef } from 'react';
 import './ImageDropzone.css';
 
 const ImageDropzone = ({ onDrop, existingImage }) => {
     const [preview, setPreview] = useState(existingImage || null);
+    const fileInputRef = useRef(null);
 
-    const onDropAccepted = useCallback(acceptedFiles => {
-        const file = acceptedFiles[0];
-        const reader = new FileReader();
-        reader.onload = () => {
-            setPreview(reader.result);
-            if (onDrop) {
-                onDrop(reader.result);
-            }
-        };
-        reader.readAsDataURL(file);
-    }, [onDrop]);
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                setPreview(reader.result);
+                if (onDrop) {
+                    onDrop(reader.result);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        onDrop: onDropAccepted,
-        accept: 'image/*',
-        multiple: false
-    });
+    const handleClick = () => {
+        fileInputRef.current.click();
+    };
 
     return (
-        <div {...getRootProps()} className={`image-dropzone ${isDragActive ? 'active' : ''}`}>
-            <input {...getInputProps()} />
+        <div className="image-dropzone" onClick={handleClick}>
+            <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                style={{ display: 'none' }}
+            />
             {
                 preview ? (
                     <div className="image-preview">
@@ -34,9 +40,8 @@ const ImageDropzone = ({ onDrop, existingImage }) => {
                     </div>
                 ) : (
                     <div className="dropzone-placeholder">
-                        <i className="fas fa-cloud-upload-alt"></i>
-                        <p>Drag & drop an image here, or click to select one</p>
-                        <span>(Max file size: 5MB)</span>
+                        <i className="fas fa-image"></i>
+                        <p>Select an image</p>
                     </div>
                 )
             }
