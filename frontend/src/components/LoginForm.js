@@ -32,16 +32,6 @@ const LoginForm = ({ onSwitchToRegister }) => {
         setLoading(false);
     };
 
-    const handleAdminLogin = async () => {
-        setError('');
-        setLoading(true);
-        const result = await login('sjgvxerox@gmail.com', '@Admin24821');
-        if (!result.success) {
-            setError(result.error || 'Admin login failed');
-        }
-        setLoading(false);
-    };
-
     const handleGoogleLogin = async () => {
         setError('');
         setLoading(true);
@@ -139,10 +129,6 @@ const LoginForm = ({ onSwitchToRegister }) => {
                 <button className="btn-biometric" onClick={handleBiometricLogin} disabled={loading}>
                     <i className="fas fa-fingerprint"></i>
                     <span>Use Biometric</span>
-                </button>
-                <button className="btn-admin-login" onClick={handleAdminLogin} disabled={loading} style={{ marginTop: '10px', width: '100%', background: '#333', color: 'white' }}>
-                    <i className="fas fa-user-shield"></i>
-                    <span>Login as Admin</span>
                 </button>
             </div>
 
