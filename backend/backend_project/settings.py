@@ -56,13 +56,13 @@ WSGI_APPLICATION = 'backend_project.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'djongo',
-        'NAME': 'sjg',
-        'CLIENT': {
-            'host': 'mongodb://localhost:27017/'
-        }
-    }
-}
+            'ENGINE': 'djongo',
+                    'NAME': 'sjg',
+                            'CLIENT': {
+                                        'host': 'mongodb://localhost:27017/'
+                                                }
+                                                    }
+                                                    }
 
 AUTH_PASSWORD_VALIDATORS = []
 
@@ -88,3 +88,19 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:3000',
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'sjgvxerox@gmail.com'
+EMAIL_HOST_PASSWORD = 'your_password'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ]
+}
