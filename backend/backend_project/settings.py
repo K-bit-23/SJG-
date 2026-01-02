@@ -94,7 +94,11 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'sjgvxerox@gmail.com'
+<<<<<<< HEAD
 EMAIL_HOST_PASSWORD = '@Admin24821'
+=======
+EMAIL_HOST_PASSWORD = 'your_password'
+>>>>>>> ea8afee5e1a01b3679da9604a6d7bd0bb9b542ba
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
