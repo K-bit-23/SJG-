@@ -36,7 +36,8 @@ export const AuthProvider = ({ children }) => {
             setIsAuthModalOpen(false);
             return { success: true, user: response.data.user };
         } catch (error) {
-            return { success: false, error: error.response.data.error };
+            const errorMessage = error.response?.data?.error || 'An unexpected error occurred.';
+            return { success: false, error: errorMessage };
         }
     };
 
@@ -48,7 +49,8 @@ export const AuthProvider = ({ children }) => {
             setIsAuthModalOpen(false);
             return { success: true, user: response.data.user };
         } catch (error) {
-            return { success: false, error: error.response.data.error };
+            const errorMessage = error.response?.data?.error || 'An unexpected error occurred.';
+            return { success: false, error: errorMessage };
         }
     };
 

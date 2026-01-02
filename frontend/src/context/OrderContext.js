@@ -39,7 +39,7 @@ export const OrderProvider = ({ children }) => {
             return response.data;
         } catch (error) {
             console.error('Error placing order:', error);
-            throw error;
+            throw error.response?.data || error;
         }
     };
 
@@ -56,7 +56,7 @@ export const OrderProvider = ({ children }) => {
             );
         } catch (error) {
             console.error('Error updating order status:', error);
-            throw error;
+            throw error.response?.data || error;
         }
     };
     

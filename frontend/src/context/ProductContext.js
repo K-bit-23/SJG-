@@ -30,7 +30,7 @@ export const ProductProvider = ({ children }) => {
             return response.data;
         } catch (error) {
             console.error('Error adding product:', error);
-            throw error;
+            throw error.response?.data || error;
         }
     };
 
@@ -44,7 +44,7 @@ export const ProductProvider = ({ children }) => {
             );
         } catch (error) {
             console.error('Error updating product:', error);
-            throw error;
+            throw error.response?.data || error;
         }
     };
 
@@ -54,7 +54,7 @@ export const ProductProvider = ({ children }) => {
             setProducts(prev => prev.filter(product => product.id !== productId));
         } catch (error) {
             console.error('Error deleting product:', error);
-            throw error;
+            throw error.response?.data || error;
         }
     };
     
