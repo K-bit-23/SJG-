@@ -1,13 +1,14 @@
+
 from pathlib import Path
 import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'replace-this-with-a-secure-secret-for-production'
+SECRET_KEY = 'b25a30d61d2f586c3f3b4669a5d26b44bd07e36fcf56a9528fcbe948d086bfce217858fd7e3024fe08c81a33aed888d3069b'
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -57,6 +58,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'NAME': 'sjg_db',
+        'CLIENT': {
+            'host': 'mongodb://localhost:27017/'
+        }
     }
 }
 
@@ -78,4 +82,4 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
