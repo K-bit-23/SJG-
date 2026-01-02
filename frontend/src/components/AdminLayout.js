@@ -1,10 +1,10 @@
 import React from 'react';
-import AdminDashboard from '../pages/admin/AdminDashboard';
+import AdminNavbar from './admin/AdminNavbar'; // Corrected import path
 
 const AdminLayout = ({ children }) => {
     return (
         <div className="admin-layout">
-            <AdminDashboard />
+            <AdminNavbar />
             <div className="admin-page-content">
                 {children}
             </div>
