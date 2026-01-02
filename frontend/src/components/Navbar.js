@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import CartDropdown from './CartDropdown';
 import './Navbar.css';
 
-const Navbar = () => {
+const Navbar = ({ logo }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -61,9 +61,7 @@ const Navbar = () => {
         <div className="navbar-container">
           {/* Left: Logo */}
           <Link to="/" className="navbar-logo">
-            <div className="logo-icon-wrapper">
-              <i className="fas fa-layer-group"></i>
-            </div>
+            <img src={logo} alt="SJG Logo" className="logo-svg" />
             <span className="logo-text">SJG<span className="logo-dot">.</span></span>
           </Link>
 

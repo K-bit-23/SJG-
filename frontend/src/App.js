@@ -29,7 +29,7 @@ function App() {
           <CartProvider>
             <Router>
               <div className="App">
-                <Navbar />
+                <Navbar logo="/logo.svg" />
                 <AuthModal />
                 <FloatingContactIcons />
                 <main className="main-content">
