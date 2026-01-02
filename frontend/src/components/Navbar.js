@@ -168,13 +168,6 @@ const Navbar = ({ logo }) => {
               </div>
             ) : (
               <>
-                <button
-                  className="auth-btn"
-                  onClick={() => openAuthModal('admin')}
-                  style={{ marginRight: '10px', backgroundColor: '#333', color: '#fff' }}
-                >
-                  Admin Login
-                </button>
                 <button className="auth-btn" onClick={() => openAuthModal('login')}>
                   Sign In
                 </button>
