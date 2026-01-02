@@ -11,12 +11,12 @@ const Navbar = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { getCartItemsCount } = useCart();
-  const { user, isAuthenticated, openAuthModal, logout } = useAuth();
+  const { user, isAuthenticated, openAuthModal, logout, login } = useAuth();
   const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 10);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -70,22 +70,18 @@ const Navbar = () => {
           {/* Center: Desktop Menu */}
           <div className="navbar-center">
             <Link to="/" className={`nav-link ${isActive('/')}`}>
+              <i className="fas fa-home"></i>
               <span className="link-text">Home</span>
-              <span className="link-dot"></span>
             </Link>
             <Link to="/products" className={`nav-link ${isActive('/products')}`}>
+              <i className="fas fa-box-open"></i>
               <span className="link-text">Collection</span>
-              <span className="link-dot"></span>
-            </Link>
-            <Link to="/about" className={`nav-link ${isActive('/about')}`}>
-              <span className="link-text">Our Story</span>
-              <span className="link-dot"></span>
             </Link>
           </div>
 
           {/* Right: Actions */}
           <div className="navbar-actions">
-            {/* Search Trigger (Visual only for now) */}
+            {/* Search Trigger */}
             <button className="icon-btn search-btn" aria-label="Search">
               <i className="fas fa-search"></i>
             </button>
@@ -111,7 +107,6 @@ const Navbar = () => {
                   aria-label="User Profile"
                 >
                   <img src={user.avatar} alt={user.name} />
-                  <div className="user-status-indicator"></div>
                 </button>
 
                 {isUserMenuOpen && (
@@ -124,16 +119,30 @@ const Navbar = () => {
                       </div>
                     </div>
                     <div className="dropdown-links">
-                      <Link to="/profile" className="dropdown-link">
-                        <i className="fas fa-user"></i> Profile
-                      </Link>
-                      <Link to="/my-orders" className="dropdown-link">
-                        <i className="fas fa-box"></i> My Orders
-                      </Link>
-                      {user.role === 'admin' && (
-                        <Link to="/admin" className="dropdown-link admin-link">
-                          <i className="fas fa-shield-alt"></i> Admin Dashboard
-                        </Link>
+                      {user.role === 'admin' ? (
+                        <>
+                          <Link to="/admin" className="dropdown-link admin-link">
+                            <i className="fas fa-chart-line"></i> Dashboard
+                          </Link>
+                          <Link to="/admin/products" className="dropdown-link admin-link">
+                            <i className="fas fa-box"></i> Products
+                          </Link>
+                          <Link to="/admin/orders" className="dropdown-link admin-link">
+                            <i className="fas fa-shopping-cart"></i> Orders
+                          </Link>
+                          <Link to="/admin/customers" className="dropdown-link admin-link">
+                            <i className="fas fa-users"></i> Customers
+                          </Link>
+                        </>
+                      ) : (
+                        <>
+                          <Link to="/profile" className="dropdown-link">
+                            <i className="fas fa-user-circle"></i> Profile
+                          </Link>
+                          <Link to="/my-orders" className="dropdown-link">
+                            <i className="fas fa-shopping-bag"></i> My Orders
+                          </Link>
+                        </>
                       )}
                       <div className="dropdown-divider"></div>
                       <button onClick={handleLogout} className="dropdown-link logout">
@@ -145,7 +154,7 @@ const Navbar = () => {
               </div>
             ) : (
               <button className="auth-btn" onClick={openAuthModal}>
-                <span>Sign In</span>
+                Sign In
               </button>
             )}
 

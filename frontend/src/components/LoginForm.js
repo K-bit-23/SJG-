@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './AuthModal.css';
 
@@ -9,6 +10,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { login, loginWithGoogle, loginWithBiometric } = useAuth();
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -17,10 +19,26 @@ const LoginForm = ({ onSwitchToRegister }) => {
 
         const result = await login(email, password, rememberMe);
 
-        if (!result.success) {
+        if (result.success) {
+            if (result.user.role === 'admin') {
+                navigate('/admin');
+            }
+        } else {
             setError(result.error || 'Login failed. Please try again.');
         }
 
+        setLoading(false);
+    };
+
+    const handleAdminLogin = async () => {
+        setError('');
+        setLoading(true);
+        const result = await login('admin@sjg.com', 'admin123');
+        if (result.success) {
+            navigate('/admin');
+        } else {
+            setError(result.error || 'Admin login failed');
+        }
         setLoading(false);
     };
 
@@ -121,6 +139,10 @@ const LoginForm = ({ onSwitchToRegister }) => {
                 <button className="btn-biometric" onClick={handleBiometricLogin} disabled={loading}>
                     <i className="fas fa-fingerprint"></i>
                     <span>Use Biometric</span>
+                </button>
+                <button className="btn-admin-login" onClick={handleAdminLogin} disabled={loading} style={{ marginTop: '10px', width: '100%', background: '#333', color: 'white' }}>
+                    <i className="fas fa-user-shield"></i>
+                    <span>Login as Admin</span>
                 </button>
             </div>
 
