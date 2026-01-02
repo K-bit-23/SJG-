@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useProducts } from '../../context/ProductContext';
+import ImageDropzone from '../../components/admin/ImageDropzone'; // Corrected import path
 import './InventoryManagement.css';
 
 const InventoryManagement = () => {
@@ -12,7 +13,7 @@ const InventoryManagement = () => {
         price: '',
         category: '',
         description: '',
-        image: ''
+        image: null
     });
 
     const handleOpenModal = (product = null) => {
@@ -32,7 +33,7 @@ const InventoryManagement = () => {
                 price: '',
                 category: '',
                 description: '',
-                image: ''
+                image: null
             });
         }
         setIsModalOpen(true);
@@ -48,6 +49,13 @@ const InventoryManagement = () => {
         setFormData(prev => ({
             ...prev,
             [name]: value
+        }));
+    };
+
+    const handleImageDrop = (image) => {
+        setFormData(prev => ({
+            ...prev,
+            image: image
         }));
     };
 
@@ -117,7 +125,7 @@ const InventoryManagement = () => {
                                 <td>
                                     <span className="category-badge">{product.category}</span>
                                 </td>
-                                <td>${product.price.toFixed(2)}</td>
+                                <td>₹{product.price.toFixed(2)}</td>
                                 <td>
                                     <div className="action-buttons">
                                         <button className="btn-edit" onClick={() => handleOpenModal(product)}>
@@ -145,6 +153,10 @@ const InventoryManagement = () => {
                         </div>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
+                                <label>Product Image</label>
+                                <ImageDropzone onDrop={handleImageDrop} existingImage={formData.image} />
+                            </div>
+                            <div className="form-group">
                                 <label>Product Name</label>
                                 <input
                                     type="text"
@@ -156,15 +168,18 @@ const InventoryManagement = () => {
                             </div>
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>Price</label>
-                                    <input
-                                        type="number"
-                                        name="price"
-                                        value={formData.price}
-                                        onChange={handleChange}
-                                        step="0.01"
-                                        required
-                                    />
+                                    <label>Price (INR)</label>
+                                    <div className="price-input">
+                                        <span>₹</span>
+                                        <input
+                                            type="number"
+                                            name="price"
+                                            value={formData.price}
+                                            onChange={handleChange}
+                                            step="0.01"
+                                            required
+                                        />
+                                    </div>
                                 </div>
                                 <div className="form-group">
                                     <label>Category</label>
@@ -182,17 +197,6 @@ const InventoryManagement = () => {
                                         <option value="Accessories">Accessories</option>
                                     </select>
                                 </div>
-                            </div>
-                            <div className="form-group">
-                                <label>Image URL</label>
-                                <input
-                                    type="url"
-                                    name="image"
-                                    value={formData.image}
-                                    onChange={handleChange}
-                                    placeholder="https://example.com/image.jpg"
-                                    required
-                                />
                             </div>
                             <div className="form-group">
                                 <label>Description</label>
