@@ -144,6 +144,9 @@ const Navbar = ({ logo }) => {
                           <Link to="/admin/customers" className="dropdown-link admin-link">
                             <i className="fas fa-users"></i> Customers
                           </Link>
+                          <Link to="/admin/settings" className="dropdown-link admin-link">
+                            <i className="fas fa-cog"></i> Settings
+                          </Link>
                         </>
                       ) : (
                         <>
