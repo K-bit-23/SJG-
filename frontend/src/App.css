@@ -124,3 +124,27 @@ body {
   transform: scale(1.1);
   box-shadow: 0 6px 30px rgba(37, 211, 102, 0.6);
 }
+
+.mail-icon {
+  position: fixed;
+  bottom: 110px;
+  right: 30px;
+  background: linear-gradient(135deg, #dd4b39, #c71610);
+  color: #fff;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 32px;
+  box-shadow: 0 4px 20px rgba(221, 75, 57, 0.4);
+  z-index: 1000;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.mail-icon:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 30px rgba(221, 75, 57, 0.6);
+}
