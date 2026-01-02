@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './AuthModal.css';
@@ -9,8 +9,14 @@ const LoginForm = ({ onSwitchToRegister }) => {
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login, loginWithGoogle, loginWithBiometric } = useAuth();
+    const { user, login, loginWithGoogle, loginWithBiometric } = useAuth();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (user && user.role === 'admin') {
+            navigate('/admin');
+        }
+    }, [user, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -19,11 +25,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
 
         const result = await login(email, password, rememberMe);
 
-        if (result.success) {
-            if (result.user.role === 'admin') {
-                navigate('/admin');
-            }
-        } else {
+        if (!result.success) {
             setError(result.error || 'Login failed. Please try again.');
         }
 
@@ -34,9 +36,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
         setError('');
         setLoading(true);
         const result = await login('sjgvxerox@gmail.com', '@Admin24821');
-        if (result.success) {
-            navigate('/admin');
-        } else {
+        if (!result.success) {
             setError(result.error || 'Admin login failed');
         }
         setLoading(false);
