@@ -94,6 +94,33 @@
     animation: shake 0.5s ease-out;
 }
 
+.auth-success {
+    text-align: center;
+    padding: 40px;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.auth-success i {
+    font-size: 4rem;
+    color: #43e97b;
+    margin-bottom: 20px;
+    display: block;
+    animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.auth-success h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.auth-success p {
+    color: #666;
+    font-size: 1.05rem;
+    margin-bottom: 30px;
+}
+
 /* Form Groups */
 .form-group {
     margin-bottom: 20px;

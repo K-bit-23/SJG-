@@ -15,6 +15,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
     const [loading, setLoading] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState('');
     const { register, loginWithGoogle } = useAuth();
+    const [isSuccess, setIsSuccess] = useState(false); // New state for success
 
     const calculatePasswordStrength = (password) => {
         if (password.length === 0) return '';
@@ -39,6 +40,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setIsSuccess(false);
 
         // Validation
         if (formData.password !== formData.confirmPassword) {
@@ -61,6 +63,8 @@ const RegisterForm = ({ onSwitchToLogin }) => {
 
         if (!result.success) {
             setError(result.error || 'Registration failed. Please try again.');
+        } else {
+            setIsSuccess(true); // Set success state to true
         }
 
         setLoading(false);
@@ -72,9 +76,27 @@ const RegisterForm = ({ onSwitchToLogin }) => {
         const result = await loginWithGoogle();
         if (!result.success) {
             setError(result.error || 'Google registration failed');
+        } else {
+            setIsSuccess(true);
         }
         setLoading(false);
     };
+
+    if (isSuccess) {
+        return (
+            <div className="auth-form">
+                <div className="auth-success">
+                    <i className="fas fa-check-circle"></i>
+                    <h2>Registration Successful!</h2>
+                    <p>You can now log in with your new account.</p>
+                    <button onClick={onSwitchToLogin} className="btn-auth-primary">
+                        <i className="fas fa-sign-in-alt"></i>
+                        <span>Login Now</span>
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="auth-form">
