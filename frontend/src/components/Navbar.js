@@ -69,34 +69,47 @@ const Navbar = () => {
 
           {/* Center: Desktop Menu */}
           <div className="navbar-center">
-            <Link to="/" className={`nav-link ${isActive('/')}`}>
-              <i className="fas fa-home"></i>
-              <span className="link-text">Home</span>
-            </Link>
-            <Link to="/products" className={`nav-link ${isActive('/products')}`}>
-              <i className="fas fa-box-open"></i>
-              <span className="link-text">Collection</span>
-            </Link>
+            {user?.role === 'admin' ? (
+              <span className="nav-link" style={{ cursor: 'default', color: '#333' }}>
+                <i className="fas fa-shield-alt"></i>
+                <span className="link-text">Admin Panel</span>
+              </span>
+            ) : (
+              <>
+                <Link to="/" className={`nav-link ${isActive('/')}`}>
+                  <i className="fas fa-home"></i>
+                  <span className="link-text">Home</span>
+                </Link>
+                <Link to="/products" className={`nav-link ${isActive('/products')}`}>
+                  <i className="fas fa-box-open"></i>
+                  <span className="link-text">Collection</span>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Right: Actions */}
           <div className="navbar-actions">
-            {/* Search Trigger */}
-            <button className="icon-btn search-btn" aria-label="Search">
-              <i className="fas fa-search"></i>
-            </button>
+            {user?.role !== 'admin' && (
+              <>
+                {/* Search Trigger */}
+                <button className="icon-btn search-btn" aria-label="Search">
+                  <i className="fas fa-search"></i>
+                </button>
 
-            {/* Cart */}
-            <button
-              className={`icon-btn cart-btn ${isCartOpen ? 'active' : ''}`}
-              onClick={toggleCart}
-              aria-label="Cart"
-            >
-              <i className="fas fa-shopping-bag"></i>
-              {cartItemsCount > 0 && (
-                <span className="cart-badge">{cartItemsCount}</span>
-              )}
-            </button>
+                {/* Cart */}
+                <button
+                  className={`icon-btn cart-btn ${isCartOpen ? 'active' : ''}`}
+                  onClick={toggleCart}
+                  aria-label="Cart"
+                >
+                  <i className="fas fa-shopping-bag"></i>
+                  {cartItemsCount > 0 && (
+                    <span className="cart-badge">{cartItemsCount}</span>
+                  )}
+                </button>
+              </>
+            )}
 
             {/* User Menu */}
             {isAuthenticated ? (
@@ -176,13 +189,18 @@ const Navbar = () => {
       <div className={`mobile-menu-overlay ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="mobile-menu-content">
           <div className="mobile-links">
-            <Link to="/" className={`mobile-link ${isActive('/')}`}>Home</Link>
-            <Link to="/products" className={`mobile-link ${isActive('/products')}`}>Collection</Link>
-            <Link to="/about" className={`mobile-link ${isActive('/about')}`}>Our Story</Link>
+            {user?.role !== 'admin' && (
+              <>
+                <Link to="/" className={`mobile-link ${isActive('/')}`}>Home</Link>
+                <Link to="/products" className={`mobile-link ${isActive('/products')}`}>Collection</Link>
+              </>
+            )}
           </div>
           {isAuthenticated && (
             <div className="mobile-user-actions">
-              <Link to="/my-orders" className="mobile-action-btn">My Orders</Link>
+              {user.role !== 'admin' && (
+                <Link to="/my-orders" className="mobile-action-btn">My Orders</Link>
+              )}
               {user.role === 'admin' && (
                 <Link to="/admin" className="mobile-action-btn admin">Admin Panel</Link>
               )}
