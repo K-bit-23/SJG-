@@ -10,6 +10,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [modalView, setModalView] = useState('login'); // 'login' | 'register' | 'admin'
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -59,13 +60,17 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
-    const openAuthModal = () => setIsAuthModalOpen(true);
+    const openAuthModal = (view = 'login') => {
+        setModalView(view);
+        setIsAuthModalOpen(true);
+    };
     const closeAuthModal = () => setIsAuthModalOpen(false);
 
     const value = {
         user,
         isAuthenticated: !!user,
         isAuthModalOpen,
+        modalView,
         login,
         register,
         logout,

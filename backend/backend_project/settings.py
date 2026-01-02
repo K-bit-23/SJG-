@@ -56,13 +56,13 @@ WSGI_APPLICATION = 'backend_project.wsgi.application'
 
 DATABASES = {
     'default': {
-            'ENGINE': 'djongo',
-                    'NAME': 'sjg',
-                            'CLIENT': {
-                                        'host': 'mongodb://localhost:27017/'
-                                                }
-                                                    }
-                                                    }
+        'ENGINE': 'djongo',
+        'NAME': 'sjg',
+        'CLIENT': {
+            'host': 'mongodb://localhost:27017/',
+        }
+    }
+}
 
 AUTH_PASSWORD_VALIDATORS = []
 
