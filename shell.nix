@@ -8,4 +8,8 @@ pkgs.mkShell {
     pkgs.python3Packages.django-cors-headers
     pkgs.python3Packages.djongo
   ];
+
+  shellHook = ''
+    python backend/seed.py
+  '';
 }

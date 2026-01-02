@@ -176,28 +176,6 @@ const RegisterForm = ({ onSwitchToLogin }) => {
                     />
                 </div>
 
-                <div className="role-toggle">
-                    <label className="toggle-label">Account Type:</label>
-                    <div className="toggle-buttons">
-                        <button
-                            type="button"
-                            className={`toggle-btn ${formData.role === 'user' ? 'active' : ''}`}
-                            onClick={() => setFormData(prev => ({ ...prev, role: 'user' }))}
-                        >
-                            <i className="fas fa-user"></i>
-                            User
-                        </button>
-                        <button
-                            type="button"
-                            className={`toggle-btn ${formData.role === 'admin' ? 'active' : ''}`}
-                            onClick={() => setFormData(prev => ({ ...prev, role: 'admin' }))}
-                        >
-                            <i className="fas fa-user-shield"></i>
-                            Admin
-                        </button>
-                    </div>
-                </div>
-
                 <label className="checkbox-label terms-label">
                     <input
                         type="checkbox"
