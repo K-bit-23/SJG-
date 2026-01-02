@@ -11,8 +11,8 @@ export const useAuth = () => {
 };
 
 const initialUsers = [
-    { id: 1, name: 'John Doe', email: 'john.doe@example.com', role: 'Admin', avatar: 'https://ui-avatars.com/api/?name=John+Doe&background=6e8efb&color=fff' },
-    { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com', role: 'Customer', avatar: 'https://ui-avatars.com/api/?name=Jane+Smith&background=6e8efb&color=fff' },
+    { id: 1, name: 'Admin User', email: 'sjgvxerox@gmail.com', role: 'admin', avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=6e8efb&color=fff' },
+    { id: 2, name: 'karthikeyan', email: 'karthikeyanp.24mca@kongu.edu', role: 'user', avatar: 'https://ui-avatars.com/api/?name=Jane+Smith&background=6e8efb&color=fff' },
 ];
 
 export const AuthProvider = ({ children }) => {
@@ -34,6 +34,21 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password, rememberMe = false) => {
         try {
+            // Check for admin credentials
+            if (email === 'sjgvxerox@gmail.com' && password === '@Admin24821') {
+                const adminUser = {
+                    id: 1,
+                    email: email,
+                    name: 'Admin User',
+                    role: 'admin',
+                    avatar: 'https://ui-avatars.com/api/?name=Admin+User&background=6e8efb&color=fff'
+                };
+                setUser(adminUser);
+                setIsAuthModalOpen(false);
+                return { success: true, user: adminUser };
+            }
+
+            // Mock logic for other users
             const mockUser = {
                 id: Date.now(),
                 email: email,
@@ -58,7 +73,7 @@ export const AuthProvider = ({ children }) => {
                 id: Date.now(),
                 email: userData.email,
                 name: userData.email.split('@')[0],
-                role: userData.role || 'user',
+                role: 'user', // All new registrations are users
                 mobile: userData.mobile || '',
                 avatar: `https://ui-avatars.com/api/?name=${userData.email.split('@')[0]}&background=6e8efb&color=fff`
             };
@@ -134,6 +149,8 @@ export const AuthProvider = ({ children }) => {
     const updateUserRole = (userId, newRole) => {
         setUsers(users.map(user => user.id === userId ? { ...user, role: newRole } : user));
     };
+
+
 
     const deleteUser = (userId) => {
         setUsers(users.filter(user => user.id !== userId));
