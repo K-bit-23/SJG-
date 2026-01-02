@@ -33,7 +33,7 @@ const LoginForm = ({ onSwitchToRegister }) => {
     const handleAdminLogin = async () => {
         setError('');
         setLoading(true);
-        const result = await login('admin@sjg.com', 'admin123');
+        const result = await login('sjgvxerox@gmail.com', '@Admin24821');
         if (result.success) {
             navigate('/admin');
         } else {
