@@ -57,7 +57,7 @@ WSGI_APPLICATION = 'backend_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'sjg_db',
+        'NAME': 'sjg',
         'CLIENT': {
             'host': 'mongodb://localhost:27017/'
         }
