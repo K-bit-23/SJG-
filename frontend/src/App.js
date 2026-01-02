@@ -9,6 +9,7 @@ import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
 import FloatingContactIcons from './components/FloatingContactIcons';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminLayout from './components/AdminLayout'; // Import the new AdminLayout
 import Home from './pages/Home';
 import Products from './pages/Products';
 import Checkout from './pages/Checkout';
@@ -24,29 +25,46 @@ import './animations.css';
 const AppRoutes = () => {
   const { user, isAuthenticated } = useAuth();
 
-  if (isAuthenticated && user?.role === 'admin') {
-    return (
-      <Routes>
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/inventory" element={<InventoryManagement />} />
-        <Route path="/admin/orders" element={<OrderManagement />} />
-        <Route path="/admin/users" element={<UserManagement />} />
-        <Route path="*" element={<Navigate to="/admin" />} />
-      </Routes>
-    );
-  } else {
-    return (
+  return (
+    <Routes>
+      {isAuthenticated && user?.role === 'admin' ? (
+        <Route path="/admin/*" element={<AdminRoutes />} />
+      ) : (
+        <Route path="/*" element={<UserRoutes />} />
+      )}
+      <Route path="*" element={<Navigate to={isAuthenticated && user?.role === 'admin' ? '/admin' : '/'} />} />
+    </Routes>
+  );
+};
+
+const AdminRoutes = () => (
+  <AdminLayout>
+    <Routes>
+      <Route path="/" element={<AdminDashboard />} />
+      <Route path="/inventory" element={<InventoryManagement />} />
+      <Route path="/orders" element={<OrderManagement />} />
+      <Route path="/users" element={<UserManagement />} />
+    </Routes>
+  </AdminLayout>
+);
+
+const UserRoutes = () => (
+  <>
+    <Navbar logo="/logo.svg" />
+    <AuthModal />
+    <FloatingContactIcons />
+    <main className="main-content">
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
         <Route path="/my-orders" element={<MyOrders />} />
-        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    );
-  }
-};
+    </main>
+    <Footer />
+  </>
+);
 
 function App() {
   return (
@@ -56,13 +74,7 @@ function App() {
           <CartProvider>
             <Router>
               <div className="App">
-                <Navbar logo="/logo.svg" />
-                <AuthModal />
-                <FloatingContactIcons />
-                <main className="main-content">
-                  <AppRoutes />
-                </main>
-                <Footer />
+                <AppRoutes />
               </div>
             </Router>
           </CartProvider>
