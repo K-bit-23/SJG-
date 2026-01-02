@@ -59,7 +59,7 @@ DATABASES = {
         'ENGINE': 'djongo',
         'NAME': 'sjg_db',
         'CLIENT': {
-            'host': 'mongodb+srv://karthi:karthi08@sjg.cdlgflc.mongodb.net/?appName=SJG'
+            'host': 'mongodb://localhost:27017/'
         }
     }
 }
