@@ -1,14 +1,23 @@
-// Detect the host of the current page to connect to the same backend IP
+// Backend API Configuration
+// Update PRODUCTION_API_URL after deploying backend to Render
+
+const PRODUCTION_API_URL = 'https://sjg-backend.onrender.com';  // Update this after Render deployment
+
 const getBaseURL = () => {
     const hostname = window.location.hostname;
 
-    // If we are on localhost, use localhost
+    // If we are on localhost, use localhost backend
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
         return 'http://localhost:8000';
     }
 
-    // Otherwise, use the IP address of the machine running the app
-    return `http://${hostname}:8000`;
+    // If on local network (192.168.x.x), use the same IP
+    if (hostname.startsWith('192.168.')) {
+        return `http://${hostname}:8000`;
+    }
+
+    // For production (Firebase hosting), use the production backend
+    return PRODUCTION_API_URL;
 };
 
 export const API_BASE_URL = getBaseURL();

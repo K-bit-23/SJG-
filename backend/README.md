@@ -1,33 +1,42 @@
-# Backend (Django)
+# SJG Backend API
 
-This folder contains a minimal Django backend scaffold for the SJG project.
+## Deployment on Render
 
-Setup (Windows PowerShell):
+### Quick Deploy Steps:
 
-1. Create and activate a virtual environment:
+1. **Go to [Render Dashboard](https://dashboard.render.com/)**
+2. **Click "New +" → "Web Service"**
+3. **Connect your GitHub repository**
+4. **Configure the service:**
 
-```powershell
-python -m venv venv
-.\venv\Scripts\Activate.ps1
+   | Setting | Value |
+   |---------|-------|
+   | **Name** | `sjg-backend` |
+   | **Root Directory** | `backend` |
+   | **Environment** | `Python 3` |
+   | **Build Command** | `./build.sh` |
+   | **Start Command** | `gunicorn backend_project.wsgi:application` |
+
+5. **Add Environment Variables:**
+   - `SECRET_KEY` = (generate a random string)
+   - `DEBUG` = `False`
+   - `PYTHON_VERSION` = `3.10.0`
+
+6. **Click "Create Web Service"**
+
+### After Deployment:
+
+Your backend will be available at:
+```
+https://sjg-backend.onrender.com
 ```
 
-2. Install dependencies:
+Update your frontend config.js to use this URL.
 
-```powershell
+## Local Development
+
+```bash
+cd backend
 pip install -r requirements.txt
-```
-
-3. Run migrations and start the development server:
-
-```powershell
-python manage.py migrate
 python manage.py runserver
 ```
-
-4. Test the example API endpoint:
-
-Open: http://127.0.0.1:8000/api/hello/
-
-Notes:
-- The scaffold uses SQLite by default.
-- Add the backend into your deployment pipeline as needed.
