@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ProductViewSet, UserViewSet, CustomLoginView, CustomRegisterView, CurrentUserView, OrderViewSet
+from .views import ProductViewSet, UserViewSet, CustomLoginView, CustomRegisterView, CurrentUserView, OrderViewSet, DashboardStatsView
 
 router = DefaultRouter()
 router.register(r'products', ProductViewSet)
@@ -12,4 +12,5 @@ urlpatterns = [
     path('auth/register/', CustomRegisterView.as_view(), name='auth-register'),
     path('auth/login/', CustomLoginView.as_view(), name='auth-login'),
     path('auth/user/', CurrentUserView.as_view(), name='auth-user'),
+    path('dashboard/stats/', DashboardStatsView.as_view(), name='dashboard-stats'),
 ]

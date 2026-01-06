@@ -39,9 +39,9 @@ const UserManagement = () => {
         }
     };
 
-    const filteredUsers = users.filter(user =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredUsers = (users || []).filter(user =>
+        (user.displayName || user.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.email || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -72,30 +72,45 @@ const UserManagement = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredUsers.map(user => (
-                            <tr key={user.id}>
-                                <td>
-                                    <img src={user.avatar} alt={user.name} className="user-thumb" />
-                                </td>
-                                <td>{user.name}</td>
-                                <td>{user.email}</td>
-                                <td>
-                                    <span className={`role-badge ${user.role.toLowerCase()}`}>
-                                        {user.role}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div className="action-buttons">
-                                        <button className="btn-edit" onClick={() => handleOpenModal(user)}>
-                                            <i className="fas fa-edit"></i>
-                                        </button>
-                                        <button className="btn-delete" onClick={() => handleDelete(user.id)}>
-                                            <i className="fas fa-trash"></i>
-                                        </button>
-                                    </div>
+                        {filteredUsers.length > 0 ? (
+                            filteredUsers.map(user => (
+                                <tr key={user.id}>
+                                    <td>
+                                        {user.photoURL ? (
+                                            <img src={user.photoURL} alt={user.displayName || user.email} className="user-thumb" />
+                                        ) : (
+                                            <div className="user-thumb user-avatar-placeholder">
+                                                <i className="fas fa-user"></i>
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td>{user.displayName || user.email?.split('@')[0] || 'N/A'}</td>
+                                    <td>{user.email}</td>
+                                    <td>
+                                        <span className={`role-badge ${(user.role || 'user').toLowerCase()}`}>
+                                            {user.role || 'User'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div className="action-buttons">
+                                            <button className="btn-edit" onClick={() => handleOpenModal(user)}>
+                                                <i className="fas fa-edit"></i>
+                                            </button>
+                                            <button className="btn-delete" onClick={() => handleDelete(user.id)}>
+                                                <i className="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
+                                    <i className="fas fa-users" style={{ fontSize: '3rem', color: '#ddd', marginBottom: '1rem' }}></i>
+                                    <p>No users found</p>
                                 </td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
             </div>

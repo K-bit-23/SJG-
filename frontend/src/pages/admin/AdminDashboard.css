@@ -163,120 +163,45 @@
     font-size: 0.95rem;
 }
 
-/* Quick Actions */
-.quick-actions {
-    margin-bottom: 40px;
-}
-
-.quick-actions h2 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 20px;
-}
-
-.actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-}
-
-.action-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    text-decoration: none;
-    color: #666;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+/* Charts Layout */
+.charts-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 12px;
+    gap: 25px;
+    margin-bottom: 40px;
+    animation: fadeInUp 0.8s ease-out;
 }
 
-.action-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    color: #6e8efb;
-}
-
-.action-card i {
-    font-size: 2.5rem;
-    background: linear-gradient(135deg, #6e8efb, #a777e3);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.action-card span {
-    font-weight: 600;
-    font-size: 1rem;
-}
-
-/* Order Status Summary */
-.order-status-summary {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    padding: 30px;
+.chart-card {
+    background: white;
+    padding: 25px;
     border-radius: 20px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    /* Softer shadow */
+    border: 1px solid rgba(0, 0, 0, 0.03);
 }
 
-.order-status-summary h2 {
-    font-size: 1.8rem;
+.chart-card h2 {
+    font-size: 1.3rem;
     font-weight: 700;
     color: #333;
     margin-bottom: 25px;
-}
-
-.status-grid {
     display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.status-item {
-    position: relative;
-}
-
-.status-bar {
-    height: 40px;
-    border-radius: 10px;
-    transition: width 0.6s ease;
-    position: relative;
-}
-
-.status-bar.pending {
-    background: linear-gradient(90deg, #ffa500, #ff8c00);
-}
-
-.status-bar.processing {
-    background: linear-gradient(90deg, #6e8efb, #a777e3);
-}
-
-.status-bar.shipped {
-    background: linear-gradient(90deg, #43e97b, #38f9d7);
-}
-
-.status-bar.delivered {
-    background: linear-gradient(90deg, #00c9ff, #92fe9d);
-}
-
-.status-label {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 40px;
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 0 15px;
-    color: white;
-    font-weight: 600;
+    gap: 10px;
+}
+
+/* Charts Row for Sub-charts */
+.charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+@media (max-width: 900px) {
+    .charts-row {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Responsive */

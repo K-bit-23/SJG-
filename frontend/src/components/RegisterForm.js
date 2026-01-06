@@ -3,221 +3,138 @@ import { useAuth } from '../context/AuthContext';
 import './AuthModal.css';
 
 const RegisterForm = ({ onSwitchToLogin }) => {
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-        confirmPassword: '',
-        mobile: '',
-        role: 'user',
-        acceptTerms: false
-    });
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+
+    // Toggle States
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [passwordStrength, setPasswordStrength] = useState('');
-    const { register, loginWithGoogle } = useAuth();
-    const [isSuccess, setIsSuccess] = useState(false); // New state for success
 
-    const calculatePasswordStrength = (password) => {
-        if (password.length === 0) return '';
-        if (password.length < 6) return 'weak';
-        if (password.length < 10 && /[A-Z]/.test(password) && /[0-9]/.test(password)) return 'medium';
-        if (password.length >= 10 && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[!@#$%^&*]/.test(password)) return 'strong';
-        return 'medium';
-    };
-
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
-
-        if (name === 'password') {
-            setPasswordStrength(calculatePasswordStrength(value));
-        }
-    };
+    const { register, loginWithGoogle } = useAuth(); // Assuming register function lives here
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setIsSuccess(false);
 
-        // Validation
-        if (formData.password !== formData.confirmPassword) {
-            setError('Passwords do not match');
-            return;
+        if (password !== confirmPassword) {
+            return setError("Passwords do not match");
         }
-
-        if (!formData.acceptTerms) {
-            setError('Please accept the terms and conditions');
-            return;
-        }
-
-        if (formData.mobile && !/^\d{10}$/.test(formData.mobile)) {
-            setError('Please enter a valid 10-digit mobile number');
-            return;
-        }
-
         setLoading(true);
-        const result = await register(formData);
-
+        const result = await register({ name, email, password });
         if (!result.success) {
-            setError(result.error || 'Registration failed. Please try again.');
+            setError(result.error || 'Registration failed.');
+            setLoading(false);
         } else {
-            setIsSuccess(true); // Set success state to true
+            setLoading(false);
         }
-
-        setLoading(false);
     };
 
-    const handleGoogleRegister = async () => {
-        setError('');
-        setLoading(true);
+    const handleGoogleLogin = async () => {
+        setError(''); setLoading(true);
         const result = await loginWithGoogle();
-        if (!result.success) {
-            setError(result.error || 'Google registration failed');
-        } else {
-            setIsSuccess(true);
-        }
+        if (!result.success) setError(result.error || 'Google login failed');
         setLoading(false);
     };
-
-    if (isSuccess) {
-        return (
-            <div className="auth-form">
-                <div className="auth-success">
-                    <i className="fas fa-check-circle"></i>
-                    <h2>Registration Successful!</h2>
-                    <p>You can now log in with your new account.</p>
-                    <button onClick={onSwitchToLogin} className="btn-auth-primary">
-                        <i className="fas fa-sign-in-alt"></i>
-                        <span>Login Now</span>
-                    </button>
-                </div>
-            </div>
-        );
-    }
 
     return (
-        <div className="auth-form">
-            <h2 className="auth-title">Create Account</h2>
-            <p className="auth-subtitle">Join us today!</p>
-
-            {error && <div className="auth-error">{error}</div>}
-
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                    <label htmlFor="email">
-                        <i className="fas fa-envelope"></i>
-                        Email Address
-                    </label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="Enter your email"
-                        required
-                    />
+        <div className="auth-split-wrapper">
+            {/* LEFT SIDE: Gradient Info */}
+            <div className="auth-modal-left">
+                <div>
+                    <h2>Sign Up</h2>
+                    <p>Join us to get exclusive offers and track your orders easily.</p>
                 </div>
-
-                <div className="form-group">
-                    <label htmlFor="mobile">
-                        <i className="fas fa-phone"></i>
-                        Mobile Number
-                    </label>
-                    <input
-                        type="tel"
-                        id="mobile"
-                        name="mobile"
-                        value={formData.mobile}
-                        onChange={handleChange}
-                        placeholder="Enter 10-digit mobile number"
-                        pattern="[0-9]{10}"
-                    />
+                <div className="auth-illustration">
+                    <i className="fas fa-user-plus" style={{ fontSize: '80px', opacity: 0.5 }}></i>
                 </div>
+            </div>
 
-                <div className="form-group">
-                    <label htmlFor="password">
-                        <i className="fas fa-lock"></i>
-                        Password
-                    </label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder="Create a strong password"
-                        required
-                    />
-                    {passwordStrength && (
-                        <div className={`password-strength ${passwordStrength}`}>
-                            <div className="strength-bar"></div>
-                            <span className="strength-text">{passwordStrength}</span>
+            {/* RIGHT SIDE: Form */}
+            <div className="auth-modal-right">
+                <div className="auth-form-container">
+
+
+
+                    <form onSubmit={handleSubmit} className="auth-form-fields">
+                        <div className="modern-form-group">
+                            <label>Full Name</label>
+                            <div className="input-with-icon">
+                                <i className="fas fa-user"></i>
+                                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" required />
+                            </div>
                         </div>
-                    )}
+
+                        <div className="modern-form-group">
+                            <label>Email Address</label>
+                            <div className="input-with-icon">
+                                <i className="fas fa-envelope"></i>
+                                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="mail@example.com" required />
+                            </div>
+                        </div>
+
+                        <div className="modern-form-group">
+                            <label>Password</label>
+                            <div className="input-with-icon">
+                                <i className="fas fa-lock"></i>
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Create password"
+                                    required
+                                />
+                                <i
+                                    className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'} password-toggle-icon`}
+                                    onClick={() => setShowPassword(!showPassword)}
+                                ></i>
+                            </div>
+                        </div>
+
+                        <div className="modern-form-group">
+                            <label>Confirm Password</label>
+                            <div className="input-with-icon">
+                                <i className="fas fa-lock"></i>
+                                <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="Confirm password"
+                                    required
+                                />
+                                <i
+                                    className={`fas ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'} password-toggle-icon`}
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                ></i>
+                            </div>
+                        </div>
+
+                        {error && <div className="auth-error-msg" style={{ marginBottom: '10px' }}>{error}</div>}
+
+                        <button type="submit" className="funky-submit-btn" disabled={loading} style={{ marginTop: '10px' }}>
+                            {loading ? <i className="fas fa-spinner fa-spin"></i> : 'REGISTER'}
+                        </button>
+                    </form>
+
+                    <div className="auth-divider"><span>OR</span></div>
+
+                    <div className="social-login-buttons">
+                        <button className="google-btn" onClick={handleGoogleLogin} disabled={loading}>
+                            <i className="fab fa-google" style={{ color: '#DB4437', fontSize: '18px' }}></i>
+                            <span>Sign up with Google</span>
+                        </button>
+                    </div>
+
+                    <div className="auth-switch-wrapper">
+                        <span>Already have an account?</span>
+                        <button onClick={onSwitchToLogin} className="switch-mode-link">Login here</button>
+                    </div>
                 </div>
-
-                <div className="form-group">
-                    <label htmlFor="confirmPassword">
-                        <i className="fas fa-lock"></i>
-                        Confirm Password
-                    </label>
-                    <input
-                        type="password"
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        placeholder="Confirm your password"
-                        required
-                    />
-                </div>
-
-                <label className="checkbox-label terms-label">
-                    <input
-                        type="checkbox"
-                        name="acceptTerms"
-                        checked={formData.acceptTerms}
-                        onChange={handleChange}
-                    />
-                    <span>I accept the <a href="#terms">Terms & Conditions</a></span>
-                </label>
-
-                <button type="submit" className="btn-auth-primary" disabled={loading}>
-                    {loading ? (
-                        <>
-                            <i className="fas fa-spinner fa-spin"></i>
-                            <span>Creating Account...</span>
-                        </>
-                    ) : (
-                        <>
-                            <i className="fas fa-user-plus"></i>
-                            <span>Register</span>
-                        </>
-                    )}
-                </button>
-            </form>
-
-            <div className="auth-divider">
-                <span>OR</span>
             </div>
-
-            <div className="social-auth">
-                <button className="btn-google" onClick={handleGoogleRegister} disabled={loading}>
-                    <i className="fab fa-google"></i>
-                    <span>Register with Google</span>
-                </button>
-            </div>
-
-            <p className="auth-switch">
-                Already have an account?{' '}
-                <button onClick={onSwitchToLogin} className="switch-link">
-                    Login Now
-                </button>
-            </p>
         </div>
     );
 };

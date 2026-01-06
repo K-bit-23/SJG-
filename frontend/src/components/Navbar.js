@@ -1,220 +1,183 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import CartDropdown from './CartDropdown';
+import { useCart } from '../context/CartContext';
 import './Navbar.css';
 
 const Navbar = ({ logo }) => {
-  const [isScrolled, setIsScrolled] = useState(false);
+  const { user, logout, isAuthenticated, openAuthModal } = useAuth();
+  const { cartItems } = useCart();
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { getCartItemsCount } = useCart();
-  const { user, isAuthenticated, openAuthModal, logout, login } = useAuth();
-  const location = useLocation();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
+  const cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Close mobile menu when route changes
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location]);
-
-  const cartItemsCount = getCartItemsCount();
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+  const handleSearch = (e) => {
+    e.preventDefault();
+    console.log('Search:', searchTerm);
+    navigate('/products');
   };
 
-  const toggleCart = () => {
-    setIsCartOpen(!isCartOpen);
-  };
-
-  const closeCart = () => {
-    setIsCartOpen(false);
-  };
-
-  const toggleUserMenu = () => {
-    setIsUserMenuOpen(!isUserMenuOpen);
-  };
-
-  const handleLogout = () => {
-    logout();
-    setIsUserMenuOpen(false);
-  };
-
-  const isActive = (path) => {
-    return location.pathname === path ? 'active' : '';
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
   };
 
   return (
-    <>
-      <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`}>
-        <div className="navbar-container">
-          {/* Left: Logo */}
-          <Link to="/" className="navbar-logo">
-            <img src={logo} alt="SJG Logo" className="logo-svg" />
-            <span className="logo-text">SJG<span className="logo-dot">.</span></span>
+    <nav className="navbar">
+      {/* 1. Logo Section */}
+      <div className="navbar-section-left">
+        <Link to="/" className="navbar-brand">
+          {logo && <img src={logo} alt="SJG Logo" className="navbar-logo-img" style={{ height: '50px', marginRight: '10px' }} />}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span className="logo-text">SJG Stationery</span>
+            <span className="logo-sub">Quality & Service</span>
+          </div>
+        </Link>
+
+        {/* Home & Shop Now (Moved to Left) */}
+        <div className="nav-links-left desktop-only">
+          <Link to="/" className="nav-link">
+            <i className="fas fa-home"></i>
+            <span>Home</span>
           </Link>
 
-          {/* Center: Desktop Menu */}
-          <div className="navbar-center">
-            {user?.role === 'admin' ? (
-              <span className="nav-link" style={{ cursor: 'default', color: '#333' }}>
-                <i className="fas fa-shield-alt"></i>
-                <span className="link-text">Admin Panel</span>
-              </span>
-            ) : (
-              <>
-                <Link to="/" className={`nav-link ${isActive('/')}`}>
-                  <i className="fas fa-home"></i>
-                  <span className="link-text">Home</span>
-                </Link>
-                <Link to="/products" className={`nav-link ${isActive('/products')}`}>
-                  <i className="fas fa-box-open"></i>
-                  <span className="link-text">Collection</span>
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Right: Actions */}
-          <div className="navbar-actions">
-            {user?.role !== 'admin' && (
-              <>
-                {/* Search Trigger */}
-                <button className="icon-btn search-btn" aria-label="Search">
-                  <i className="fas fa-search"></i>
-                </button>
-
-                {/* Cart */}
-                <button
-                  className={`icon-btn cart-btn ${isCartOpen ? 'active' : ''}`}
-                  onClick={toggleCart}
-                  aria-label="Cart"
-                >
-                  <i className="fas fa-shopping-bag"></i>
-                  {cartItemsCount > 0 && (
-                    <span className="cart-badge">{cartItemsCount}</span>
-                  )}
-                </button>
-              </>
-            )}
-
-            {/* User Menu */}
-            {isAuthenticated ? (
-              <div className="user-menu-container">
-                <button
-                  className="user-profile-btn"
-                  onClick={toggleUserMenu}
-                  aria-label="User Profile"
-                >
-                  <img src={user.avatar} alt={user.name} />
-                </button>
-
-                {isUserMenuOpen && (
-                  <div className="premium-dropdown">
-                    <div className="dropdown-header">
-                      <div className="user-info">
-                        <h4>{user.name}</h4>
-                        <p>{user.email}</p>
-                        <span className={`role-badge ${user.role}`}>{user.role}</span>
-                      </div>
-                    </div>
-                    <div className="dropdown-links">
-                      {user.role === 'admin' ? (
-                        <>
-                          <Link to="/admin" className="dropdown-link admin-link">
-                            <i className="fas fa-chart-line"></i> Dashboard
-                          </Link>
-                          <Link to="/admin/products" className="dropdown-link admin-link">
-                            <i className="fas fa-box"></i> Products
-                          </Link>
-                          <Link to="/admin/orders" className="dropdown-link admin-link">
-                            <i className="fas fa-shopping-cart"></i> Orders
-                          </Link>
-                          <Link to="/admin/customers" className="dropdown-link admin-link">
-                            <i className="fas fa-users"></i> Customers
-                          </Link>
-                          <Link to="/admin/settings" className="dropdown-link admin-link">
-                            <i className="fas fa-cog"></i> Settings
-                          </Link>
-                        </>
-                      ) : (
-                        <>
-                          <Link to="/profile" className="dropdown-link">
-                            <i className="fas fa-user-circle"></i> Profile
-                          </Link>
-                          <Link to="/my-orders" className="dropdown-link">
-                            <i className="fas fa-shopping-bag"></i> My Orders
-                          </Link>
-                        </>
-                      )}
-                      <div className="dropdown-divider"></div>
-                      <button onClick={handleLogout} className="dropdown-link logout">
-                        <i className="fas fa-sign-out-alt"></i> Logout
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <button className="auth-btn" onClick={() => openAuthModal('login')}>
-                  Sign In
-                </button>
-              </>
-            )}
-
-            {/* Mobile Toggle */}
-            <button
-              className={`mobile-toggle ${isMobileMenuOpen ? 'open' : ''}`}
-              onClick={toggleMobileMenu}
-              aria-label="Menu"
-            >
-              <span className="bar"></span>
-              <span className="bar"></span>
-              <span className="bar"></span>
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile Menu Overlay */}
-      <div className={`mobile-menu-overlay ${isMobileMenuOpen ? 'open' : ''}`}>
-        <div className="mobile-menu-content">
-          <div className="mobile-links">
-            {user?.role !== 'admin' && (
-              <>
-                <Link to="/" className={`mobile-link ${isActive('/')}`}>Home</Link>
-                <Link to="/products" className={`mobile-link ${isActive('/products')}`}>Collection</Link>
-              </>
-            )}
-          </div>
-          {isAuthenticated && (
-            <div className="mobile-user-actions">
-              {user.role !== 'admin' && (
-                <Link to="/my-orders" className="mobile-action-btn">My Orders</Link>
-              )}
-              {user.role === 'admin' && (
-                <Link to="/admin" className="mobile-action-btn admin">Admin Panel</Link>
-              )}
-              <button onClick={handleLogout} className="mobile-action-btn logout">Logout</button>
-            </div>
-          )}
         </div>
       </div>
 
-      {isCartOpen && <CartDropdown onClose={closeCart} />}
-    </>
+      {/* 2. Search Bar (Center) */}
+      <div className="navbar-search">
+        <form onSubmit={handleSearch} className="search-input-wrapper">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search for items..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <button type="submit" className="search-btn-icon">
+            <i className="fas fa-search"></i>
+          </button>
+        </form>
+        <Link to="/products" className="shop-now-btn">
+          <i className="fas fa-shopping-bag"></i> Shop Now
+        </Link>
+      </div>
+
+      {/* 3. Right Actions */}
+      <div className="navbar-section-right desktop-only">
+
+        {/* Cart */}
+        <Link to="/cart" className="nav-link" style={{ position: 'relative' }}>
+          <i className="fas fa-shopping-cart"></i>
+          <span>Cart</span>
+          {cartItemsCount > 0 && <span className="cart-badge">{cartItemsCount}</span>}
+        </Link>
+
+        {/* Track Order */}
+        <Link to="/track-order" className="nav-link track-link">
+          <i className="fas fa-map-marker-alt"></i>
+          <span>Track Order</span>
+        </Link>
+
+        {/* Login / Profile (Moved to Right Most) */}
+        {isAuthenticated ? (
+          <div className="user-menu-container">
+            <Link to="/my-orders" className="nav-link">
+              <i className="fas fa-user-circle" style={{ fontSize: '20px' }}></i>
+              <span>{user?.name}</span>
+            </Link>
+            <div className="dropdown-menu">
+              {user?.role === 'admin' && (
+                <Link to="/admin" className="dropdown-item">
+                  <i className="fas fa-shield-alt"></i> Admin Panel
+                </Link>
+              )}
+              <Link to="/my-orders" className="dropdown-item">
+                <i className="fas fa-box"></i> My Orders
+              </Link>
+              <div onClick={handleLogout} className="dropdown-item" style={{ cursor: 'pointer' }}>
+                <i className="fas fa-sign-out-alt"></i> Logout
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="nav-link" onClick={() => openAuthModal('login')} style={{ cursor: 'pointer' }}>
+            <div className="icon-stack" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <i className="fas fa-user"></i>
+              <span>Login</span>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* Mobile Toggle */}
+      <button
+        className="mobile-toggle"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+      >
+        <i className={`fas ${isMobileMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
+      </button>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="mobile-menu-overlay" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="mobile-menu-content" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-menu-header">
+              <span className="logo-text">SJG Stationery</span>
+            </div>
+
+            <div className="mobile-nav-links">
+              <Link to="/" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                <i className="fas fa-home"></i> Home
+              </Link>
+              <Link to="/products" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                <i className="fas fa-shopping-bag"></i> Shop Now
+              </Link>
+              <Link to="/cart" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                <i className="fas fa-shopping-cart"></i> Cart
+                {cartItemsCount > 0 && <span className="mobile-badge">{cartItemsCount}</span>}
+              </Link>
+              <Link to="/track-order" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                <i className="fas fa-map-marker-alt"></i> Track Order
+              </Link>
+
+              <div className="mobile-menu-divider"></div>
+
+              {isAuthenticated ? (
+                <>
+                  <div className="mobile-user-info">
+                    <i className="fas fa-user-circle"></i>
+                    <span>{user?.name}</span>
+                  </div>
+                  {user?.role === 'admin' && (
+                    <Link to="/admin" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                      <i className="fas fa-shield-alt"></i> Admin Panel
+                    </Link>
+                  )}
+                  <Link to="/my-orders" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                    <i className="fas fa-box"></i> My Orders
+                  </Link>
+                  <div onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="mobile-nav-link logout-link">
+                    <i className="fas fa-sign-out-alt"></i> Logout
+                  </div>
+                </>
+              ) : (
+                <div className="mobile-nav-link login-link" onClick={() => { openAuthModal('login'); setIsMobileMenuOpen(false); }}>
+                  <i className="fas fa-user"></i> Login
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </nav>
   );
 };
 

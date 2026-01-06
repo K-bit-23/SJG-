@@ -16,9 +16,9 @@ const AdminNavbar = () => {
     return (
         <nav className="admin-navbar">
             <div className="admin-navbar-brand">
-                <NavLink to="/admin">
-                    <i className="fas fa-shield-alt"></i>
-                    Admin Panel
+                <NavLink to="/admin" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img src="/sjg-logo.jpg" alt="Logo" style={{ height: '35px', borderRadius: '50%' }} />
+                    <span>Admin Panel</span>
                 </NavLink>
             </div>
             <div className="admin-navbar-links">
@@ -33,6 +33,9 @@ const AdminNavbar = () => {
                 </NavLink>
                 <NavLink to="/admin/users" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
                     <i className="fas fa-users"></i> Users
+                </NavLink>
+                <NavLink to="/admin/billing" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+                    <i className="fas fa-file-invoice-dollar"></i> Billing (POS)
                 </NavLink>
             </div>
             <div className="admin-navbar-user" onMouseEnter={() => setDropdownOpen(true)} onMouseLeave={() => setDropdownOpen(false)}>

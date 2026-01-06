@@ -5,13 +5,6 @@ import RegisterForm from './RegisterForm';
 import './AuthModal.css';
 
 const AuthModal = () => {
-    // We derive local view from context, but we need to track if we switched *within* the modal so we might need local state initialized from props, 
-    // or just rely on the context's modalView if we move setModalView to context.
-    // For simplicity, let's sync local state with context on open, or just use context state if we want persistence.
-    // Actually, `isLogin` was local. Let's start using strictly the context or just local state initialized by context.
-
-    // Better approach: Let AuthContext control the view entirely? Or just initial view?
-    // Let's use local state for immediate toggles, initialized from context.
     const { isAuthModalOpen, closeAuthModal, modalView } = useAuth();
     const [currentView, setCurrentView] = useState(modalView);
 
@@ -33,6 +26,9 @@ const AuthModal = () => {
     return (
         <div className="auth-modal-backdrop" onClick={handleBackdropClick}>
             <div className="auth-modal">
+                <div style={{ position: 'absolute', top: '-40px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
+                    <img src="/sjg-logo.jpg" alt="SJG" style={{ width: '80px', height: '80px', borderRadius: '50%', border: '4px solid white', boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }} />
+                </div>
                 <button className="auth-modal-close" onClick={closeAuthModal}>
                     <i className="fas fa-times"></i>
                 </button>
@@ -41,12 +37,7 @@ const AuthModal = () => {
                     {currentView === 'register' ? (
                         <RegisterForm onSwitchToLogin={() => setCurrentView('login')} />
                     ) : (
-                        <LoginForm
-                            isAdmin={currentView === 'admin'}
-                            onSwitchToRegister={() => setCurrentView('register')}
-                            onSwitchToUserLogin={() => setCurrentView('login')} // For traversing back from admin
-                            onSwitchToAdminLogin={() => setCurrentView('admin')}
-                        />
+                        <LoginForm onSwitchToRegister={() => setCurrentView('register')} />
                     )}
                 </div>
             </div>

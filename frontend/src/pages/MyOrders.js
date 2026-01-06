@@ -1,83 +1,53 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { useOrders } from '../context/OrderContext';
-import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 import './MyOrders.css';
 
 const MyOrders = () => {
-    const { user } = useAuth();
-    const { getUserOrders } = useOrders();
-
-    const orders = getUserOrders(user?.email);
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Pending': return 'status-pending';
-            case 'Processing': return 'status-processing';
-            case 'Shipped': return 'status-shipped';
-            case 'Delivered': return 'status-delivered';
-            default: return '';
-        }
-    };
-
-    if (!user) {
-        return (
-            <div className="my-orders-page">
-                <div className="container text-center">
-                    <h1>Please Login</h1>
-                    <p>You need to be logged in to view your orders.</p>
-                </div>
-            </div>
-        );
-    }
+    const { orders } = useOrders();
 
     return (
         <div className="my-orders-page">
-            <div className="container">
-                <h1 className="page-title">My Orders</h1>
+            <div className="orders-container">
+                <div className="orders-header">
+                    <h2>My Orders</h2>
+                </div>
 
                 {orders.length === 0 ? (
-                    <div className="empty-orders">
-                        <div className="empty-icon">
-                            <i className="fas fa-box-open"></i>
-                        </div>
-                        <h2>No Orders Yet</h2>
-                        <p>Looks like you haven't placed any orders yet.</p>
-                        <Link to="/products" className="btn-shop">Start Shopping</Link>
+                    <div className="no-orders">
+                        <i className="fas fa-box-open" style={{ fontSize: '40px', color: '#ccc', marginBottom: '20px' }}></i>
+                        <h3>You haven't placed any orders yet.</h3>
+                        <Link to="/products" className="view-details-btn" style={{ marginTop: '20px', display: 'inline-block' }}>
+                            Start Shopping
+                        </Link>
                     </div>
                 ) : (
                     <div className="orders-list">
                         {orders.map(order => (
                             <div key={order.id} className="order-card">
-                                <div className="order-header">
-                                    <div className="order-id-date">
-                                        <h3>Order #{order.id}</h3>
-                                        <span className="order-date">
-                                            Placed on {new Date(order.createdAt).toLocaleDateString()}
-                                        </span>
+                                <div className="order-card-header">
+                                    <div>
+                                        <span className="order-id-label">Order ID:</span>
+                                        <span className="order-id-val">#{order.id}</span>
                                     </div>
-                                    <div className={`order-status ${getStatusColor(order.status)}`}>
+                                    <span className={`order-status status-${order.status.toLowerCase()}`}>
                                         {order.status}
-                                    </div>
+                                    </span>
                                 </div>
 
-                                <div className="order-items-preview">
-                                    {order.items.map((item, index) => (
-                                        <div key={index} className="preview-item">
-                                            <img src={item.image} alt={item.name} />
-                                            <span className="qty-badge">{item.quantity}</span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="order-footer">
-                                    <div className="order-total">
-                                        <span>Total Amount:</span>
-                                        <strong>${order.total.toFixed(2)}</strong>
+                                <div className="order-card-body">
+                                    <div className="order-info">
+                                        <p><i className="far fa-calendar-alt"></i> {new Date(order.date).toLocaleDateString()}</p>
+                                        <p><i className="fas fa-shopping-basket"></i> {order.items.length} Items</p>
                                     </div>
-                                    <Link to={`/order-confirmation/${order.id}`} className="btn-details">
+
+                                    <div className="order-total-price">
+                                        ₹{order.total.toLocaleString()}
+                                    </div>
+
+                                    <button className="view-details-btn">
                                         View Details
-                                    </Link>
+                                    </button>
                                 </div>
                             </div>
                         ))}

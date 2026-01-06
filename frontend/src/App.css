@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+/* Global App Styles */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
 * {
   box-sizing: border-box;
@@ -7,144 +8,67 @@
 }
 
 body {
-  font-family: 'Montserrat', sans-serif;
-  line-height: 1.6;
-  background-color: #f4f7f6;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+
+  /* Glowing Multi-color Light Gradient (Aurora) */
+  background:
+    radial-gradient(circle at 0% 0%, rgba(255, 154, 158, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 100% 0%, rgba(161, 196, 253, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(132, 250, 176, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 0% 100%, rgba(253, 193, 248, 0.2) 0%, transparent 50%),
+    linear-gradient(135deg, #fffbf0 0%, #fff 100%);
+
+  background-attachment: fixed;
   color: #333;
+  -webkit-font-smoothing: antialiased;
 }
 
-.app-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+/* Scrollbar (Glowing) */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-.main-content {
-  flex: 1;
-  padding: 40px 20px;
+::-webkit-scrollbar-track {
+  background: #fff;
 }
 
-.container {
-  max-width: 1300px;
-  margin: auto;
-  padding: 0 20px;
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #ff9a9e, #fad0c4);
+  border-radius: 4px;
 }
 
-.btn {
-  display: inline-block;
-  padding: 14px 32px;
-  border-radius: 30px;
-  text-transform: uppercase;
-  font-weight: 700;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  border: none;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  letter-spacing: 1px;
+/* Global Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.btn::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+@keyframes glowPulse {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 107, 107, 0.2);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.6);
+  }
+
+  100% {
+    box-shadow: 0 0 5px rgba(255, 107, 107, 0.2);
+  }
 }
 
-.btn:active::before {
-  width: 400px;
-  height: 400px;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #6e8efb, #a777e3);
-  color: #fff;
-  box-shadow: 0 4px 20px rgba(110, 142, 251, 0.4);
-}
-
-.btn-primary:hover {
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 8px 30px rgba(110, 142, 251, 0.6),
-    0 0 20px rgba(110, 142, 251, 0.4);
-}
-
-.page-title {
-  font-size: 3.5rem;
-  text-align: center;
-  margin-bottom: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 800;
-  animation: gradientShift 5s ease infinite;
-  position: relative;
-}
-
-.page-title::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100px;
-  height: 4px;
-  background: linear-gradient(90deg, #6e8efb, #a777e3);
-  border-radius: 2px;
-}
-
-.whatsapp-icon {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  background: linear-gradient(135deg, #25d366, #128c7e);
-  color: #fff;
-  width: 65px;
-  height: 65px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 32px;
-  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
-  z-index: 1000;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.whatsapp-icon:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 30px rgba(37, 211, 102, 0.6);
-}
-
-.mail-icon {
-  position: fixed;
-  bottom: 110px;
-  right: 30px;
-  background: linear-gradient(135deg, #dd4b39, #c71610);
-  color: #fff;
-  width: 65px;
-  height: 65px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 32px;
-  box-shadow: 0 4px 20px rgba(221, 75, 57, 0.4);
-  z-index: 1000;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.mail-icon:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 30px rgba(221, 75, 57, 0.6);
+.home-page,
+.products-page-container,
+.cart-page,
+.track-order-page {
+  animation: fadeIn 0.8s ease-out;
 }

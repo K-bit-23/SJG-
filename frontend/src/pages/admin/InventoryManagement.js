@@ -12,9 +12,12 @@ const InventoryManagement = () => {
         name: '',
         price: '',
         category: '',
+        stock: 0,
         description: '',
         image: null
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     const handleOpenModal = (product = null) => {
         if (product) {
@@ -23,6 +26,7 @@ const InventoryManagement = () => {
                 name: product.name,
                 price: product.price,
                 category: product.category,
+                stock: product.stock || 0,
                 description: product.description,
                 image: product.image
             });
@@ -32,16 +36,19 @@ const InventoryManagement = () => {
                 name: '',
                 price: '',
                 category: '',
+                stock: 0,
                 description: '',
                 image: null
             });
         }
+        setErrorMessage('');
         setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingProduct(null);
+        setErrorMessage('');
     };
 
     const handleChange = (e) => {
@@ -59,24 +66,46 @@ const InventoryManagement = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsSubmitting(true);
+        setErrorMessage('');
+
         const productData = {
             ...formData,
-            price: parseFloat(formData.price)
+            price: parseFloat(formData.price),
+            stock: parseInt(formData.stock)
         };
 
-        if (editingProduct) {
-            updateProduct(editingProduct.id, productData);
-        } else {
-            addProduct(productData);
+        try {
+            if (editingProduct) {
+                await updateProduct(editingProduct.id, productData);
+            } else {
+                await addProduct(productData);
+            }
+            handleCloseModal();
+        } catch (error) {
+            console.error('Action failed:', error);
+            // Formulate a readable error message
+            let msg = 'Failed to save product. ';
+            if (typeof error === 'object') {
+                msg += Object.entries(error).map(([key, val]) => `${key}: ${val}`).join(', ');
+            } else {
+                msg += error;
+            }
+            setErrorMessage(msg);
+        } finally {
+            setIsSubmitting(false);
         }
-        handleCloseModal();
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
-            deleteProduct(id);
+            try {
+                await deleteProduct(id);
+            } catch (error) {
+                alert('Failed to delete product: ' + (typeof error === 'object' ? JSON.stringify(error) : error));
+            }
         }
     };
 
@@ -89,9 +118,14 @@ const InventoryManagement = () => {
         <div className="admin-page">
             <div className="page-header">
                 <h1>Inventory Management</h1>
-                <button className="btn-add" onClick={() => handleOpenModal()}>
-                    <i className="fas fa-plus"></i> Add New Product
-                </button>
+                <div className="header-actions">
+                    <button className="btn-report" onClick={() => window.print()}>
+                        <i className="fas fa-file-alt"></i> Generate Report
+                    </button>
+                    <button className="btn-add" onClick={() => handleOpenModal()}>
+                        <i className="fas fa-plus"></i> Add New Product
+                    </button>
+                </div>
             </div>
 
             <div className="search-bar">
@@ -112,6 +146,7 @@ const InventoryManagement = () => {
                             <th>Name</th>
                             <th>Category</th>
                             <th>Price</th>
+                            <th>Stock</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -119,19 +154,27 @@ const InventoryManagement = () => {
                         {filteredProducts.map(product => (
                             <tr key={product.id}>
                                 <td>
-                                    <img src={product.image} alt={product.name} className="product-thumb" />
+                                    <img
+                                        src={product.image || 'https://via.placeholder.com/50'}
+                                        alt={product.name || 'Product'}
+                                        className="product-thumb"
+                                        onError={(e) => e.target.src = 'https://via.placeholder.com/50'}
+                                    />
                                 </td>
-                                <td>{product.name}</td>
+                                <td>{product.name || 'Unnamed Product'}</td>
                                 <td>
-                                    <span className="category-badge">{product.category}</span>
+                                    <span className="category-badge">{product.category || 'General'}</span>
                                 </td>
-                                <td>₹{product.price.toFixed(2)}</td>
+                                <td>₹{(Number(product.price) || 0).toFixed(2)}</td>
+                                <td className={(product.stock || 0) < 10 ? 'low-stock' : ''}>
+                                    {product.stock || 0}
+                                </td>
                                 <td>
                                     <div className="action-buttons">
-                                        <button className="btn-edit" onClick={() => handleOpenModal(product)}>
+                                        <button className="btn-edit" onClick={() => handleOpenModal(product)} title="Edit">
                                             <i className="fas fa-edit"></i>
                                         </button>
-                                        <button className="btn-delete" onClick={() => handleDelete(product.id)}>
+                                        <button className="btn-delete" onClick={() => handleDelete(product.id)} title="Delete">
                                             <i className="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -151,6 +194,13 @@ const InventoryManagement = () => {
                                 <i className="fas fa-times"></i>
                             </button>
                         </div>
+
+                        {errorMessage && (
+                            <div className="error-banner">
+                                <i className="fas fa-exclamation-circle"></i> {errorMessage}
+                            </div>
+                        )}
+
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
                                 <label>Product Image</label>
@@ -197,6 +247,17 @@ const InventoryManagement = () => {
                                         <option value="Accessories">Accessories</option>
                                     </select>
                                 </div>
+                                <div className="form-group">
+                                    <label>Stock Count</label>
+                                    <input
+                                        type="number"
+                                        name="stock"
+                                        value={formData.stock}
+                                        onChange={handleChange}
+                                        min="0"
+                                        required
+                                    />
+                                </div>
                             </div>
                             <div className="form-group">
                                 <label>Description</label>
@@ -209,11 +270,11 @@ const InventoryManagement = () => {
                                 ></textarea>
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn-cancel" onClick={handleCloseModal}>
+                                <button type="button" className="btn-cancel" onClick={handleCloseModal} disabled={isSubmitting}>
                                     Cancel
                                 </button>
-                                <button type="submit" className="btn-save">
-                                    {editingProduct ? 'Update Product' : 'Save Product'}
+                                <button type="submit" className="btn-save" disabled={isSubmitting}>
+                                    {isSubmitting ? <i className="fas fa-spinner fa-spin"></i> : (editingProduct ? 'Update Product' : 'Save Product')}
                                 </button>
                             </div>
                         </form>

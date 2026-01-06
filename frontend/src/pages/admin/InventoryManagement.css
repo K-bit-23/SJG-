@@ -143,6 +143,38 @@
     color: white;
 }
 
+.low-stock {
+    color: #ff6b6b;
+    font-weight: 800;
+}
+
+.error-banner {
+    background: #fff5f5;
+    color: #c53030;
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid #feb2b2;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-10px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 /* Modal Styles */
 .modal-backdrop {
     position: fixed;
@@ -276,5 +308,99 @@
 
     .products-table-container {
         overflow-x: auto;
+    }
+}
+
+/* --- Report Button --- */
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-report {
+    background: #fff;
+    border: 2px solid #ddd;
+    color: #555;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.btn-report:hover {
+    border-color: #aaa;
+    color: #333;
+}
+
+/* --- PRINT STYLES --- */
+@media print {
+
+    /* Hide non-printable elements */
+    .admin-navbar,
+    .header-actions,
+    .search-bar,
+    .action-buttons,
+    .btn-add,
+    .btn-report,
+    .modal-backdrop {
+        display: none !important;
+    }
+
+    /* Layout adjustments */
+    body,
+    .admin-page,
+    .admin-page-content,
+    .admin-layout {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* Table adjustments */
+    .products-table-container {
+        box-shadow: none !important;
+        border: 1px solid #ccc;
+    }
+
+    .admin-table th {
+        background: #eee !important;
+        color: black !important;
+        border-bottom: 2px solid #000;
+    }
+
+    .admin-table td {
+        border-bottom: 1px solid #ddd;
+    }
+
+    /* Header */
+    .page-header h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 24px;
+        text-decoration: underline;
+    }
+
+    .page-header h1::after {
+        content: " - Generated Report";
+        font-size: 0.8em;
+        font-weight: normal;
+    }
+
+    /* Ensure images print if desired, or hide them for brevity */
+    .product-thumb {
+        border: 1px solid #eee;
+    }
+
+    /* Remove action animation/styles */
+    * {
+        animation: none !important;
+        transition: none !important;
+        box-shadow: none !important;
     }
 }

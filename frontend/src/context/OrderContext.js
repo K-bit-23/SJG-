@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
+import { API_BASE_URL } from '../config';
 
 const OrderContext = createContext();
 
@@ -17,7 +18,7 @@ export const OrderProvider = ({ children }) => {
             if (isAuthenticated) {
                 try {
                     const token = localStorage.getItem('token');
-                    const response = await axios.get('http://localhost:8000/api/orders/', {
+                    const response = await axios.get(`${API_BASE_URL}/api/orders/`, {
                         headers: { Authorization: `Token ${token}` }
                     });
                     setOrders(response.data);
@@ -32,7 +33,7 @@ export const OrderProvider = ({ children }) => {
     const placeOrder = async (orderData) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:8000/api/orders/', orderData, {
+            const response = await axios.post(`${API_BASE_URL}/api/orders/`, orderData, {
                 headers: { Authorization: `Token ${token}` }
             });
             setOrders(prev => [response.data, ...prev]);
@@ -46,7 +47,7 @@ export const OrderProvider = ({ children }) => {
     const updateOrderStatus = async (orderId, newStatus) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.patch(`http://localhost:8000/api/orders/${orderId}/`, { status: newStatus }, {
+            const response = await axios.patch(`${API_BASE_URL}/api/orders/${orderId}/`, { status: newStatus }, {
                 headers: { Authorization: `Token ${token}` }
             });
             setOrders(prev =>
@@ -59,14 +60,26 @@ export const OrderProvider = ({ children }) => {
             throw error.response?.data || error;
         }
     };
-    
+
     const getOrderById = (orderId) => {
         return orders.find(order => order.id === orderId);
     };
-    
+
     const getUserOrders = () => {
         if (!user) return [];
         return orders.filter(order => order.customer_email === user.email);
+    };
+
+    const getOrderStats = () => {
+        const stats = {
+            total: orders.length,
+            pending: orders.filter(order => order.status === 'pending').length,
+            processing: orders.filter(order => order.status === 'processing').length,
+            shipped: orders.filter(order => order.status === 'shipped').length,
+            delivered: orders.filter(order => order.status === 'delivered').length,
+            totalRevenue: orders.reduce((sum, order) => sum + (order.total || 0), 0)
+        };
+        return stats;
     };
 
     const value = {
@@ -75,6 +88,7 @@ export const OrderProvider = ({ children }) => {
         updateOrderStatus,
         getOrderById,
         getUserOrders,
+        getOrderStats,
     };
 
     return (
