@@ -28,7 +28,7 @@ const MyOrders = () => {
                                 <div className="order-card-header">
                                     <div>
                                         <span className="order-id-label">Order ID:</span>
-                                        <span className="order-id-val">#{order.id}</span>
+                                        <span className="order-id-val">#{order.order_id || order.id}</span>
                                     </div>
                                     <span className={`order-status status-${order.status.toLowerCase()}`}>
                                         {order.status}
@@ -37,7 +37,7 @@ const MyOrders = () => {
 
                                 <div className="order-card-body">
                                     <div className="order-info">
-                                        <p><i className="far fa-calendar-alt"></i> {new Date(order.date).toLocaleDateString()}</p>
+                                        <p><i className="far fa-calendar-alt"></i> {new Date(order.created_at || order.createdAt || order.date).toLocaleDateString()}</p>
                                         <p><i className="fas fa-shopping-basket"></i> {order.items.length} Items</p>
                                     </div>
 

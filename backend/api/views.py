@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from bson import ObjectId
 from datetime import datetime
+import random
+import string
 from .mongodb import mongo_client
 from .serializers import ProductSerializer, OrderSerializer
 
@@ -109,6 +111,12 @@ class ProductDetailView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+def generate_order_id():
+    """Generate a unique order ID: ORD-YYYYMMDD-XXXX"""
+    timestamp = datetime.now().strftime('%Y%m%d')
+    random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    return f'ORD-{timestamp}-{random_str}'
+
 class OrderListCreateView(APIView):
     """List all orders or create a new order"""
     
@@ -130,6 +138,10 @@ class OrderListCreateView(APIView):
             if serializer.is_valid():
                 collection = mongo_client.get_collection('orders')
                 order_data = serializer.validated_data
+                
+                # Generate unique Order ID
+                order_data['order_id'] = generate_order_id()
+                
                 # Convert Decimal to float for MongoDB
                 if 'total_amount' in order_data:
                     order_data['total_amount'] = float(order_data['total_amount'])
@@ -137,10 +149,12 @@ class OrderListCreateView(APIView):
                     for item in order_data['items']:
                         if 'price' in item:
                             item['price'] = float(item['price'])
+                            
                 order_data['created_at'] = datetime.now()
                 order_data['updated_at'] = datetime.now()
                 result = collection.insert_one(order_data)
                 order_data['_id'] = result.inserted_id
+                
                 return Response(
                     OrderSerializer(order_data).data,
                     status=status.HTTP_201_CREATED
@@ -158,7 +172,15 @@ class OrderDetailView(APIView):
     def get(self, request, pk):
         try:
             collection = mongo_client.get_collection('orders')
-            order = collection.find_one({'_id': ObjectId(pk)})
+            
+            # Try to find by ObjectID first, then by custom order_id
+            try:
+                query = {'_id': ObjectId(pk)}
+            except:
+                query = {'order_id': pk}
+                
+            order = collection.find_one(query)
+            
             if not order:
                 return Response(
                     {'error': 'Order not found'},

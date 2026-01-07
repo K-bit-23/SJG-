@@ -54,10 +54,18 @@ const Checkout = () => {
             paymentMethod: formData.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'
         };
 
-        const newOrder = placeOrder(orderData);
-        clearCart();
-        setLoading(false);
-        navigate(`/order-confirmation/${newOrder.id}`);
+        try {
+            const newOrder = await placeOrder(orderData);
+            clearCart();
+            setLoading(false);
+            // Use order_id if available (from backend), fallback to id (fallback logic)
+            const orderId = newOrder.order_id || newOrder.id;
+            navigate(`/order-confirmation/${orderId}`);
+        } catch (error) {
+            console.error("Order placement failed", error);
+            setLoading(false);
+            alert("Failed to place order. Please try again.");
+        }
     };
 
     return (

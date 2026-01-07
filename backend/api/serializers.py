@@ -31,6 +31,7 @@ class OrderItemSerializer(serializers.Serializer):
 
 class OrderSerializer(serializers.Serializer):
     id = ObjectIdField(read_only=True, source='_id')
+    order_id = serializers.CharField(read_only=True)
     user_email = serializers.EmailField()
     user_name = serializers.CharField(max_length=200)
     items = OrderItemSerializer(many=True)

@@ -124,6 +124,17 @@ Status: All commits pushed to origin ✅
 - **Firebase Hosting**: ⚠️ Needs redeploy
 - **Render Backend**: ⚠️ Needs update (per CURRENT_SITUATION.md)
 
+#### 5. **Missing Order IDs & Basic Admin UI** ✅ FIXED
+- **Issue**: Orders only had internal MongoDB ObjectIDs (e.g., `65a...`), making tracking difficult. "Order ID: #undefined" shown to users. Admin panel was basic.
+- **Fix**: 
+    - Implemented custom ID generation (`ORD-YYYYMMDD-XXXX`) in Backend.
+    - Updated Checkout to wait for order creation and redirect with valid ID.
+    - Connected `TrackOrder` page to real API.
+    - Redesigned Admin Order Management with modern UI, badges, and search.
+    - Added "Email Notification" simulation on status change.
+- **Status**: Committed and pushed to GitHub
+- **Files Modified**: `backend/api/views.py`, `serializers.py`, `frontend/.../Checkout.js`, `TrackOrder.js`, `OrderManagement.js`, `MyOrders.js`
+
 ### 📝 **Additional Notes**
 
 - Backend requirements.txt is clean and up-to-date
