@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 REM Define absolute path to project
-set PROJECT_DIR=C:\Users\KARTHIKEYAN\Desktop\final\SJG-
+set PROJECT_DIR=C:\Users\KARTHIKEYAN\OneDrive\Desktop\final\SJG-
 set LOG_DIR=%PROJECT_DIR%\logs
 
 REM Create logs directory if it doesn't exist

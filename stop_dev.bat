@@ -3,7 +3,7 @@ echo Stopping servers...
 setlocal enabledelayedexpansion
 
 REM Define absolute path to project
-set PROJECT_DIR=C:\Users\KARTHIKEYAN\Desktop\final\SJG-
+set PROJECT_DIR=C:\Users\KARTHIKEYAN\OneDrive\Desktop\final\SJG-
 
 echo Stopping servers...
 
