@@ -18,6 +18,13 @@
 - **Fix**: Removed backend/.git directory and re-added backend as regular directory
 - **Status**: Committed and pushed to GitHub
 
+#### 3. **Django Backend Template Error** ✅ FIXED
+- **File**: `backend/backend_project/urls.py`
+- **Issue**: Backend was trying to serve React templates with `TemplateView`, causing "TemplateDoesNotExist at /" error on Render
+- **Impact**: Backend root URL was broken, showing Django error page instead of API response
+- **Fix**: Converted backend to API-only mode with JSON root endpoint listing all available API endpoints
+- **Status**: Committed and pushed to GitHub
+
 **Before:**
 ```css
 :root {
@@ -44,7 +51,8 @@
 | Component | Status | Notes |
 |-----------|--------|-------|
 | CSS Syntax | ✅ Fixed | theme.css corrected |
-| Git Repository | ✅ Updated | Changes committed and pushed |
+| Git Repository | ✅ Updated | Submodule conflict resolved |
+| Backend URLs | ✅ Fixed | API-only mode, no template errors |
 | Backend Files | ✅ Clean | No syntax errors |
 | Frontend Files | ⚠️ Needs Build Test | Console.log statements present (acceptable for dev) |
 
@@ -80,6 +88,12 @@ Message: "Docs: Added documentation of all fixed issues"
 
 Commit 3: b56ce14
 Message: "Fix: Remove backend submodule and add as regular directory"
+
+Commit 4: c3c5b43
+Message: "Docs: Updated with Git submodule fix details"
+
+Commit 5: e238f5d
+Message: "Fix: Convert backend to API-only, remove template serving"
 
 Branch: main
 Status: All commits pushed to origin ✅
