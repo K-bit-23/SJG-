@@ -18,7 +18,11 @@ class MongoDBClient:
             try:
                 self._client = pymongo.MongoClient(
                     settings.MONGODB_URI,
-                    tlsCAFile=certifi.where()
+                    tlsCAFile=certifi.where(),
+                    serverSelectionTimeoutMS=5000,
+                    connectTimeoutMS=5000,
+                    socketTimeoutMS=5000,
+                    maxPoolSize=50
                 )
                 self._db = self._client[settings.MONGODB_NAME]
                 # Test connection
@@ -26,6 +30,7 @@ class MongoDBClient:
                 print(f"✓ Successfully connected to MongoDB: {settings.MONGODB_NAME}")
             except Exception as e:
                 print(f"✗ MongoDB connection error: {e}")
+                print("  Please check your internet connection and MongoDB Atlas settings")
                 raise e
         return self._db
     
