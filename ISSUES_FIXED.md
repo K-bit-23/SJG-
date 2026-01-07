@@ -69,13 +69,20 @@ While not critical, the following files contain console.log statements that coul
 
 **Note**: These are not errors and are commonly kept during development for debugging purposes.
 
-### 📦 **Git Commit Made**
+### 📦 **Git Commits Made**
 
 ```bash
-Commit: 782fd97
+Commit 1: 782fd97
 Message: "Fix: Corrected CSS syntax error in theme.css"
+
+Commit 2: 4709720
+Message: "Docs: Added documentation of all fixed issues"
+
+Commit 3: b56ce14
+Message: "Fix: Remove backend submodule and add as regular directory"
+
 Branch: main
-Status: Pushed to origin
+Status: All commits pushed to origin ✅
 ```
 
 ### ✅ **Next Steps**
