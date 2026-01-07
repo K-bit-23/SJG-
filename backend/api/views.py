@@ -27,6 +27,9 @@ class ProductListCreateView(APIView):
             if serializer.is_valid():
                 collection = mongo_client.get_collection('products')
                 product_data = serializer.validated_data
+                # Convert Decimal to float for MongoDB
+                if 'price' in product_data:
+                    product_data['price'] = float(product_data['price'])
                 product_data['created_at'] = datetime.now()
                 product_data['updated_at'] = datetime.now()
                 result = collection.insert_one(product_data)
@@ -68,6 +71,9 @@ class ProductDetailView(APIView):
             serializer = ProductSerializer(data=request.data)
             if serializer.is_valid():
                 update_data = serializer.validated_data
+                # Convert Decimal to float for MongoDB
+                if 'price' in update_data:
+                    update_data['price'] = float(update_data['price'])
                 update_data['updated_at'] = datetime.now()
                 result = collection.update_one(
                     {'_id': ObjectId(pk)},
@@ -124,6 +130,13 @@ class OrderListCreateView(APIView):
             if serializer.is_valid():
                 collection = mongo_client.get_collection('orders')
                 order_data = serializer.validated_data
+                # Convert Decimal to float for MongoDB
+                if 'total_amount' in order_data:
+                    order_data['total_amount'] = float(order_data['total_amount'])
+                if 'items' in order_data:
+                    for item in order_data['items']:
+                        if 'price' in item:
+                            item['price'] = float(item['price'])
                 order_data['created_at'] = datetime.now()
                 order_data['updated_at'] = datetime.now()
                 result = collection.insert_one(order_data)
