@@ -11,6 +11,13 @@
 - **Fix**: Rewrote the theme.css file with proper CSS syntax
 - **Status**: Committed and pushed to GitHub
 
+#### 2. **Git Submodule Conflict** ✅ FIXED
+- **Directory**: `backend/`
+- **Issue**: Backend directory had its own `.git` folder, causing it to be treated as a submodule (mode 160000)
+- **Impact**: Git errors when trying to commit, preventing proper version control
+- **Fix**: Removed backend/.git directory and re-added backend as regular directory
+- **Status**: Committed and pushed to GitHub
+
 **Before:**
 ```css
 :root {
