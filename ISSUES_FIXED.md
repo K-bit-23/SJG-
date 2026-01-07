@@ -25,6 +25,13 @@
 - **Fix**: Converted backend to API-only mode with JSON root endpoint listing all available API endpoints
 - **Status**: Committed and pushed to GitHub
 
+#### 4. **MongoDB Decimal Encoding Error** ✅ FIXED
+- **File**: `backend/api/views.py`
+- **Issue**: Saving products failed with `cannot encode object: Decimal(...)` because MongoDB/JSON serialization couldn't handle Python Decimal objects
+- **Impact**: Unable to add or update products and orders
+- **Fix**: Added manual conversion of `Decimal` fields to `float` before inserting into MongoDB
+- **Status**: Committed and pushed to GitHub
+
 **Before:**
 ```css
 :root {
@@ -53,6 +60,7 @@
 | CSS Syntax | ✅ Fixed | theme.css corrected |
 | Git Repository | ✅ Updated | Submodule conflict resolved |
 | Backend URLs | ✅ Fixed | API-only mode, no template errors |
+| Data Encoding | ✅ Fixed | Decimal to float conversion for MongoDB |
 | Backend Files | ✅ Clean | No syntax errors |
 | Frontend Files | ⚠️ Needs Build Test | Console.log statements present (acceptable for dev) |
 
@@ -94,6 +102,9 @@ Message: "Docs: Updated with Git submodule fix details"
 
 Commit 5: e238f5d
 Message: "Fix: Convert backend to API-only, remove template serving"
+
+Commit 6: 03edfa4
+Message: "Fix: Handle Decimal serialization for MongoDB by converting to float"
 
 Branch: main
 Status: All commits pushed to origin ✅
