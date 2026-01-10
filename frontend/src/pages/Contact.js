@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Contact.css';
+import { API_ENDPOINTS } from '../config';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -7,16 +8,38 @@ const Contact = () => {
     email: '',
     message: '',
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    alert('Thank you for your message! We will get back to you shortly.');
-    setFormData({ name: '', email: '', message: '' });
+    setLoading(true);
+
+    try {
+      const response = await fetch(API_ENDPOINTS.CONTACT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        alert('Thank you for your message! We will get back to you shortly.');
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to send message: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Error sending message. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,7 +65,9 @@ const Contact = () => {
               <div className="form-group">
                 <textarea id="message" name="message" rows="5" placeholder="Your Message" value={formData.message} onChange={handleChange} required></textarea>
               </div>
-              <button type="submit" className="btn btn-primary">Send Message</button>
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                {loading ? 'Sending...' : 'Send Message'}
+              </button>
             </form>
           </div>
         </div>

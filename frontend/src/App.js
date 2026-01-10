@@ -24,8 +24,8 @@ import InventoryManagement from './pages/admin/InventoryManagement';
 import OrderManagement from './pages/admin/OrderManagement';
 import UserManagement from './pages/admin/UserManagement';
 import OfflineBilling from './pages/admin/OfflineBilling';
-import './App.css';
-import './animations.css';
+// import './App.css';
+// import './animations.css';
 
 const AppRoutes = () => {
   const { user, isAuthenticated, loading } = useAuth();

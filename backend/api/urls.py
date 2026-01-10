@@ -15,7 +15,8 @@ from .views import (
     ProductDetailView,
     OrderListCreateView,
     OrderDetailView,
-    DashboardStatsView
+    DashboardStatsView,
+    ContactMessageView
 )
 
 urlpatterns = [
@@ -29,6 +30,9 @@ urlpatterns = [
     
     # Dashboard endpoints
     path('dashboard/stats/', DashboardStatsView.as_view(), name='dashboard-stats'),
+    
+    # Contact endpoints
+    path('contact/', ContactMessageView.as_view(), name='contact-message'),
 ]
 
 # ============================================================================

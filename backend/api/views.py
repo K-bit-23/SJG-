@@ -6,7 +6,7 @@ from datetime import datetime
 import random
 import string
 from .mongodb import mongo_client
-from .serializers import ProductSerializer, OrderSerializer
+from .serializers import ProductSerializer, OrderSerializer, ContactMessageSerializer
 
 class ProductListCreateView(APIView):
     """List all products or create a new product"""
@@ -223,9 +223,11 @@ class DashboardStatsView(APIView):
         try:
             products_collection = mongo_client.get_collection('products')
             orders_collection = mongo_client.get_collection('orders')
+            messages_collection = mongo_client.get_collection('messages')
             
             total_products = products_collection.count_documents({})
             total_orders = orders_collection.count_documents({})
+            total_messages = messages_collection.count_documents({})
             
             # Calculate total revenue
             pipeline = [
@@ -240,9 +242,35 @@ class DashboardStatsView(APIView):
             return Response({
                 'total_products': total_products,
                 'total_orders': total_orders,
+                'total_messages': total_messages,
                 'total_revenue': total_revenue,
                 'recent_orders': OrderSerializer(recent_orders, many=True).data
             })
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class ContactMessageView(APIView):
+    """Save a contact message to MongoDB"""
+    
+    def post(self, request):
+        try:
+            serializer = ContactMessageSerializer(data=request.data)
+            if serializer.is_valid():
+                collection = mongo_client.get_collection('messages')
+                message_data = serializer.validated_data
+                message_data['created_at'] = datetime.now()
+                
+                result = collection.insert_one(message_data)
+                message_data['_id'] = result.inserted_id
+                
+                return Response(
+                    ContactMessageSerializer(message_data).data,
+                    status=status.HTTP_201_CREATED
+                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(
                 {'error': str(e)},

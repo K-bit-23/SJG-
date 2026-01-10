@@ -44,3 +44,10 @@ class OrderSerializer(serializers.Serializer):
     payment_method = serializers.CharField(max_length=50)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
+
+class ContactMessageSerializer(serializers.Serializer):
+    id = ObjectIdField(read_only=True, source='_id')
+    name = serializers.CharField(max_length=200)
+    email = serializers.EmailField()
+    message = serializers.CharField()
+    created_at = serializers.DateTimeField(read_only=True)
