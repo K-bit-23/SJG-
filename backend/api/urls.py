@@ -18,7 +18,9 @@ from .views import (
     DashboardStatsView,
     ContactMessageView,
     UserListCreateView,
-    UserDetailView
+    UserDetailView,
+    HomePageContentView,
+    ChatBotConfigView
 )
 
 urlpatterns = [
@@ -39,6 +41,10 @@ urlpatterns = [
     # User endpoints (for Admin Panel)
     path('users/', UserListCreateView.as_view(), name='user-list-create'),
     path('users/<str:uid>/', UserDetailView.as_view(), name='user-detail'),
+
+    # Content endpoints
+    path('content/home/', HomePageContentView.as_view(), name='home-page-content'),
+    path('content/chatbot/', ChatBotConfigView.as_view(), name='chatbot-config'),
 ]
 
 # ============================================================================

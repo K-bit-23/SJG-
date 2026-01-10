@@ -27,5 +27,6 @@ export const API_ENDPOINTS = {
     STATS: `${API_BASE_URL}/api/dashboard/stats/`,
     CONTACT: `${API_BASE_URL}/api/contact/`,
     USERS: `${API_BASE_URL}/api/users/`,
+    HOME_CONTENT: `${API_BASE_URL}/api/content/home/`,
     AUTH: `${API_BASE_URL}/api/`,
 };

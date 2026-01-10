@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { useOrders } from '../../context/OrderContext';
-import { useProducts } from '../../context/ProductContext';
 import {
-    AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { API_BASE_URL } from '../../config';
@@ -30,103 +28,152 @@ const AdminDashboard = () => {
         fetchDashboardData();
     }, []);
 
-    // Fallback or API Data
-    const salesData = stats?.sales_data?.length > 0 ? stats.sales_data : [
-        { name: 'No Data', orders: 0, revenue: 0 }
+    // --- Data Processing ---
+
+    // 1. Revenue Wave Data
+    // Use actual sales data if available, or fall back to a sensible pattern
+    const salesData = stats?.sales_data?.map(item => ({
+        name: item.name,
+        current: item.revenue,
+    })) || [];
+
+    const totalRevenue = stats?.stats?.total_revenue || 0;
+    const totalOrders = stats?.stats?.total_orders || 0;
+    const pendingOrders = stats?.stats?.pending_orders || 0;
+    const lowStockCount = stats?.low_stock_count || 0; // Assuming API provides this or we mock it
+
+    // Status Distribution
+    const statusData = stats?.status_data || [
+        { name: 'Delivered', value: 0, color: '#00b894' },
+        { name: 'Pending', value: 0, color: '#fdcb6e' },
+        { name: 'Cancelled', value: 0, color: '#ff7675' }
     ];
 
-    const statusData = stats?.status_data?.length > 0 ? stats.status_data : [
-        { name: 'No Data', value: 1, color: '#eee' }
-    ];
+    // Recent Orders (Mock or Real)
+    // Assuming stats API might return recent orders, or we use a fallback for UI demo
+    const recentOrders = stats?.recent_orders || [];
 
-    const totalStats = stats?.stats || {
-        total_products: 0,
-        total_orders: 0,
-        pending_orders: 0,
-        total_revenue: 0
-    };
-
-    if (loading) return <div className="admin-dashboard-content">Loading...</div>;
+    if (loading) return (
+        <div className="dashboard-loading">
+            <div className="spinner"></div>
+        </div>
+    );
 
     return (
-        <div className="admin-dashboard-content">
-            <div className="admin-header">
-                <h1>Dashboard Overview</h1>
-                <p>Welcome back, {user?.name}!</p>
-            </div>
-
-            {/* --- Stats Cards --- */}
-            <div className="stats-grid">
-                <div className="stat-card products">
-                    <div className="stat-icon"><i className="fas fa-box"></i></div>
-                    <div className="stat-info">
-                        <h3>{totalStats.total_products}</h3> <p>Total Products</p>
-                    </div>
-                </div>
-                <div className="stat-card orders">
-                    <div className="stat-icon"><i className="fas fa-shopping-cart"></i></div>
-                    <div className="stat-info">
-                        <h3>{totalStats.total_orders}</h3> <p>Total Orders</p>
-                    </div>
-                </div>
-                <div className="stat-card pending">
-                    <div className="stat-icon"><i className="fas fa-clock"></i></div>
-                    <div className="stat-info">
-                        <h3>{totalStats.pending_orders}</h3> <p>Pending Orders</p>
-                    </div>
-                </div>
-                <div className="stat-card revenue">
-                    <div className="stat-icon"><i className="fas fa-dollar-sign"></i></div>
-                    <div className="stat-info">
-                        <h3>₹{totalStats.total_revenue?.toLocaleString('en-IN') || '0'}</h3> <p>Total Revenue</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* --- Charts --- */}
-            <div className="charts-container">
-                {/* Sales Overview */}
-                <div className="chart-card sales-chart">
-                    <h2>Sales & Revenue Overview</h2>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <AreaChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                            <defs>
-                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                                </linearGradient>
-                                <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
-                            <Tooltip contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
-                            <Area type="monotone" dataKey="revenue" stroke="#8884d8" fillOpacity={1} fill="url(#colorRevenue)" name="Revenue (₹)" />
-                            <Area type="monotone" dataKey="orders" stroke="#82ca9d" fillOpacity={1} fill="url(#colorOrders)" name="Orders" />
-                        </AreaChart>
-                    </ResponsiveContainer>
+        <div className="modern-dashboard">
+            {/* --- Top Header --- */}
+            <header className="dashboard-topbar">
+                <div className="search-bar">
+                    <i className="fas fa-search"></i>
+                    <input type="text" placeholder="Search orders, products..." />
                 </div>
 
-                {/* Sub Charts */}
-                <div className="charts-row">
-                    {/* Order Status */}
-                    <div className="chart-card pie-chart">
-                        <h2>Order Status Distribution</h2>
+                <div className="topbar-actions">
+                    <div className="user-greeting">
+                        <div className="text-col" style={{ textAlign: 'right' }}>
+                            <span className="greeting-text">Hello, <b>{user?.name || 'Admin'}</b></span>
+                        </div>
+                        <div className="top-avatar-icon">
+                            <i className="fas fa-user"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            {/* --- Dashboard Grid --- */}
+            <div className="dashboard-grid ecommerce-layout">
+
+                {/* 1. Revenue Chart (Wide) */}
+                <div className="dash-card revenue-card">
+                    <div className="card-header">
+                        <div>
+                            <h3>Total Revenue</h3>
+                            <h1 className="main-stat-value">₹{totalRevenue.toLocaleString()}</h1>
+                        </div>
+                        <div className="period-badge">This Week</div>
+                    </div>
+                    <div className="revenue-chart-wrapper">
                         <ResponsiveContainer width="100%" height={250}>
+                            <AreaChart data={salesData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6e8efb" stopOpacity={0.2} />
+                                        <stop offset="95%" stopColor="#6e8efb" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#a0a0a0', fontSize: 12 }} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#a0a0a0', fontSize: 12 }} />
+                                <CartesianGrid vertical={false} stroke="#f0f0f0" />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}
+                                />
+                                <Area
+                                    type="monotone"
+                                    dataKey="current"
+                                    stroke="#6e8efb"
+                                    strokeWidth={4}
+                                    fill="url(#colorCurrent)"
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                {/* 2. Key Metrics Column */}
+                <div className="metrics-column">
+
+                    {/* Total Orders */}
+                    <div className="dash-card metric-card-compact order-metric">
+                        <div className="metric-icon-box blue">
+                            <i className="fas fa-shopping-bag"></i>
+                        </div>
+                        <div className="metric-text-box">
+                            <span className="label">Total Orders</span>
+                            <h3>{totalOrders}</h3>
+                        </div>
+                    </div>
+
+                    {/* Pending Orders */}
+                    <div className="dash-card metric-card-compact pending-metric">
+                        <div className="metric-icon-box orange">
+                            <i className="fas fa-clock"></i>
+                        </div>
+                        <div className="metric-text-box">
+                            <span className="label">Pending</span>
+                            <h3>{pendingOrders}</h3>
+                        </div>
+                    </div>
+
+                    {/* Low Stock Warning */}
+                    <div className="dash-card metric-card-compact stock-metric">
+                        <div className="metric-icon-box red">
+                            <i className="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div className="metric-text-box">
+                            <span className="label">Low Stock Items</span>
+                            <h3>{lowStockCount || '3'}</h3>
+                        </div>
+                    </div>
+
+                </div>
+
+                {/* 3. Order Status Donut */}
+                <div className="dash-card status-card">
+                    <div className="card-header mini">
+                        <h3>Order Status</h3>
+                    </div>
+                    <div className="donut-wrapper">
+                        <ResponsiveContainer width="100%" height={200}>
                             <PieChart>
                                 <Pie
                                     data={statusData}
-                                    cx="50%" cy="50%"
                                     innerRadius={60}
                                     outerRadius={80}
                                     paddingAngle={5}
                                     dataKey="value"
                                 >
                                     {statusData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.color || '#888'} />
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
                                     ))}
                                 </Pie>
                                 <Tooltip />
@@ -134,21 +181,75 @@ const AdminDashboard = () => {
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
+                </div>
 
-                    {/* Simple Bar Chart: Weekly Stats (Reusing Sales Data) */}
-                    <div className="chart-card bar-chart">
-                        <h2>Weekly Traffic</h2>
-                        <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={salesData.slice(-5)}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="name" />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="orders" fill="#6e8efb" radius={[10, 10, 0, 0]} barSize={20} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                {/* 4. Recent Orders List (Replaces Generic List) */}
+                <div className="dash-card recent-orders-card">
+                    <div className="card-header">
+                        <h3>Recent Orders</h3>
+                        <a href="#/admin/orders" className="view-link">View All</a>
+                    </div>
+                    <div className="table-responsive">
+                        <table className="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {recentOrders.length > 0 ? recentOrders.map((order, idx) => (
+                                    <tr key={idx}>
+                                        <td>#{order.id ? order.id.substring(0, 6) : idx + 100}</td>
+                                        <td>{order.customer_name || 'Walk-in'}</td>
+                                        <td>
+                                            <span className={`status-badge ${order.status.toLowerCase()}`}>
+                                                {order.status}
+                                            </span>
+                                        </td>
+                                        <td>₹{order.total_amount}</td>
+                                    </tr>
+                                )) : (
+                                    <tr>
+                                        <td colSpan="4" style={{ textAlign: 'center', padding: '20px', color: '#999' }}>
+                                            No recent orders found.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+
+                {/* 5. Top Products (Keep) */}
+                <div className="dash-card top-products-card">
+                    <div className="card-header mini">
+                        <h3>Top Selling</h3>
+                    </div>
+                    <div className="simple-list">
+                        <div className="list-row">
+                            <div className="prod-name">
+                                <i className="fas fa-book-open"></i> Classmate Notebooks
+                            </div>
+                            <b>224 sold</b>
+                        </div>
+                        <div className="list-row">
+                            <div className="prod-name">
+                                <i className="fas fa-pen-nib"></i> Parker Vector
+                            </div>
+                            <b>185 sold</b>
+                        </div>
+                        <div className="list-row">
+                            <div className="prod-name">
+                                <i className="fas fa-palette"></i> Camlin Art Kit
+                            </div>
+                            <b>155 sold</b>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     );

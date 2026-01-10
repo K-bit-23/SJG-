@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../context/ProductContext'; // Import Context
 // import productsData, { categories } from '../data/productsData'; // Removed static
@@ -10,6 +11,23 @@ const Products = () => {
 
   // Dynamic Categories
   const categories = ['All', ...new Set(productsData.map(p => p.category))];
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Parse Query Params
+  const queryParams = new URLSearchParams(location.search);
+  const initialCategory = queryParams.get('category'); // e.g. "notebooks"
+
+  // Helper to map URL param to readable Category Name (simple mapping)
+  const mapParamToCategory = (param) => {
+    if (!param) return 'All';
+    if (param === 'notebooks') return 'Notebooks'; // Match exact Category string in DB
+    if (param === 'pens') return 'Pens';
+    if (param === 'art') return 'Art Supplies';
+    if (param === 'office') return 'Office'; // Adjust based on actual data
+    return 'All';
+  };
 
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [priceRange, setPriceRange] = useState([0, 10000]);
@@ -23,45 +41,25 @@ const Products = () => {
   const { addToCart } = useCart();
 
   // Reset pagination when filters change
+  // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedCategory, priceRange, selectedBrands, minRating]);
 
-  // Sidebar State
-  const [expanded, setExpanded] = useState({
-    categories: true,
-    price: true,
-    brand: true,
-    ratings: true
-  });
+  // Sync URL to State on Load/Change
+  useEffect(() => {
+    const catParam = queryParams.get('category');
+    if (catParam) {
+      // This assumes your product categories in DB match mapped names
+      // Ideally, you'd have a robust map or slugs
+      // For now, I'll attempt a direct match or simple Title Case
+      const matchedCat = categories.find(c => c.toLowerCase().includes(catParam.toLowerCase()));
+      if (matchedCat) {
+        setSelectedCategory(matchedCat);
+      }
+    }
+  }, [location.search, categories]);
 
-  const toggleSection = (section) => {
-    setExpanded(prev => ({ ...prev, [section]: !prev[section] }));
-  };
-
-  const handleBrandChange = (brand) => {
-    setSelectedBrands(prev =>
-      prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
-    );
-  };
-
-  const handlePriceMinChange = (e) => {
-    const min = parseInt(e.target.value) || 0;
-    setPriceRange([min, priceRange[1]]);
-  };
-
-  const handlePriceMaxChange = (e) => {
-    const max = parseInt(e.target.value) || 10000;
-    setPriceRange([priceRange[0], max]);
-  };
-
-  const clearFilters = () => {
-    setSelectedCategory('All');
-    setPriceRange([0, 10000]);
-    setSelectedBrands([]);
-    setMinRating(0);
-    setCurrentPage(1);
-  };
 
   const filteredProducts = productsData.filter(product => {
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
@@ -88,126 +86,28 @@ const Products = () => {
   };
 
   return (
-    <div className="products-page-container">
-
-      {/* --- Sidebar Filters --- */}
-      <aside className="products-sidebar">
-        <div className="sidebar-header">
-          <h3>Filters</h3>
-          <button className="clear-btn" onClick={clearFilters}>CLEAR ALL</button>
-        </div>
-
-        {/* Categories Section */}
-        <div className="filter-section">
-          <div className="filter-header" onClick={() => toggleSection('categories')}>
-            <span>CATEGORIES</span>
-            <i className={`fas fa-chevron-${expanded.categories ? 'up' : 'down'}`}></i>
-          </div>
-          {expanded.categories && (
-            <div className="filter-body">
-              <div
-                className={`sidebar-item ${selectedCategory === 'All' ? 'active' : ''}`}
-                onClick={() => setSelectedCategory('All')}
-              >
-                <i className="fas fa-chevron-left"></i> All Categories
-              </div>
-              {categories.filter(c => c !== 'All').map(cat => (
-                <div
-                  key={cat}
-                  className={`sidebar-item ${selectedCategory === cat ? 'active' : ''}`}
-                  onClick={() => setSelectedCategory(cat)}
-                >
-                  {cat}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Price Section */}
-        <div className="filter-section">
-          <div className="filter-header" onClick={() => toggleSection('price')}>
-            <span>PRICE</span>
-            <i className={`fas fa-chevron-${expanded.price ? 'up' : 'down'}`}></i>
-          </div>
-          {expanded.price && (
-            <div className="filter-body">
-              <div className="price-inputs sidebar-price">
-                <select className="price-select" onChange={handlePriceMinChange} value={priceRange[0]}>
-                  <option value="0">Min</option>
-                  <option value="100">₹100</option>
-                  <option value="500">₹500</option>
-                </select>
-                <span className="to-text">to</span>
-                <select className="price-select" onChange={handlePriceMaxChange} value={priceRange[1]}>
-                  <option value="1000">₹1000</option>
-                  <option value="2000">₹2000</option>
-                  <option value="10000">₹10000+</option>
-                </select>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Brand Section */}
-        <div className="filter-section">
-          <div className="filter-header" onClick={() => toggleSection('brand')}>
-            <span>BRAND</span>
-            <i className={`fas fa-chevron-${expanded.brand ? 'up' : 'down'}`}></i>
-          </div>
-          {expanded.brand && (
-            <div className="filter-body">
-              {['Classmate', 'Parker', 'Camlin', 'Paperkraft'].map(brand => (
-                <label key={brand} className="sidebar-checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={selectedBrands.includes(brand)}
-                    onChange={() => handleBrandChange(brand)}
-                  />
-                  <span className="checkmark"></span>
-                  {brand}
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Ratings Section */}
-        <div className="filter-section">
-          <div className="filter-header" onClick={() => toggleSection('ratings')}>
-            <span>CUSTOMER RATINGS</span>
-            <i className={`fas fa-chevron-${expanded.ratings ? 'up' : 'down'}`}></i>
-          </div>
-          {expanded.ratings && (
-            <div className="filter-body">
-              {[4, 3].map(rating => (
-                <label key={rating} className="sidebar-checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={minRating === rating}
-                    onChange={() => setMinRating(minRating === rating ? 0 : rating)}
-                  />
-                  <span className="checkmark"></span>
-                  {rating}★ & above
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-      </aside>
-
-      {/* --- Main Content --- */}
-      <main className="products-main">
+    <div className={`products-page-container full-width`}>
+      <main className="products-main full-width-grid">
         {/* Header Info */}
         <div className="products-header-info">
           <h2>Stationery & Office Supplies</h2>
+          {/* 
+            You might want to restore simple top-bar filters (e.g. Sort by Price/Category) 
+            if sidebar is gone, but the request was specifically to 'Remove Side Filter'.
+          */}
           <span>(Showing {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length} items)</span>
         </div>
 
         <div className="product-grid-premium">
           {currentItems.length > 0 ? (
             currentItems.map(product => (
-              <div key={product.id} className="premium-product-card" title={product.name}>
+              <div
+                key={product.id}
+                className="premium-product-card"
+                title={product.name}
+                onClick={() => navigate(`/product/${product.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
 
                 <div className="card-image-section">
                   <img src={product.image} alt={product.name} />
@@ -282,7 +182,7 @@ const Products = () => {
         )}
 
       </main>
-    </div>
+    </div >
   );
 };
 

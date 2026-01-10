@@ -47,6 +47,20 @@ const Navbar = ({ logo }) => {
             <span>Home</span>
           </Link>
 
+          <div className="nav-item-dropdown">
+            <Link to="/products" className="nav-link">
+              <i className="fas fa-list"></i>
+              <span>Categories</span>
+            </Link>
+            <div className="dropdown-menu-hover">
+              <Link to="/products?category=notebooks" className="dropdown-item">Notebooks</Link>
+              <Link to="/products?category=pens" className="dropdown-item">Pens & Writing</Link>
+              <Link to="/products?category=art" className="dropdown-item">Art Supplies</Link>
+              <Link to="/products?category=office" className="dropdown-item">Office Essentials</Link>
+              <Link to="/products" className="dropdown-item view-all">View All Products</Link>
+            </div>
+          </div>
+
         </div>
       </div>
 

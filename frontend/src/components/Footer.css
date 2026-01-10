@@ -1,15 +1,12 @@
 /* --- Modern Light Red Footer Styles --- */
 .footer-modern {
   background-color: #fff;
-  /* Keep white for cleanliness */
   color: #4a4a4a;
   padding: 70px 0 0;
   font-family: 'Poppins', sans-serif;
   border-top: 1px solid #ffecec;
-  /* Red-tinted border */
   margin-top: 40px;
   background: linear-gradient(to top, #fff0f0 0%, #ffffff 100%);
-  /* Subtle red fade at bottom */
 }
 
 .footer-container {
@@ -42,21 +39,13 @@
   font-weight: 700;
   margin-bottom: 20px;
   color: #ff6b6b;
-  /* Red Logo */
 }
-
-.dot {
-  color: #ff9f00;
-}
-
-/* Keep orange or switch to red? Keeping orange for contrast */
 
 .footer-heading {
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 25px;
   color: #ff6b6b;
-  /* Red Headings */
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }

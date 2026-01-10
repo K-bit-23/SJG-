@@ -158,3 +158,155 @@
         flex-direction: column;
     }
 }
+
+/* Location Button */
+.location-btn {
+    position: absolute;
+    right: 10px;
+    top: 36px;
+    /* Adjust based on label height */
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.location-btn:hover:not(:disabled) {
+    color: #ff4757;
+    text-decoration: underline;
+}
+
+.location-btn:disabled {
+    color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Payment Modal */
+.payment-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s ease;
+}
+
+.payment-modal {
+    background: white;
+    width: 90%;
+    max-width: 450px;
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUpModal 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpModal {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.payment-modal h3 {
+    margin-top: 0;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 1.2rem;
+}
+
+.payment-modal h3::before {
+    content: '\f023';
+    /* Lock Icon FontAwesome */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    color: #27ae60;
+}
+
+.payment-simulation-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.pay-btn {
+    padding: 15px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.2s;
+}
+
+.pay-btn.upi {
+    background: #f1f2f6;
+    color: #2d3436;
+    border: 1px solid #dfe6e9;
+}
+
+.pay-btn.upi:hover {
+    background: #eef2ff;
+    border-color: #6e8efb;
+    color: #6e8efb;
+}
+
+.pay-btn.card {
+    background: #2d3436;
+    color: white;
+}
+
+.pay-btn.card:hover {
+    background: #000;
+}
+
+.cancel-payment {
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: underline;
+}
+
+/* Spinner Large */
+.spinner-large {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #27ae60;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+.processing-state p {
+    font-weight: 600;
+    color: #333;
+}

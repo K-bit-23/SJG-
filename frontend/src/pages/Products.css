@@ -7,32 +7,118 @@
 }
 
 .products-page-container {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  /* Slightly narrower sidebar */
-  width: 100%;
-  /* Full Width */
-  max-width: 100%;
-  /* No centering limit */
+  /* Removed Sidebar Column */
+  display: block;
+  /* No longer grid needed for sidebar */
+  /* width: 100%; */
   margin-top: 80px;
   /* Navbar offset */
   padding: 20px;
-  gap: 30px;
-  align-items: start;
+  /* gap: 30px; */
 }
 
 /* --- Sidebar --- */
+/* Sidebar Transitions */
 .products-sidebar {
   min-width: 280px;
   width: 280px;
   background: #fff;
   border-radius: 16px;
-  /* Soft Red Shadow */
   box-shadow: 0 10px 30px rgba(255, 107, 107, 0.05);
   border: 1px solid rgba(255, 107, 107, 0.1);
   height: fit-content;
   position: sticky;
   top: 100px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.products-sidebar.hidden {
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  opacity: 0;
+  margin-right: -30px;
+  /* Pull grid back */
+}
+
+/* Full Width Grid when Sidebar is hidden */
+.products-page-container.full-width {
+  grid-template-columns: 1fr;
+}
+
+/* Toggle Button */
+.sidebar-toggle-btn {
+  grid-column: 1 / -1;
+  width: fit-content;
+  background: white;
+  border: 1px solid #ff6b6b;
+  color: #ff6b6b;
+  padding: 8px 20px;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 0px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.sidebar-toggle-btn:hover {
+  background: #ff6b6b;
+  color: white;
+}
+
+.close-sidebar-mobile {
+  display: none;
+  /* Only show on mobile */
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #888;
+}
+
+@media (max-width: 900px) {
+  .products-page-container {
+    display: block;
+    position: relative;
+  }
+
+  .sidebar-toggle-btn {
+    margin-bottom: 20px;
+  }
+
+  .products-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 2000;
+    width: 280px;
+    transform: translateX(-100%);
+    border-radius: 0;
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.1);
+    /* Override hidden/visible for mobile specific slide logic */
+  }
+
+  /* Force display block logic override */
+  .products-sidebar.visible {
+    display: block;
+    transform: translateX(0);
+    width: 80%;
+    max-width: 300px;
+  }
+
+  .products-sidebar.hidden {
+    margin-right: 0;
+    width: 0;
+  }
+
+  .close-sidebar-mobile {
+    display: block;
+  }
 }
 
 .sidebar-header {
@@ -265,19 +351,27 @@
   font-weight: 400;
 }
 
+/* Reduced Size Add Button */
 .premium-add-btn {
   margin-top: auto;
   background: linear-gradient(135deg, #ff9a9e, #ff6b6b);
   color: #fff;
   border: none;
-  padding: 12px;
+  padding: 8px 12px;
+  /* Smaller padding */
   font-weight: 600;
-  font-size: 13px;
-  border-radius: 8px;
+  font-size: 11px;
+  /* Smaller font */
+  border-radius: 6px;
   cursor: pointer;
-  box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 4px 10px rgba(255, 107, 107, 0.2);
   transition: all 0.3s;
   text-transform: uppercase;
+  width: fit-content;
+  /* Don't stretch full width if not needed */
+  align-self: center;
+  /* Center if fit-content is used */
+  min-width: 120px;
 }
 
 .premium-add-btn:hover:not(:disabled) {

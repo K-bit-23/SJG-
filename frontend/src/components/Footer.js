@@ -12,7 +12,7 @@ const Footer = () => {
           <div className="footer-col about-col">
             <h3 className="footer-logo">
               <img src="/sjg-logo.jpg" alt="Logo" style={{ height: '40px', verticalAlign: 'middle', marginRight: '10px', borderRadius: '50%' }} />
-              SJG Stationery<span className="dot">.</span>
+              SJG Stationery
             </h3>
             <p className="footer-desc">
               Your trusted partner for all stationery, printing, and business needs.
@@ -33,7 +33,7 @@ const Footer = () => {
               <li><Link to="/products">Shop Products</Link></li>
               <li><Link to="/cart">My Cart</Link></li>
               <li><Link to="/track-order">Track Order</Link></li>
-              <li><Link to="/login">Login / Register</Link></li>
+              <li><Link to="/profile">My Account</Link></li>
             </ul>
           </div>
 

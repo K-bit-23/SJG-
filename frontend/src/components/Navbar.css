@@ -167,9 +167,76 @@
   color: #ff6b6b;
 }
 
+/* Funky Icon Animations */
+@keyframes shake {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(15deg);
+  }
+
+  50% {
+    transform: rotate(-15deg);
+  }
+
+  75% {
+    transform: rotate(5deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+  }
+}
+
 .nav-link:hover i {
   color: #ff6b6b;
-  transform: translateY(-2px);
+  animation: bounce 0.5s ease;
+}
+
+.search-btn-icon:hover i {
+  animation: shake 0.5s ease;
+  color: #ff9a9e;
+}
+
+.shop-now-btn:hover i {
+  animation: bounce 0.6s infinite;
+}
+
+/* User & Cart Icons Specific Funky */
+.nav-link-btn:hover i {
+  color: #ff6b6b;
+  animation: shake 0.4s ease;
 }
 
 /* Login Btn (If text) */
@@ -217,7 +284,7 @@
 }
 
 
-/* --- User Dropdown Menu --- */
+/* --- User Dropdown Menu (Premium Effect) --- */
 .user-menu-container {
   position: relative;
   padding: 10px 0;
@@ -229,19 +296,54 @@
   top: 100%;
   right: 0;
   background: #fff;
-  min-width: 180px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  padding: 10px;
+  min-width: 220px;
+  border-radius: 16px;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 154, 158, 0.2) inset;
+  /* Subtle Pink Border */
+  padding: 12px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(10px);
-  transition: all 0.2s ease;
+  transform: translateY(15px);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   z-index: 1000;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: 4px solid #ff9a9e;
+  /* Top Accent */
 }
 
 .user-menu-container:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* --- General Containers --- */
+.nav-item-dropdown {
+  position: relative;
+  padding: 10px 0;
+}
+
+.dropdown-menu-hover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #fff;
+  min-width: 240px;
+  border-radius: 16px;
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 154, 158, 0.2) inset;
+  padding: 12px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(15px);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1000;
+  border-top: 4px solid #ff9a9e;
+}
+
+.nav-item-dropdown:hover .dropdown-menu-hover {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
@@ -264,6 +366,19 @@
 .dropdown-item:hover {
   background: #fff0f0;
   color: #ff6b6b;
+}
+
+.dropdown-item i {
+  width: 20px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.view-all {
+  border-top: 1px solid #f0f0f0;
+  margin-top: 5px;
+  color: #ff6b6b;
+  font-weight: 600;
 }
 
 .dropdown-item i {

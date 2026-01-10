@@ -12,18 +12,24 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './components/AdminLayout';
 import Home from './pages/Home';
 import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail';
 import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
 import MyOrders from './pages/MyOrders';
+import ChatBot from './components/ChatBot';
+import CookieConsent from './components/CookieConsent';
 import TrackOrder from './pages/TrackOrder';
 import Cart from './pages/Cart';
 import Login from './pages/Login'; // Added
 import Register from './pages/Register'; // Added
+import UserProfile from './pages/UserProfile';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import InventoryManagement from './pages/admin/InventoryManagement';
 import OrderManagement from './pages/admin/OrderManagement';
 import UserManagement from './pages/admin/UserManagement';
 import OfflineBilling from './pages/admin/OfflineBilling';
+import HomePageEditor from './pages/admin/HomePageEditor';
+import ChatBotSettings from './pages/admin/ChatBotSettings';
 // import './App.css';
 // import './animations.css';
 
@@ -68,6 +74,8 @@ const AdminRoutes = () => (
       <Route path="/orders" element={<OrderManagement />} />
       <Route path="/users" element={<UserManagement />} />
       <Route path="/billing" element={<OfflineBilling />} />
+      <Route path="/content/home" element={<HomePageEditor />} />
+      <Route path="/chatbot" element={<ChatBotSettings />} />
     </Routes>
   </AdminLayout>
 );
@@ -85,6 +93,7 @@ const UserRoutes = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<Products />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
@@ -92,8 +101,11 @@ const UserRoutes = () => {
           <Route path="/track-order" element={<TrackOrder />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
         </Routes>
       </main>
+      <ChatBot />
+      <CookieConsent />
       {!hideFooter && <Footer />}
     </>
   );

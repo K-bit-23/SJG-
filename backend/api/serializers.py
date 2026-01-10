@@ -60,3 +60,36 @@ class UserSerializer(serializers.Serializer):
     role = serializers.CharField(default='user')
     created_at = serializers.DateTimeField(read_only=True)
     last_login = serializers.DateTimeField(required=False)
+
+# --- Home Page Content Serializers ---
+
+class BannerSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=False)
+    title = serializers.CharField(allow_blank=True)
+    price = serializers.CharField(allow_blank=True)
+    subtitle = serializers.CharField(allow_blank=True)
+    img = serializers.CharField(allow_blank=True)
+
+class ServiceSerializer(serializers.Serializer):
+    icon = serializers.CharField(allow_blank=True)
+    title = serializers.CharField(allow_blank=True)
+    description = serializers.CharField(allow_blank=True)
+    color_class = serializers.CharField(allow_blank=True)
+
+class TrustStripSerializer(serializers.Serializer):
+    icon = serializers.CharField(allow_blank=True)
+    title = serializers.CharField(allow_blank=True)
+    subtitle = serializers.CharField(allow_blank=True)
+
+class HomePageContentSerializer(serializers.Serializer):
+    banners = BannerSerializer(many=True)
+    services = ServiceSerializer(many=True)
+    trust_strip = TrustStripSerializer(many=True)
+
+class ChatBotConfigSerializer(serializers.Serializer):
+    welcome_message = serializers.CharField(max_length=500, default="Hello! How can I help you today?")
+    quick_replies = serializers.ListField(
+        child=serializers.CharField(max_length=100),
+        default=[],
+        allow_empty=True
+    )

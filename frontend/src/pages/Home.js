@@ -1,38 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { API_ENDPOINTS } from '../config';
 import { useCart } from '../context/CartContext';
-import productsData from '../data/productsData';
 import './Home.css';
 
 const Home = () => {
   const { addToCart } = useCart();
+  const [banners, setBanners] = useState([]);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // --- Banner Carousel Logic ---
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const banners = [
-    {
-      id: 1,
-      title: "Premium Notebooks",
-      price: "From ₹45",
-      subtitle: "Classmate, Paperkraft & more",
-      img: "https://rukminim1.flixcart.com/image/416/416/ktszgy80/notebook/x/h/d/classmate-pulse-1-single-line-notebook-300-pages-pack-of-1-original-imag72gzg5s4h2gy.jpeg?q=70",
-    },
-    {
-      id: 2,
-      title: "Art Supplies",
-      price: "Up to 60% Off",
-      subtitle: "Paints, Brushes, Canvas",
-      img: "https://rukminim1.flixcart.com/image/416/416/k7w8eq80/art-set/y/p/h/16657-camel-original-imafpy5f5zggz5y4.jpeg?q=70",
-    },
-    {
-      id: 3,
-      title: "Office Essentials",
-      price: "Files from ₹99",
-      subtitle: "Organizers, Staplers & more",
-      img: "https://rukminim1.flixcart.com/image/416/416/xif0q/file-folder/w/m/y/a4-cobra-files-spring-type-office-files-file-folder-for-display-original-imagm6z9gyh9z5sz.jpeg?q=70",
-    }
-  ];
+  useEffect(() => {
+    const fetchHomeContent = async () => {
+      try {
+        const response = await axios.get(API_ENDPOINTS.HOME_CONTENT);
+        const data = response.data;
+
+        if (data.banners && data.banners.length > 0) setBanners(data.banners);
+        else setBanners([
+          { id: 1, title: "Premium Notebooks", price: "From ₹45", subtitle: "Classmate, Paperkraft & more", img: "https://rukminim1.flixcart.com/image/416/416/ktszgy80/notebook/x/h/d/classmate-pulse-1-single-line-notebook-300-pages-pack-of-1-original-imag72gzg5s4h2gy.jpeg?q=70" },
+          { id: 2, title: "Art Supplies", price: "Up to 60% Off", subtitle: "Paints, Brushes, Canvas", img: "https://rukminim1.flixcart.com/image/416/416/k7w8eq80/art-set/y/p/h/16657-camel-original-imafpy5f5zggz5y4.jpeg?q=70" },
+          { id: 3, title: "Office Essentials", price: "Files from ₹99", subtitle: "Organizers, Staplers & more", img: "https://rukminim1.flixcart.com/image/416/416/xif0q/file-folder/w/m/y/a4-cobra-files-spring-type-office-files-file-folder-for-display-original-imagm6z9gyh9z5sz.jpeg?q=70" }
+        ]);
+
+        if (data.services && data.services.length > 0) setServices(data.services);
+        else setServices([
+          { icon: "fas fa-print", title: "High-Quality Printing", description: "Color, B&W, and Large Format printing with crisp detail.", color_class: "blue-icon" },
+          { icon: "fas fa-book-open", title: "Binding & Finishing", description: "Spiral, Hardcover, and Thesis binding for professional results.", color_class: "orange-icon" },
+          { icon: "fas fa-id-card", title: "Lamination & ID Cards", description: "Protect your documents and create durable ID cards.", color_class: "green-icon" },
+          { icon: "fas fa-pencil-ruler", title: "Custom Designing", description: "Graphic design services for visiting cards and brochures.", color_class: "purple-icon" }
+        ]);
+
+      } catch (error) {
+        console.error("Error loading home content", error);
+        // Fallback is handled by initial state or setBanners above if we used default params
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHomeContent();
+  }, []);
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % banners.length);
@@ -44,10 +56,12 @@ const Home = () => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      // nextSlide();
+      if (banners.length > 1) nextSlide();
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [banners.length]);
+
+  if (loading && banners.length === 0) return <div className="home-loader">Loading...</div>;
 
   return (
     <div className="home-page">
@@ -64,7 +78,7 @@ const Home = () => {
         <div className="modern-banner-container">
           {banners.map((banner, index) => (
             <div
-              key={banner.id}
+              key={index}
               className={`modern-banner-slide ${index === currentSlide ? 'active' : ''}`}
             >
               <div className="decor decor-1"></div>
@@ -104,34 +118,15 @@ const Home = () => {
           <p className="modern-section-subtitle">Beyond just stationery, we offer professional business solutions.</p>
 
           <div className="services-grid-modern">
-            <div className="service-card-modern">
-              <div className="service-icon-box blue-icon">
-                <i className="fas fa-print"></i>
+            {services.map((service, index) => (
+              <div key={index} className="service-card-modern">
+                <div className={`service-icon-box ${service.color_class || 'blue-icon'}`}>
+                  <i className={service.icon}></i>
+                </div>
+                <h3>{service.title}</h3>
+                <p>{service.description}</p>
               </div>
-              <h3>High-Quality Printing</h3>
-              <p>Color, B&W, and Large Format printing with crisp detail.</p>
-            </div>
-            <div className="service-card-modern">
-              <div className="service-icon-box orange-icon">
-                <i className="fas fa-book-open"></i>
-              </div>
-              <h3>Binding & Finishing</h3>
-              <p>Spiral, Hardcover, and Thesis binding for professional results.</p>
-            </div>
-            <div className="service-card-modern">
-              <div className="service-icon-box green-icon">
-                <i className="fas fa-id-card"></i>
-              </div>
-              <h3>Lamination & ID Cards</h3>
-              <p>Protect your documents and create durable ID cards.</p>
-            </div>
-            <div className="service-card-modern">
-              <div className="service-icon-box purple-icon">
-                <i className="fas fa-pencil-ruler"></i>
-              </div>
-              <h3>Custom Designing</h3>
-              <p>Graphic design services for visiting cards and brochures.</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>

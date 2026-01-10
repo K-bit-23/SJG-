@@ -6,7 +6,10 @@ from datetime import datetime
 import random
 import string
 from .mongodb import mongo_client
-from .serializers import ProductSerializer, OrderSerializer, ContactMessageSerializer, UserSerializer
+from .serializers import (
+    ProductSerializer, OrderSerializer, ContactMessageSerializer, UserSerializer,
+    HomePageContentSerializer, ChatBotConfigSerializer
+)
 
 class ProductListCreateView(APIView):
     """List all products or create a new product"""
@@ -374,5 +377,80 @@ class UserDetailView(APIView):
             if result.deleted_count == 0:
                  return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
             return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class HomePageContentView(APIView):
+    """Get or Update Home Page Content"""
+    
+    def get(self, request):
+        try:
+            collection = mongo_client.get_collection('site_content')
+            content = collection.find_one({'type': 'home_page'})
+            
+            if not content:
+                # Return default structure if not found
+                return Response({'banners': [], 'services': [], 'trust_strip': []})
+                
+            return Response(HomePageContentSerializer(content).data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request): # Using POST to Create/Update (Upsert)
+        try:
+            serializer = HomePageContentSerializer(data=request.data)
+            if serializer.is_valid():
+                collection = mongo_client.get_collection('site_content')
+                content_data = serializer.validated_data
+                content_data['type'] = 'home_page'
+                content_data['updated_at'] = datetime.now()
+                
+                collection.update_one(
+                    {'type': 'home_page'},
+                    {'$set': content_data},
+                    upsert=True
+                )
+                
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ChatBotConfigView(APIView):
+    """Get or Update Chat Bot Configuration"""
+
+    def get(self, request):
+        try:
+            collection = mongo_client.get_collection('chatbot_settings')
+            config = collection.find_one({'type': 'config'})
+            
+            if not config:
+                # Default config
+                default_config = {
+                    'welcome_message': 'Hello! How can I help you regarding our stationery products?',
+                    'quick_replies': ['Track Order', 'Return Policy', 'Bulk Orders', 'Contact Support']
+                }
+                return Response(default_config)
+            
+            return Response(ChatBotConfigSerializer(config).data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        try:
+            serializer = ChatBotConfigSerializer(data=request.data)
+            if serializer.is_valid():
+                collection = mongo_client.get_collection('chatbot_settings')
+                config_data = serializer.validated_data
+                config_data['type'] = 'config'
+                config_data['updated_at'] = datetime.now()
+                
+                collection.update_one(
+                    {'type': 'config'},
+                    {'$set': config_data},
+                    upsert=True
+                )
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

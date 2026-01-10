@@ -413,3 +413,13 @@
     justify-content: center;
   }
 }
+
+.home-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    font-size: 1.5rem;
+    color: #6e8efb;
+    font-weight: 500;
+}

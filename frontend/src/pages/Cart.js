@@ -1,11 +1,22 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import './Cart.css';
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, getCartTotal } = useCart();
+  const { isAuthenticated, openAuthModal } = useAuth();
   const navigate = useNavigate();
+
+  // Handle Checkout Click
+  const handleCheckout = () => {
+    if (!isAuthenticated) {
+      openAuthModal(); // Open login modal if not logged in
+    } else {
+      navigate('/checkout');
+    }
+  };
 
   if (cartItems.length === 0) {
     return (
@@ -91,7 +102,7 @@ const Cart = () => {
             <span>₹{getCartTotal().toLocaleString('en-IN')}</span>
           </div>
 
-          <button className="checkout-btn" onClick={() => navigate('/checkout')}>
+          <button className="checkout-btn" onClick={handleCheckout}>
             Proceed to Checkout
           </button>
         </div>

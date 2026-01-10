@@ -3,61 +3,107 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './AdminNavbar.css';
 
-const AdminNavbar = () => {
+const AdminNavbar = ({ isCollapsed, setIsCollapsed }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [dropdownOpen, setDropdownOpen] = useState(false);
 
     const handleLogout = () => {
         logout();
-        navigate('/'); // Redirect to home after logout
+        navigate('/');
+    };
+
+    const toggleSidebar = () => {
+        setIsCollapsed(!isCollapsed);
     };
 
     return (
-        <nav className="admin-navbar">
-            <div className="admin-navbar-brand">
-                <NavLink to="/admin" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <img src="/sjg-logo.jpg" alt="Logo" style={{ height: '35px', borderRadius: '50%' }} />
-                    <span>Admin Panel</span>
-                </NavLink>
+        <nav className={`admin-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+            {/* Header / Toggle */}
+            <div className="admin-sidebar-header">
+                <div className="brand-logo">
+                    <img src="/sjg-logo.jpg" alt="Logo" className="logo-img" />
+                    {!isCollapsed && <span className="logo-text">Admin Panel</span>}
+                </div>
+                <button className="toggle-btn" onClick={toggleSidebar}>
+                    <i className={`fas ${isCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>
+                </button>
             </div>
-            <div className="admin-navbar-links">
+
+            {/* Navigation Links */}
+            <div className="admin-sidebar-links">
                 <NavLink to="/admin" end className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
-                    <i className="fas fa-chart-line"></i> Dashboard
+                    <span className="icon-box"><i className="fas fa-chart-line"></i></span>
+                    <span className="link-text">Dashboard</span>
+                    {isCollapsed && <span className="tooltip">Dashboard</span>}
                 </NavLink>
+
+                <div className="nav-section-label">{!isCollapsed && "Management"}</div>
+
                 <NavLink to="/admin/inventory" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
-                    <i className="fas fa-box"></i> Inventory
+                    <span className="icon-box"><i className="fas fa-box"></i></span>
+                    <span className="link-text">Inventory</span>
+                    {isCollapsed && <span className="tooltip">Inventory</span>}
                 </NavLink>
+
                 <NavLink to="/admin/orders" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
-                    <i className="fas fa-shopping-bag"></i> Orders
+                    <span className="icon-box"><i className="fas fa-shopping-bag"></i></span>
+                    <span className="link-text">Orders</span>
+                    {isCollapsed && <span className="tooltip">Orders</span>}
                 </NavLink>
+
                 <NavLink to="/admin/users" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
-                    <i className="fas fa-users"></i> Users
+                    <span className="icon-box"><i className="fas fa-users"></i></span>
+                    <span className="link-text">Users</span>
+                    {isCollapsed && <span className="tooltip">Users</span>}
                 </NavLink>
+
+                <div className="nav-section-label">{!isCollapsed && "Sales"}</div>
+
                 <NavLink to="/admin/billing" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
-                    <i className="fas fa-file-invoice-dollar"></i> Billing (POS)
+                    <span className="icon-box"><i className="fas fa-file-invoice-dollar"></i></span>
+                    <span className="link-text">Offline Billing</span>
+                    {isCollapsed && <span className="tooltip">Offline Billing</span>}
+                </NavLink>
+
+                <div className="nav-section-label">{!isCollapsed && "CMS"}</div>
+
+                <NavLink to="/admin/content/home" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+                    <span className="icon-box"><i className="fas fa-home"></i></span>
+                    <span className="link-text">Edit Home Page</span>
+                    {isCollapsed && <span className="tooltip">Edit Home</span>}
+                </NavLink>
+
+                <NavLink to="/admin/chatbot" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
+                    <span className="icon-box"><i className="fas fa-robot"></i></span>
+                    <span className="link-text">Chat Bot Config</span>
+                    {isCollapsed && <span className="tooltip">Chat Bot</span>}
                 </NavLink>
             </div>
-            <div className="admin-navbar-user" onMouseEnter={() => setDropdownOpen(true)} onMouseLeave={() => setDropdownOpen(false)}>
-                {user && (
-                    <>
-                        <div className="user-info">
-                            <img src={user.avatar} alt={user.name} className="user-avatar" />
-                            <span>{user.name}</span>
-                            <i className="fas fa-chevron-down"></i>
+
+            {/* User Footer */}
+            <div className="admin-sidebar-footer">
+                <div className="user-profile" onClick={() => setDropdownOpen(!dropdownOpen)}>
+                    <div className="user-avatar-icon">
+                        <i className="fas fa-user-shield"></i>
+                    </div>
+                    {!isCollapsed && (
+                        <div className="user-details">
+                            <div className="user-name">{user?.name}</div>
+                            <div className="user-role">Admin</div>
                         </div>
-                        {dropdownOpen && (
-                            <div className="user-dropdown">
-                                <NavLink to="/" className="dropdown-item">
-                                    <i className="fas fa-home"></i> Back to Store
-                                </NavLink>
-                                <button onClick={handleLogout} className="dropdown-item logout">
-                                    <i className="fas fa-sign-out-alt"></i> Logout
-                                </button>
-                            </div>
-                        )}
-                    </>
-                )}
+                    )}
+                </div>
+
+                {/* Footer Actions (Logout/Home) */}
+                <div className="footer-actions">
+                    <NavLink to="/" className="footer-action-btn" title="Back to Store">
+                        <i className="fas fa-store"></i>
+                    </NavLink>
+                    <button onClick={handleLogout} className="footer-action-btn logout" title="Logout">
+                        <i className="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
             </div>
         </nav>
     );

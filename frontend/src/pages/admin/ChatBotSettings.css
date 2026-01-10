@@ -1,0 +1,148 @@
+.chat-settings-container {
+    padding: 30px;
+    font-family: 'Inter', sans-serif;
+}
+
+.page-title {
+    margin-bottom: 25px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #2d3436;
+}
+
+.settings-card {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    max-width: 800px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #444;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #6e8efb;
+    box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.1);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #888;
+    font-size: 0.85rem;
+}
+
+/* Quick Replies */
+.quick-reply-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+    min-height: 40px;
+    padding: 5px 0;
+}
+
+.reply-pill {
+    background: #eef2ff;
+    color: #6e8efb;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid rgba(110, 142, 251, 0.2);
+}
+
+.reply-pill button {
+    background: none;
+    border: none;
+    color: #6e8efb;
+    cursor: pointer;
+    padding: 0;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.reply-pill button:hover {
+    color: #ff4757;
+}
+
+.add-reply-box {
+    display: flex;
+    gap: 10px;
+}
+
+.add-reply-box input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+}
+
+.btn-add {
+    background: #6c5ce7;
+    color: white;
+    border: none;
+    padding: 0 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-add:hover {
+    background: #5b4cc4;
+}
+
+/* Buttons */
+.actions-footer {
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    text-align: right;
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #0cebeb, #20e3b2, #29ffc6);
+    color: #005f40;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 15px rgba(32, 227, 178, 0.3);
+}
+
+.btn-save:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(32, 227, 178, 0.4);
+}
+
+.btn-save:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
