@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -8,39 +9,69 @@ import {
 import { API_BASE_URL } from '../../config';
 import './AdminDashboard.css';
 
+
 const AdminDashboard = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [products, setProducts] = useState([]);
+    const [lastUpdate, setLastUpdate] = useState(new Date());
+
+    // Fetch dashboard data
+    const fetchDashboardData = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/dashboard/stats/`);
+            setStats(response.data);
+            setLastUpdate(new Date());
+        } catch (error) {
+            console.error("Error fetching dashboard stats:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch products for inventory overview
+    const fetchProducts = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/products/`);
+            setProducts(response.data);
+        } catch (error) {
+            console.error("Error fetching products:", error);
+        }
+    };
 
     useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                const response = await axios.get(`${API_BASE_URL}/api/dashboard/stats/`);
-                setStats(response.data);
-            } catch (error) {
-                console.error("Error fetching dashboard stats:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchDashboardData();
+        fetchProducts();
+
+        // Auto-refresh every 30 seconds
+        const interval = setInterval(() => {
+            fetchDashboardData();
+            fetchProducts();
+        }, 30000);
+
+        return () => clearInterval(interval);
     }, []);
 
     // --- Data Processing ---
 
+    // Calculate real statistics from products
+    const lowStockProducts = products.filter(p => (p.stock || 0) < 10);
+    const outOfStockProducts = products.filter(p => (p.stock || 0) === 0);
+    const totalProductValue = products.reduce((sum, p) => sum + ((p.price || 0) * (p.stock || 0)), 0);
+
     // 1. Revenue Wave Data
-    // Use actual sales data if available, or fall back to a sensible pattern
     const salesData = stats?.sales_data?.map(item => ({
         name: item.name,
         current: item.revenue,
     })) || [];
 
-    const totalRevenue = stats?.stats?.total_revenue || 0;
-    const totalOrders = stats?.stats?.total_orders || 0;
-    const pendingOrders = stats?.stats?.pending_orders || 0;
-    const lowStockCount = stats?.low_stock_count || 0; // Assuming API provides this or we mock it
+    const totalRevenue = stats?.total_revenue || 0;
+    const totalOrders = stats?.total_orders || 0;
+    const pendingOrders = stats?.pending_orders || 0;
+    const totalProducts = products.length;
+    const lowStockCount = lowStockProducts.length;
 
     // Status Distribution
     const statusData = stats?.status_data || [
@@ -49,8 +80,7 @@ const AdminDashboard = () => {
         { name: 'Cancelled', value: 0, color: '#ff7675' }
     ];
 
-    // Recent Orders (Mock or Real)
-    // Assuming stats API might return recent orders, or we use a fallback for UI demo
+    // Recent Orders
     const recentOrders = stats?.recent_orders || [];
 
     if (loading) return (
@@ -69,12 +99,12 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="topbar-actions">
-                    <div className="user-greeting">
+                    <div className="user-greeting" onClick={() => navigate('/admin/users')} style={{ cursor: 'pointer' }} title="Manage Users">
                         <div className="text-col" style={{ textAlign: 'right' }}>
                             <span className="greeting-text">Hello, <b>{user?.name || 'Admin'}</b></span>
                         </div>
                         <div className="top-avatar-icon">
-                            <i className="fas fa-user"></i>
+                            <i className="fas fa-user-cog"></i>
                         </div>
                     </div>
                 </div>

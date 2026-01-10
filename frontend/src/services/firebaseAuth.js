@@ -76,27 +76,60 @@ export const loginWithGoogle = async () => {
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
 
-        // Sync user with MongoDB (Upsert)
+        // Prepare user data for MongoDB sync
         const mongoUser = {
             uid: user.uid,
             email: user.email,
             display_name: user.displayName || '',
             photo_url: user.photoURL || '',
+            // Hardcoded admin check for security fallback
             role: (user.email === 'sjgvxerox@gmail.com' || user.email === 'admin2.sjg@gmail.com') ? 'admin' : 'user'
         };
 
-        const response = await fetch(API_ENDPOINTS.USERS, {
-            method: 'POST', // Backend handles upsert
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(mongoUser)
-        });
+        try {
+            // Attempt to sync with Backend
+            const response = await fetch(API_ENDPOINTS.USERS, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(mongoUser)
+            });
 
-        const data = await response.json();
+            if (response.ok) {
+                // If backend sync successful, use the backend data
+                const backendData = await response.json();
+                return {
+                    success: true,
+                    user: {
+                        ...backendData,
+                        // Ensure frontend compatibility
+                        displayName: backendData.display_name || user.displayName,
+                        photoURL: backendData.photo_url || user.photoURL,
+                        id: backendData.uid
+                    }
+                };
+            } else {
+                console.warn('Backend sync failed, falling back to Firebase profile');
+                // Fallback: Return Firebase user data if backend sync fails (so user can still login)
+                // But ideally we want to warn them.
+            }
+        } catch (backendError) {
+            console.error('Backend connection error during Google Login:', backendError);
+            // Fallback continues below
+        }
 
+        // Fallback return if backend failed (Offline mode)
         return {
             success: true,
-            user: data
+            user: {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+                role: mongoUser.role,
+                id: user.uid
+            }
         };
+
     } catch (error) {
         console.error('Google login error:', error);
         return {

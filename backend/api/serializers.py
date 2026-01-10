@@ -15,6 +15,7 @@ class ObjectIdField(serializers.Field):
 class ProductSerializer(serializers.Serializer):
     id = ObjectIdField(read_only=True, source='_id')
     name = serializers.CharField(max_length=200)
+    product_code = serializers.CharField(max_length=50, required=False, allow_blank=True)  # SKU/Product Code
     category = serializers.CharField(max_length=100)
     price = serializers.DecimalField(max_digits=10, decimal_places=2)
     description = serializers.CharField(required=False, allow_blank=True)

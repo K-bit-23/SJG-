@@ -10,15 +10,19 @@ const UserProfile = () => {
     const navigate = useNavigate();
 
     // Tab State
-    const [activeTab, setActiveTab] = useState('profile'); // profile, orders, addresses
+    const [activeTab, setActiveTab] = useState('profile');
     const [userForm, setUserForm] = useState({
         displayName: '',
         phone: '',
         email: ''
     });
 
-    // For Demo: Address List (Mock or Persistent)
-    // Ideally this comes from User.addresses in MongoDB
+    // MongoDB user details
+    const [userDetails, setUserDetails] = useState(null);
+    const [orderStats, setOrderStats] = useState({ total: 0, pending: 0, completed: 0 });
+    const [loading, setLoading] = useState(true);
+
+    // For Demo: Address List
     const [addresses, setAddresses] = useState([
         { id: 1, type: 'Home', text: '123 Main Street, Erode', isDefault: true }
     ]);
@@ -27,18 +31,88 @@ const UserProfile = () => {
         if (!authLoading && !user) {
             navigate('/login');
         } else if (user) {
-            setUserForm({
-                displayName: user.displayName || user.name || '',
-                phone: user.phone || '', // Need to ensure User model has phone
-                email: user.email || ''
-            });
+            fetchUserDetails();
+            fetchOrderStats();
         }
     }, [user, authLoading, navigate]);
 
-    const handleUpdateProfile = (e) => {
+    const fetchUserDetails = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/users/${user.uid}/`);
+            setUserDetails(response.data);
+            setUserForm({
+                displayName: response.data.display_name || user.displayName || user.name || '',
+                phone: response.data.mobile || '',
+                email: response.data.email || user.email || ''
+            });
+        } catch (error) {
+            console.error('Error fetching user details:', error);
+            // Fallback to auth context user
+            setUserForm({
+                displayName: user.displayName || user.name || '',
+                phone: user.mobile || '',
+                email: user.email || ''
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchOrderStats = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/orders/`);
+            const userOrders = response.data.filter(order => order.user_email === user.email);
+            setOrderStats({
+                total: userOrders.length,
+                pending: userOrders.filter(o => o.status === 'pending').length,
+                completed: userOrders.filter(o => o.status === 'completed').length
+            });
+        } catch (error) {
+            console.error('Error fetching order stats:', error);
+        }
+    };
+
+    const handleUpdateProfile = async (e) => {
         e.preventDefault();
-        alert("Profile Update Logic would call API here.");
-        // await axios.put(...)
+
+        // Validation
+        if (!userForm.displayName.trim()) {
+            alert('Please enter your name');
+            return;
+        }
+
+        if (userForm.phone && !/^\+?[\d\s-()]+$/.test(userForm.phone)) {
+            alert('Please enter a valid phone number');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await axios.put(`${API_BASE_URL}/api/users/${user.uid}/`, {
+                display_name: userForm.displayName,
+                mobile: userForm.phone
+            });
+
+            // Update successful
+            alert('✅ Profile updated successfully!');
+
+            // Refresh user details from MongoDB
+            await fetchUserDetails();
+
+            // Optional: Update AuthContext if needed
+            // This ensures the navbar also shows updated name
+            if (window.location.reload) {
+                // You might want to implement a soft refresh of auth context instead
+                console.log('Profile updated in database');
+            }
+
+        } catch (error) {
+            console.error('Error updating profile:', error);
+            const errorMessage = error.response?.data?.error || 'Failed to update profile. Please try again.';
+            alert('❌ ' + errorMessage);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleLogout = () => {
@@ -46,7 +120,7 @@ const UserProfile = () => {
         navigate('/');
     };
 
-    if (authLoading || !user) return <div className="loading-screen">Loading Profile...</div>;
+    if (authLoading || loading || !user) return <div className="loading-screen">Loading Profile...</div>;
 
     return (
         <div className="profile-page-wrapper">
@@ -92,7 +166,58 @@ const UserProfile = () => {
                     {activeTab === 'profile' && (
                         <div className="tab-pane fade-in">
                             <h2>My Profile</h2>
+
+                            {/* Account Stats */}
+                            <div className="account-stats">
+                                <div className="stat-card">
+                                    <i className="fas fa-shopping-bag"></i>
+                                    <div>
+                                        <h3>{orderStats.total}</h3>
+                                        <p>Total Orders</p>
+                                    </div>
+                                </div>
+                                <div className="stat-card">
+                                    <i className="fas fa-clock"></i>
+                                    <div>
+                                        <h3>{orderStats.pending}</h3>
+                                        <p>Pending</p>
+                                    </div>
+                                </div>
+                                <div className="stat-card">
+                                    <i className="fas fa-check-circle"></i>
+                                    <div>
+                                        <h3>{orderStats.completed}</h3>
+                                        <p>Completed</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Account Information */}
+                            <div className="info-section">
+                                <h3>Account Information</h3>
+                                <div className="info-grid">
+                                    <div className="info-item">
+                                        <label>User ID</label>
+                                        <p>{userDetails?.uid?.substring(0, 12)}...</p>
+                                    </div>
+                                    <div className="info-item">
+                                        <label>Account Type</label>
+                                        <p className="role-badge">{userDetails?.role || 'user'}</p>
+                                    </div>
+                                    <div className="info-item">
+                                        <label>Member Since</label>
+                                        <p>{userDetails?.created_at ? new Date(userDetails.created_at).toLocaleDateString() : 'N/A'}</p>
+                                    </div>
+                                    <div className="info-item">
+                                        <label>Last Updated</label>
+                                        <p>{userDetails?.updated_at ? new Date(userDetails.updated_at).toLocaleDateString() : 'N/A'}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Edit Profile Form */}
                             <form className="profile-form" onSubmit={handleUpdateProfile}>
+                                <h3>Edit Profile</h3>
                                 <div className="form-group">
                                     <label>Full Name</label>
                                     <input
@@ -109,6 +234,7 @@ const UserProfile = () => {
                                         disabled
                                         className="disabled-input"
                                     />
+                                    <small>Email cannot be changed</small>
                                 </div>
                                 <div className="form-group">
                                     <label>Phone Number</label>
@@ -119,7 +245,17 @@ const UserProfile = () => {
                                         onChange={(e) => setUserForm({ ...userForm, phone: e.target.value })}
                                     />
                                 </div>
-                                <button type="submit" className="save-btn">Save Changes</button>
+                                <button type="submit" className="save-btn" disabled={loading}>
+                                    {loading ? (
+                                        <>
+                                            <i className="fas fa-spinner fa-spin"></i> Updating...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="fas fa-save"></i> Save Changes
+                                        </>
+                                    )}
+                                </button>
                             </form>
                         </div>
                     )}

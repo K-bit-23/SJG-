@@ -57,7 +57,7 @@ const Home = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       if (banners.length > 1) nextSlide();
-    }, 5000);
+    }, 180000); // 3 minutes (180000ms) - Change this value to adjust rotation speed
     return () => clearInterval(timer);
   }, [banners.length]);
 

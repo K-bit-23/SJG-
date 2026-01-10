@@ -19,9 +19,9 @@ class MongoDBClient:
                 self._client = pymongo.MongoClient(
                     settings.MONGODB_URI,
                     tlsCAFile=certifi.where(),
-                    serverSelectionTimeoutMS=5000,
-                    connectTimeoutMS=5000,
-                    socketTimeoutMS=5000,
+                    serverSelectionTimeoutMS=30000,
+                    connectTimeoutMS=30000,
+                    socketTimeoutMS=30000,
                     maxPoolSize=50
                 )
                 self._db = self._client[settings.MONGODB_NAME]

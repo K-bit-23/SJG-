@@ -112,6 +112,9 @@ const Navbar = ({ logo }) => {
                   <i className="fas fa-shield-alt"></i> Admin Panel
                 </Link>
               )}
+              <Link to="/profile" className="dropdown-item">
+                <i className="fas fa-user-circle"></i> My Profile
+              </Link>
               <Link to="/my-orders" className="dropdown-item">
                 <i className="fas fa-box"></i> My Orders
               </Link>
@@ -175,6 +178,9 @@ const Navbar = ({ logo }) => {
                       <i className="fas fa-shield-alt"></i> Admin Panel
                     </Link>
                   )}
+                  <Link to="/profile" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
+                    <i className="fas fa-user-circle"></i> My Profile
+                  </Link>
                   <Link to="/my-orders" className="mobile-nav-link" onClick={() => setIsMobileMenuOpen(false)}>
                     <i className="fas fa-box"></i> My Orders
                   </Link>

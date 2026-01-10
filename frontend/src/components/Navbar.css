@@ -1,4 +1,4 @@
-/* Navbar Container */
+/* Navbar Container - Glassmorphism */
 .navbar {
   display: flex !important;
   justify-content: space-between !important;
@@ -10,13 +10,13 @@
   right: 0;
   height: 80px;
   z-index: 1000;
-  background: #ffffff;
-  /* Pure White */
-  /* Glass fallback but solid look */
-  backdrop-filter: blur(15px);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
-  /* Stronger shadow */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+
+  /* Glass Effect */
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
 }
 
@@ -26,8 +26,6 @@
   align-items: center;
   gap: 30px;
   flex: 1;
-  min-width: 0;
-  /* Shrink logic */
 }
 
 /* Brand */
@@ -40,7 +38,7 @@
 .logo-text {
   font-size: 24px;
   font-weight: 800;
-  background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+  background: var(--gradient-text);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -49,7 +47,7 @@
 
 .logo-sub {
   font-size: 11px;
-  color: #888;
+  color: var(--text-secondary);
   font-weight: 500;
   margin-top: -4px;
 }
@@ -64,34 +62,29 @@
 /* --- CENTER SECTION: Search + Shop Button --- */
 .navbar-search {
   flex: 2;
-  /* Take more space */
-  max-width: 650px;
-  /* Increased to fit button */
+  max-width: 600px;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 15px;
-  /* Space between search and button */
   margin: 0 20px;
 }
 
 .search-input-wrapper {
   flex: 1;
-  /* Search takes remaining space */
   display: flex;
   align-items: center;
-  background: #fff;
+  background: rgba(240, 242, 245, 0.8);
   border-radius: 50px;
-  /* Round Pill */
-  padding: 8px 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  border: 2px solid transparent;
+  padding: 10px 20px;
+  border: 1px solid transparent;
   transition: all 0.3s;
 }
 
 .search-input-wrapper:focus-within {
-  border-color: #ff9a9e;
-  box-shadow: 0 5px 20px rgba(255, 154, 158, 0.3);
+  background: #fff;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.15);
 }
 
 .search-input {
@@ -100,18 +93,20 @@
   outline: none;
   background: transparent;
   font-size: 14px;
+  color: var(--text-primary);
 }
 
 .search-btn-icon {
   background: none;
   border: none;
-  color: #aaa;
+  color: var(--text-secondary);
   cursor: pointer;
   font-size: 16px;
+  transition: color 0.2s;
 }
 
 .search-btn-icon:hover {
-  color: #ff9a9e;
+  color: var(--primary-color);
 }
 
 /* --- RIGHT SECTION: Actions --- */
@@ -123,25 +118,25 @@
   justify-content: flex-end;
 }
 
-/* Shop Now Button (Special Gradient) */
+/* Shop Now Button */
 .shop-now-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+  background: var(--gradient-primary);
   color: #fff;
-  padding: 8px 18px;
+  padding: 10px 20px;
   border-radius: 30px;
   font-weight: 600;
   font-size: 13px;
   text-decoration: none;
-  box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+  box-shadow: 0 4px 15px rgba(110, 142, 251, 0.3);
   transition: all 0.3s;
 }
 
 .shop-now-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 154, 158, 0.6);
+  box-shadow: 0 6px 20px rgba(110, 142, 251, 0.5);
 }
 
 /* Standard Nav Links */
@@ -150,96 +145,32 @@
   flex-direction: column;
   align-items: center;
   text-decoration: none;
-  color: #555;
+  color: var(--text-secondary);
   gap: 4px;
   font-size: 12px;
   font-weight: 500;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.nav-link i,
+.nav-link-btn i {
+  font-size: 20px;
+  color: #7f8c8d;
   transition: color 0.2s;
 }
 
-.nav-link i {
-  font-size: 18px;
-  color: #777;
-  transition: color 0.2s;
+.nav-link:hover,
+.nav-link-btn:hover {
+  color: var(--primary-color);
+  transform: translateY(-2px);
 }
 
-.nav-link:hover {
-  color: #ff6b6b;
-}
-
-/* Funky Icon Animations */
-@keyframes shake {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  25% {
-    transform: rotate(15deg);
-  }
-
-  50% {
-    transform: rotate(-15deg);
-  }
-
-  75% {
-    transform: rotate(5deg);
-  }
-
-  100% {
-    transform: rotate(0deg);
-  }
-}
-
-@keyframes bounce {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-3px);
-  }
-}
-
-@keyframes pulse-ring {
-  0% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
-  }
-
-  70% {
-    transform: scale(1);
-    box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
-  }
-
-  100% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
-  }
-}
-
-.nav-link:hover i {
-  color: #ff6b6b;
-  animation: bounce 0.5s ease;
-}
-
-.search-btn-icon:hover i {
-  animation: shake 0.5s ease;
-  color: #ff9a9e;
-}
-
-.shop-now-btn:hover i {
-  animation: bounce 0.6s infinite;
-}
-
-/* User & Cart Icons Specific Funky */
+.nav-link:hover i,
 .nav-link-btn:hover i {
-  color: #ff6b6b;
-  animation: shake 0.4s ease;
+  color: var(--primary-color);
 }
 
-/* Login Btn (If text) */
+/* Buttons acting as links */
 .nav-link-btn {
   background: none;
   border: none;
@@ -247,102 +178,61 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #555;
+  color: var(--text-secondary);
   gap: 4px;
   font-size: 12px;
   font-weight: 500;
   font-family: inherit;
-}
-
-.nav-link-btn:hover i,
-.nav-link-btn:hover {
-  color: #ff6b6b;
-}
-
-.nav-link-btn i {
-  font-size: 18px;
-  color: #777;
+  transition: color 0.2s, transform 0.2s;
 }
 
 /* Cart Badge */
 .cart-badge {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #ff6b6b;
+  top: -6px;
+  right: -6px;
+  background: var(--error-color);
   color: white;
   font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;
-  border-radius: 50%;
+  border-radius: 10px;
   border: 2px solid #fff;
 }
 
-/* Track Order (Specific styling if needed) */
-.track-link {
-  margin-left: 10px;
-}
-
-
-/* --- User Dropdown Menu (Premium Effect) --- */
-.user-menu-container {
-  position: relative;
-  padding: 10px 0;
-  /* Area extension for hover */
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  background: #fff;
-  min-width: 220px;
-  border-radius: 16px;
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 154, 158, 0.2) inset;
-  /* Subtle Pink Border */
-  padding: 12px;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(15px);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  z-index: 1000;
-  border-top: 4px solid #ff9a9e;
-  /* Top Accent */
-}
-
-.user-menu-container:hover .dropdown-menu {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-/* --- General Containers --- */
+/* Dropdowns */
+.user-menu-container,
 .nav-item-dropdown {
   position: relative;
   padding: 10px 0;
 }
 
+.dropdown-menu,
 .dropdown-menu-hover {
   position: absolute;
   top: 100%;
-  left: 0;
-  background: #fff;
-  min-width: 240px;
+  right: 0;
+  /* Or left for nav-item */
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  min-width: 220px;
   border-radius: 16px;
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 154, 158, 0.2) inset;
-  padding: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 10px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(15px);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: translateY(10px);
+  transition: all 0.2s ease-out;
   z-index: 1000;
-  border-top: 4px solid #ff9a9e;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+.nav-item-dropdown .dropdown-menu-hover {
+  right: auto;
+  left: 0;
+}
+
+.user-menu-container:hover .dropdown-menu,
 .nav-item-dropdown:hover .dropdown-menu-hover {
   opacity: 1;
   visibility: visible;
@@ -352,39 +242,32 @@
 .dropdown-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 15px;
-  color: #555;
+  gap: 12px;
+  padding: 12px 16px;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
   border-radius: 8px;
   transition: all 0.2s;
-  cursor: pointer;
 }
 
 .dropdown-item:hover {
-  background: #fff0f0;
-  color: #ff6b6b;
+  background: rgba(110, 142, 251, 0.08);
+  /* Light primary */
+  color: var(--primary-color);
 }
 
 .dropdown-item i {
   width: 20px;
   text-align: center;
-  font-size: 16px;
+  color: var(--text-secondary);
 }
 
 .view-all {
-  border-top: 1px solid #f0f0f0;
-  margin-top: 5px;
-  color: #ff6b6b;
+  color: var(--primary-color);
   font-weight: 600;
-}
-
-.dropdown-item i {
-  width: 20px;
-  text-align: center;
-  font-size: 16px;
+  justify-content: center;
 }
 
 /* Mobile Toggle */
@@ -399,19 +282,10 @@
     height: 70px;
   }
 
-  .navbar-search {
-    display: none;
-  }
-
-  /* Hide search for now on tablet */
-
+  .navbar-search,
+  .nav-links-left,
   .desktop-only {
     display: none !important;
-  }
-
-  /* Hide links */
-  .nav-links-left {
-    display: none;
   }
 
   .mobile-toggle {
@@ -419,117 +293,18 @@
     background: none;
     border: none;
     font-size: 24px;
-    color: #333;
+    color: var(--text-primary);
     cursor: pointer;
     margin-left: auto;
-    z-index: 1100;
   }
 }
 
-/* Mobile Menu Styles */
+/* Mobile Menu Overlay - Keeping mostly functional but updated styles */
 .mobile-menu-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(5px);
-  z-index: 1050;
-  display: flex;
-  justify-content: flex-end;
 }
 
 .mobile-menu-content {
-  width: 80%;
-  max-width: 320px;
-  height: 100vh;
   background: #fff;
-  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-  animation: slideInMenu 0.3s ease-out;
-}
-
-@keyframes slideInMenu {
-  from {
-    transform: translateX(100%);
-  }
-
-  to {
-    transform: translateX(0);
-  }
-}
-
-.mobile-menu-header {
-  padding: 30px 25px;
-  display: flex;
-  align-items: center;
-  border-bottom: 2px solid #f8f8f8;
-}
-
-.mobile-nav-links {
-  padding: 15px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.mobile-nav-link {
-  display: flex;
-  align-items: center;
-  padding: 18px 25px;
-  text-decoration: none;
-  color: #333;
-  font-size: 16px;
-  font-weight: 500;
-  gap: 15px;
-  transition: all 0.2s;
-}
-
-.mobile-nav-link i {
-  font-size: 20px;
-  color: #ff6b6b;
-  width: 25px;
-  text-align: center;
-}
-
-.mobile-nav-link:active {
-  background: #fff5f5;
-}
-
-.mobile-badge {
-  background: #ff6b6b;
-  color: white;
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  margin-left: auto;
-}
-
-.mobile-menu-divider {
-  height: 1px;
-  background: #f0f0f0;
-  margin: 10px 25px;
-}
-
-.mobile-user-info {
-  padding: 20px 25px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  color: #333;
-  font-weight: 600;
-  border-top: 1px solid #f0f0f0;
-  background: #fffafa;
-  margin-top: auto;
-}
-
-.logout-link {
-  color: #dc3545 !important;
-}
-
-.login-link {
-  color: #ff6b6b !important;
-  font-weight: 700;
 }

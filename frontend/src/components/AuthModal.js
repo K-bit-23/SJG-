@@ -25,15 +25,23 @@ const AuthModal = () => {
 
     return (
         <div className="auth-modal-backdrop" onClick={handleBackdropClick}>
-            <div className="auth-modal">
-                <div style={{ position: 'absolute', top: '-40px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
-                    <img src="/sjg-logo.jpg" alt="SJG" style={{ width: '80px', height: '80px', borderRadius: '50%', border: '4px solid white', boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }} />
-                </div>
+            <div className="auth-modal-horizontal">
+                {/* Logo at Top */}
+                <img src="/sjg-logo.jpg" alt="SJG Logo" className="auth-logo-top" />
+
                 <button className="auth-modal-close" onClick={closeAuthModal}>
                     <i className="fas fa-times"></i>
                 </button>
 
-                <div className="auth-modal-content">
+                {/* Gradient Header */}
+                <div className="auth-modal-left-side">
+                    <div className="auth-branding">
+                        <h2>{currentView === 'register' ? 'Register' : 'Login'}</h2>
+                    </div>
+                </div>
+
+                {/* Form Section */}
+                <div className="auth-modal-right-side">
                     {currentView === 'register' ? (
                         <RegisterForm onSwitchToLogin={() => setCurrentView('login')} />
                     ) : (

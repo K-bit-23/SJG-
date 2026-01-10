@@ -22,6 +22,7 @@ from .views import (
     HomePageContentView,
     ChatBotConfigView
 )
+from .payment_views import CreatePaymentIntentView, ConfirmPaymentView
 
 urlpatterns = [
     # Product endpoints
@@ -45,6 +46,10 @@ urlpatterns = [
     # Content endpoints
     path('content/home/', HomePageContentView.as_view(), name='home-page-content'),
     path('content/chatbot/', ChatBotConfigView.as_view(), name='chatbot-config'),
+    
+    # Payment endpoints
+    path('create-payment-intent/', CreatePaymentIntentView.as_view(), name='create-payment-intent'),
+    path('confirm-payment/', ConfirmPaymentView.as_view(), name='confirm-payment'),
 ]
 
 # ============================================================================

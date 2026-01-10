@@ -1,177 +1,194 @@
+@import './theme.css';
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
-  color: #fff;
-  position: relative;
-  overflow-x: hidden;
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  min-height: 100vh;
 }
 
-/* Particle Background Effect */
+/* Subtle Animated Background Mesh (Optional, keep it clean) */
 body::before {
   content: '';
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image:
-    radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 20%),
-    radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 20%),
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 30%),
-    radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.04) 0%, transparent 25%),
-    radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 25%);
-  pointer-events: none;
-  z-index: 0;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(110, 142, 251, 0.1) 0%, rgba(167, 119, 227, 0.05) 50%, transparent 100%);
+  z-index: -1;
+  animation: rotateBackground 60s linear infinite;
 }
 
-@keyframes gradientShift {
+@keyframes rotateBackground {
   0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
+    transform: rotate(0deg);
   }
 
   100% {
-    background-position: 0% 50%;
+    transform: rotate(360deg);
   }
 }
 
 .App {
   text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-.App-header {
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: 20px;
-  color: white;
+.main-content {
+  flex: 1;
+  padding-top: 100px;
+  /* Space for fixed navbar */
+  padding-bottom: 50px;
 }
 
+/* --- Card Styles (Glassmorphism) --- */
 .product-list {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   padding: 20px;
+  gap: 30px;
 }
 
 .product {
-  background-color: white;
-  border-radius: 15px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--glass-shadow);
+  margin: 0;
+  /* Handled by gap */
   padding: 20px;
   width: 300px;
-  color: #333;
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-    box-shadow 0.4s ease;
+  color: var(--text-primary);
+  transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
   position: relative;
   overflow: hidden;
-}
-
-.product::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  transition: left 0.5s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .product:hover {
-  transform: translateY(-15px) scale(1.02);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
-}
-
-.product:hover::before {
-  left: 100%;
+  transform: translateY(-10px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
 
 .product img {
   width: 100%;
-  height: 200px;
+  height: 220px;
   object-fit: cover;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 15px;
+  transition: transform var(--transition-smooth);
+}
+
+.product:hover img {
+  transform: scale(1.05);
 }
 
 .product h3 {
-  margin-top: 15px;
-  font-size: 1.5em;
+  margin: 10px 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .product p {
-  font-size: 1.2em;
-  color: #ff7e5f;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 20px;
 }
 
+/* --- Button Styles --- */
 .add-to-cart {
-  background: linear-gradient(135deg, #ff6347, #ff4757);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   padding: 12px 24px;
-  font-size: 1em;
-  border-radius: 25px;
+  font-size: 1rem;
+  border-radius: 50px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(255, 99, 71, 0.3);
+  transition: all var(--transition-fast);
+  box-shadow: 0 4px 15px rgba(110, 142, 251, 0.4);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-.add-to-cart::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  margin-top: auto;
+  /* Push to bottom */
 }
 
 .add-to-cart:hover {
-  background: linear-gradient(135deg, #e5533d, #ff6347);
   transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(255, 99, 71, 0.5);
+  box-shadow: 0 6px 20px rgba(110, 142, 251, 0.6);
+  filter: brightness(1.1);
 }
 
-.add-to-cart:active::before {
-  width: 300px;
-  height: 300px;
+.add-to-cart:active {
+  transform: translateY(1px);
 }
 
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  background-color: rgba(0, 0, 0, 0.3);
+/* --- Utility Classes --- */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
-.navbar-logo {
-  font-size: 1.5em;
-  color: white;
-  text-decoration: none;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
 }
 
-.navbar-links a {
-  color: white;
-  text-decoration: none;
-  margin-left: 20px;
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Form Elements */
+input,
+select,
+textarea {
+  font-family: var(--font-main);
+  padding: 10px 15px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #ddd;
+  transition: border-color var(--transition-fast);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.1);
 }

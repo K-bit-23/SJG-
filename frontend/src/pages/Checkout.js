@@ -107,9 +107,9 @@ const Checkout = () => {
             return;
         }
 
-        // If Online Payment -> Show Mock Modal
+        // If Online Payment -> Process Order then Redirect to Stripe
         if (formData.paymentMethod === 'online') {
-            setShowPaymentModal(true);
+            processOrder(false, true);
         } else {
             // COD -> Process Directly
             processOrder();
@@ -117,7 +117,7 @@ const Checkout = () => {
     };
 
     // Final Order Processing
-    const processOrder = async (isPaid = false) => {
+    const processOrder = async (isPaid = false, requiresPayment = false) => {
         setLoading(true);
 
         const orderData = {
@@ -127,18 +127,31 @@ const Checkout = () => {
             customerEmail: formData.email,
             phone: formData.phone,
             address: `${formData.address}, ${formData.city} - ${formData.zipCode}`,
-            paymentMethod: formData.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment',
-            paymentStatus: isPaid ? 'Paid' : 'Pending'
+            paymentMethod: formData.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment (Stripe)',
+            // Align with backend choices: 'pending', 'processing', 'completed', 'cancelled'
+            status: isPaid ? 'processing' : 'pending',
+            // Add custom field for payment status if needed, but backend mainly uses 'status'
+            payment_status: isPaid ? 'Paid' : 'Pending'
         };
 
         try {
             const newOrder = await placeOrder(orderData);
+            // clearCart(); // Don't clear cart yet if going to payment, wait for success? 
+            // Actually, keep it simple: Create Order -> Payment. 
+            // If payment fails, order exists as pending. Cart should be cleared to prevent double order.
+
             clearCart();
             setLoading(false);
             setShowPaymentModal(false);
 
             const orderId = newOrder.order_id || newOrder.id;
-            navigate(`/order-confirmation/${orderId}`);
+
+            if (requiresPayment) {
+                navigate('/payment', { state: { orderId: orderId, amount: getCartTotal() } });
+            } else {
+                navigate(`/order-confirmation/${orderId}`);
+            }
+
         } catch (error) {
             console.error("Order placement failed", error);
             setLoading(false);

@@ -86,6 +86,19 @@ export const ProductProvider = ({ children }) => {
         return stats;
     };
 
+    const refreshProducts = async () => {
+        try {
+            const response = await axios.get(API_ENDPOINTS.PRODUCTS);
+            if (response.data && response.data.length > 0) {
+                setProducts(response.data);
+            }
+            return response.data;
+        } catch (error) {
+            console.error('Error refreshing products:', error);
+            throw error;
+        }
+    };
+
     const value = {
         products,
         addProduct,
@@ -93,6 +106,7 @@ export const ProductProvider = ({ children }) => {
         deleteProduct,
         getProductById,
         getProductStats,
+        refreshProducts,
     };
 
     return (

@@ -58,6 +58,14 @@ const AdminNavbar = ({ isCollapsed, setIsCollapsed }) => {
                     {isCollapsed && <span className="tooltip">Users</span>}
                 </NavLink>
 
+                <div className="nav-section-label">{!isCollapsed && "Store"}</div>
+
+                <NavLink to="/products" className="nav-item">
+                    <span className="icon-box"><i className="fas fa-shopping-cart"></i></span>
+                    <span className="link-text">Shop Products</span>
+                    {isCollapsed && <span className="tooltip">Shop Products</span>}
+                </NavLink>
+
                 <div className="nav-section-label">{!isCollapsed && "Sales"}</div>
 
                 <NavLink to="/admin/billing" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
@@ -95,11 +103,8 @@ const AdminNavbar = ({ isCollapsed, setIsCollapsed }) => {
                     )}
                 </div>
 
-                {/* Footer Actions (Logout/Home) */}
+                {/* Footer Actions (Logout only) */}
                 <div className="footer-actions">
-                    <NavLink to="/" className="footer-action-btn" title="Back to Store">
-                        <i className="fas fa-store"></i>
-                    </NavLink>
                     <button onClick={handleLogout} className="footer-action-btn logout" title="Logout">
                         <i className="fas fa-sign-out-alt"></i>
                     </button>
