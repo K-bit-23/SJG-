@@ -6,7 +6,7 @@ from datetime import datetime
 import random
 import string
 from .mongodb import mongo_client
-from .serializers import ProductSerializer, OrderSerializer, ContactMessageSerializer
+from .serializers import ProductSerializer, OrderSerializer, ContactMessageSerializer, UserSerializer
 
 class ProductListCreateView(APIView):
     """List all products or create a new product"""
@@ -224,10 +224,12 @@ class DashboardStatsView(APIView):
             products_collection = mongo_client.get_collection('products')
             orders_collection = mongo_client.get_collection('orders')
             messages_collection = mongo_client.get_collection('messages')
+            users_collection = mongo_client.get_collection('users')
             
             total_products = products_collection.count_documents({})
             total_orders = orders_collection.count_documents({})
             total_messages = messages_collection.count_documents({})
+            total_users = users_collection.count_documents({})
             
             # Calculate total revenue
             pipeline = [
@@ -243,6 +245,7 @@ class DashboardStatsView(APIView):
                 'total_products': total_products,
                 'total_orders': total_orders,
                 'total_messages': total_messages,
+                'total_users': total_users,
                 'total_revenue': total_revenue,
                 'recent_orders': OrderSerializer(recent_orders, many=True).data
             })
@@ -276,3 +279,100 @@ class ContactMessageView(APIView):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class UserListCreateView(APIView):
+    """List all users or create/sync a user"""
+    
+    def get(self, request):
+        try:
+            collection = mongo_client.get_collection('users')
+            # Filter by role if provided
+            role = request.query_params.get('role')
+            query = {'role': role} if role else {}
+            
+            users = list(collection.find(query))
+            return Response(UserSerializer(users, many=True).data)
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def post(self, request):
+        try:
+            serializer = UserSerializer(data=request.data)
+            if serializer.is_valid():
+                collection = mongo_client.get_collection('users')
+                user_data = serializer.validated_data
+                uid = user_data.get('uid')
+                
+                # Check if user exists, if so update, else insert
+                existing_user = collection.find_one({'uid': uid})
+                
+                if existing_user:
+                    # Update existing
+                    user_data['updated_at'] = datetime.now()
+                    # Don't overwrite role if it's not provided or "user" (keep existing admin role)
+                    if existing_user.get('role') == 'admin' and user_data.get('role') == 'user':
+                         if 'role' in user_data: del user_data['role']
+                         
+                    collection.update_one({'uid': uid}, {'$set': user_data})
+                    user_data = collection.find_one({'uid': uid}) # Get updated doc
+                else:
+                    # Insert new
+                    user_data['created_at'] = datetime.now()
+                    user_data['updated_at'] = datetime.now()
+                    collection.insert_one(user_data)
+                
+                return Response(
+                    UserSerializer(user_data).data,
+                    status=status.HTTP_200_OK # 200 OK for upsert
+                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class UserDetailView(APIView):
+    """Retrieve, update or delete a user"""
+    
+    def get(self, request, uid):
+        try:
+            collection = mongo_client.get_collection('users')
+            user = collection.find_one({'uid': uid})
+            if not user:
+                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(UserSerializer(user).data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def put(self, request, uid):
+        try:
+            collection = mongo_client.get_collection('users')
+            update_data = request.data
+            update_data['updated_at'] = datetime.now()
+            
+            result = collection.update_one(
+                {'uid': uid},
+                {'$set': update_data}
+            )
+            
+            if result.matched_count == 0:
+                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+                
+            user = collection.find_one({'uid': uid})
+            return Response(UserSerializer(user).data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+    def delete(self, request, uid):
+        try:
+            collection = mongo_client.get_collection('users')
+            result = collection.delete_one({'uid': uid})
+            if result.deleted_count == 0:
+                 return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

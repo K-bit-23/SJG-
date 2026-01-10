@@ -51,3 +51,12 @@ class ContactMessageSerializer(serializers.Serializer):
     email = serializers.EmailField()
     message = serializers.CharField()
     created_at = serializers.DateTimeField(read_only=True)
+
+class UserSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    email = serializers.EmailField()
+    display_name = serializers.CharField(required=False, allow_blank=True)
+    photo_url = serializers.CharField(required=False, allow_blank=True)
+    role = serializers.CharField(default='user')
+    created_at = serializers.DateTimeField(read_only=True)
+    last_login = serializers.DateTimeField(required=False)

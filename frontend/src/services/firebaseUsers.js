@@ -1,32 +1,27 @@
-import { ref, get, update, remove, query, orderByChild } from 'firebase/database';
-import { database } from '../config/firebase';
+import { API_ENDPOINTS } from '../config';
 
 /**
- * Get all users from Firebase Realtime Database
+ * Get all users from MongoDB API
  * Admin function only
  */
 export const getAllUsers = async () => {
     try {
-        const usersRef = ref(database, 'users');
-        const snapshot = await get(usersRef);
+        const response = await fetch(API_ENDPOINTS.USERS);
 
-        if (snapshot.exists()) {
-            const usersData = snapshot.val();
-            // Convert object to array
-            const usersArray = Object.keys(usersData).map(uid => ({
-                id: uid,
-                ...usersData[uid]
-            }));
-
-            return {
-                success: true,
-                users: usersArray
-            };
+        if (!response.ok) {
+            throw new Error('Failed to fetch users');
         }
+
+        const users = await response.json();
+        // Map backend 'uid' to 'id' for frontend compatibility
+        const formattedUsers = users.map(user => ({
+            ...user,
+            id: user.uid
+        }));
 
         return {
             success: true,
-            users: []
+            users: formattedUsers
         };
     } catch (error) {
         console.error('Get all users error:', error);
@@ -43,11 +38,18 @@ export const getAllUsers = async () => {
  */
 export const updateUserRole = async (uid, newRole) => {
     try {
-        const userRef = ref(database, `users/${uid}`);
-        await update(userRef, {
-            role: newRole,
-            updatedAt: new Date().toISOString()
+        const response = await fetch(`${API_ENDPOINTS.USERS}${uid}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ role: newRole })
         });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to update user role');
+        }
 
         return { success: true };
     } catch (error) {
@@ -65,8 +67,13 @@ export const updateUserRole = async (uid, newRole) => {
  */
 export const deleteUserData = async (uid) => {
     try {
-        const userRef = ref(database, `users/${uid}`);
-        await remove(userRef);
+        const response = await fetch(`${API_ENDPOINTS.USERS}${uid}/`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete user');
+        }
 
         return { success: true };
     } catch (error) {
@@ -83,25 +90,21 @@ export const deleteUserData = async (uid) => {
  */
 export const getUsersByRole = async (role) => {
     try {
-        const usersRef = ref(database, 'users');
-        const usersQuery = query(usersRef, orderByChild('role'));
-        const snapshot = await get(usersQuery);
+        const response = await fetch(`${API_ENDPOINTS.USERS}?role=${role}`);
 
-        if (snapshot.exists()) {
-            const usersData = snapshot.val();
-            const usersArray = Object.keys(usersData)
-                .map(uid => ({ id: uid, ...usersData[uid] }))
-                .filter(user => user.role === role);
-
-            return {
-                success: true,
-                users: usersArray
-            };
+        if (!response.ok) {
+            throw new Error('Failed to fetch users by role');
         }
+
+        const users = await response.json();
+        const formattedUsers = users.map(user => ({
+            ...user,
+            id: user.uid
+        }));
 
         return {
             success: true,
-            users: []
+            users: formattedUsers
         };
     } catch (error) {
         console.error('Get users by role error:', error);
@@ -128,7 +131,8 @@ export const getUserStats = async () => {
                     admins: users.filter(u => u.role === 'admin').length,
                     users: users.filter(u => u.role === 'user').length,
                     activeToday: users.filter(u => {
-                        const lastLogin = new Date(u.lastLogin);
+                        if (!u.last_login) return false;
+                        const lastLogin = new Date(u.last_login);
                         const today = new Date();
                         return lastLogin.toDateString() === today.toDateString();
                     }).length

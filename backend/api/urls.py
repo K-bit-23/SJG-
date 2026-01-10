@@ -16,7 +16,9 @@ from .views import (
     OrderListCreateView,
     OrderDetailView,
     DashboardStatsView,
-    ContactMessageView
+    ContactMessageView,
+    UserListCreateView,
+    UserDetailView
 )
 
 urlpatterns = [
@@ -33,6 +35,10 @@ urlpatterns = [
     
     # Contact endpoints
     path('contact/', ContactMessageView.as_view(), name='contact-message'),
+    
+    # User endpoints (for Admin Panel)
+    path('users/', UserListCreateView.as_view(), name='user-list-create'),
+    path('users/<str:uid>/', UserDetailView.as_view(), name='user-detail'),
 ]
 
 # ============================================================================

@@ -26,5 +26,6 @@ export const API_ENDPOINTS = {
     ORDERS: `${API_BASE_URL}/api/orders/`,
     STATS: `${API_BASE_URL}/api/dashboard/stats/`,
     CONTACT: `${API_BASE_URL}/api/contact/`,
+    USERS: `${API_BASE_URL}/api/users/`,
     AUTH: `${API_BASE_URL}/api/`,
 };

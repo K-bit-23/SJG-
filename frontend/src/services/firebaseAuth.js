@@ -7,8 +7,8 @@ import {
     onAuthStateChanged,
     sendPasswordResetEmail
 } from 'firebase/auth';
-import { ref, set, get, update } from 'firebase/database';
-import { auth, database } from '../config/firebase';
+import { auth } from '../config/firebase';
+import { API_ENDPOINTS } from '../config';
 
 // Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
@@ -21,25 +21,24 @@ export const registerWithEmail = async (email, password, userData) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Store additional user data in Realtime Database
-        const userRef = ref(database, `users/${user.uid}`);
-        await set(userRef, {
+        // Store additional user data in MongoDB
+        const mongoUser = {
             uid: user.uid,
             email: user.email,
-            mobile: userData.mobile || '',
+            display_name: userData.name || '',
             role: (user.email === 'sjgvxerox@gmail.com' || user.email === 'admin2.sjg@gmail.com') ? 'admin' : (userData.role || 'user'),
-            createdAt: new Date().toISOString(),
-            lastLogin: new Date().toISOString()
+            mobile: userData.mobile || ''
+        };
+
+        await fetch(API_ENDPOINTS.USERS, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(mongoUser)
         });
 
         return {
             success: true,
-            user: {
-                uid: user.uid,
-                email: user.email,
-                mobile: userData.mobile || '',
-                role: (user.email === 'sjgvxerox@gmail.com' || user.email === 'admin2.sjg@gmail.com') ? 'admin' : (userData.role || 'user')
-            }
+            user: mongoUser
         };
     } catch (error) {
         console.error('Registration error:', error);
@@ -58,29 +57,8 @@ export const loginWithEmail = async (email, password) => {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Get user data from database
-        const userRef = ref(database, `users/${user.uid}`);
-        const snapshot = await get(userRef);
-
-        let userData = {
-            uid: user.uid,
-            email: user.email,
-            role: (user.email === 'sjgvxerox@gmail.com' || user.email === 'admin2.sjg@gmail.com') ? 'admin' : 'user'
-        };
-
-        if (snapshot.exists()) {
-            userData = { ...userData, ...snapshot.val() };
-
-            // Update last login
-            await update(userRef, {
-                lastLogin: new Date().toISOString()
-            });
-        }
-
-        return {
-            success: true,
-            user: userData
-        };
+        // Get user data from MongoDB
+        return await getCurrentUserData(user.uid);
     } catch (error) {
         console.error('Login error:', error);
         return {
@@ -98,36 +76,26 @@ export const loginWithGoogle = async () => {
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
 
-        // Check if user exists in database
-        const userRef = ref(database, `users/${user.uid}`);
-        const snapshot = await get(userRef);
-
-        let userData = {
+        // Sync user with MongoDB (Upsert)
+        const mongoUser = {
             uid: user.uid,
             email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
+            display_name: user.displayName || '',
+            photo_url: user.photoURL || '',
             role: (user.email === 'sjgvxerox@gmail.com' || user.email === 'admin2.sjg@gmail.com') ? 'admin' : 'user'
         };
 
-        if (!snapshot.exists()) {
-            // New user, create profile
-            await set(userRef, {
-                ...userData,
-                createdAt: new Date().toISOString(),
-                lastLogin: new Date().toISOString()
-            });
-        } else {
-            // Existing user, update last login
-            userData = { ...userData, ...snapshot.val() };
-            await update(userRef, {
-                lastLogin: new Date().toISOString()
-            });
-        }
+        const response = await fetch(API_ENDPOINTS.USERS, {
+            method: 'POST', // Backend handles upsert
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(mongoUser)
+        });
+
+        const data = await response.json();
 
         return {
             success: true,
-            user: userData
+            user: data
         };
     } catch (error) {
         console.error('Google login error:', error);
@@ -155,24 +123,31 @@ export const logout = async () => {
 };
 
 /**
- * Get current user data from database
+ * Get current user data from database (MongoDB)
  */
 export const getCurrentUserData = async (uid) => {
     try {
-        const userRef = ref(database, `users/${uid}`);
-        const snapshot = await get(userRef);
+        const response = await fetch(`${API_ENDPOINTS.USERS}${uid}/`);
 
-        if (snapshot.exists()) {
+        if (response.ok) {
+            const userData = await response.json();
+            // Map backend fields to frontend expected fields if necessary
+            // e.g. display_name -> displayName
             return {
                 success: true,
-                user: snapshot.val()
+                user: {
+                    ...userData,
+                    displayName: userData.display_name, // Map for compatibility
+                    photoURL: userData.photo_url
+                }
+            };
+        } else {
+            // User might exist in Auth but not in Mongo yet?
+            return {
+                success: false,
+                error: 'User data not found in MongoDB'
             };
         }
-
-        return {
-            success: false,
-            error: 'User data not found'
-        };
     } catch (error) {
         console.error('Get user data error:', error);
         return {
@@ -187,11 +162,18 @@ export const getCurrentUserData = async (uid) => {
  */
 export const updateUserProfile = async (uid, updates) => {
     try {
-        const userRef = ref(database, `users/${uid}`);
-        await update(userRef, {
-            ...updates,
-            updatedAt: new Date().toISOString()
+        // Map updates to backend format if needed
+        const mongoUpdates = { ...updates };
+        if (updates.displayName) mongoUpdates.display_name = updates.displayName;
+        if (updates.photoURL) mongoUpdates.photo_url = updates.photoURL;
+
+        const response = await fetch(`${API_ENDPOINTS.USERS}${uid}/`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(mongoUpdates)
         });
+
+        if (!response.ok) throw new Error('Failed to update');
 
         return { success: true };
     } catch (error) {
