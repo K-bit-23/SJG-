@@ -26,6 +26,8 @@ export const CartProvider = ({ children }) => {
             }
             return [...prev, { ...product, quantity: 1 }];
         });
+        // Dispatch event for UI animations
+        window.dispatchEvent(new Event('cartUpdate'));
     };
 
     const decrementFromCart = (id) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { ShoppingBag, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, Bell } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, Bell } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -59,10 +59,50 @@ const Navbar = () => {
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [wishlistCount, setWishlistCount] = useState(0);
+    const [isCartBumping, setIsCartBumping] = useState(false);
+    const [isWishlistBumping, setIsWishlistBumping] = useState(false);
 
-    // Get wishlist count
-    const wishlistData = localStorage.getItem('wishlist');
-    const wishlistCount = wishlistData ? JSON.parse(wishlistData).length : 0;
+    const updateWishlistCount = () => {
+        try {
+            const saved = localStorage.getItem('wishlist');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                setWishlistCount(Array.isArray(parsed) ? parsed.length : 0);
+            } else {
+                setWishlistCount(0);
+            }
+        } catch (e) {
+            console.error("Error parsing wishlist:", e);
+            setWishlistCount(0);
+        }
+    };
+
+    useEffect(() => {
+        const handleWishlistUpdate = () => {
+            updateWishlistCount();
+            setIsWishlistBumping(true);
+            setTimeout(() => setIsWishlistBumping(false), 400);
+        };
+
+        handleWishlistUpdate();
+        window.addEventListener('storage', updateWishlistCount);
+        window.addEventListener('wishlistUpdate', handleWishlistUpdate);
+        return () => {
+            window.removeEventListener('storage', updateWishlistCount);
+            window.removeEventListener('wishlistUpdate', handleWishlistUpdate);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleCartUpdate = () => {
+            setIsCartBumping(true);
+            setTimeout(() => setIsCartBumping(false), 400); // Match animation duration
+        };
+
+        window.addEventListener('cartUpdate', handleCartUpdate);
+        return () => window.removeEventListener('cartUpdate', handleCartUpdate);
+    }, []);
 
     const navigate = useNavigate();
 
@@ -109,6 +149,22 @@ const Navbar = () => {
         return colors[index];
     };
 
+    // Get greeting based on time of day
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour >= 5 && hour < 12) {
+            return { text: 'Good Morning', emoji: '☀️', color: 'text-orange-500' };
+        } else if (hour >= 12 && hour < 17) {
+            return { text: 'Good Afternoon', emoji: '🌤️', color: 'text-yellow-600' };
+        } else if (hour >= 17 && hour < 21) {
+            return { text: 'Good Evening', emoji: '🌅', color: 'text-purple-500' };
+        } else {
+            return { text: 'Good Night', emoji: '🌙', color: 'text-indigo-500' };
+        }
+    };
+
+    const greeting = getGreeting();
+
     return (
         <>
             <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
@@ -119,7 +175,7 @@ const Navbar = () => {
                         {/* Left: Logo + Nav */}
                         <div className="flex items-center gap-8">
                             <Link to="/" className="flex items-center gap-2 group">
-                                <img src="/logo.png" alt="SJG" className="h-10 w-10 object-contain" />
+                                <img src="/logo.png" alt="SJG" className="h-10 w-10 object-contain transition-transform duration-500 group-hover:scale-110 group-hover:rotate-[360deg]" />
                                 <span className="text-xl font-bold tracking-tight text-primary hidden sm:block">SJG<span className="text-secondary">.</span></span>
                             </Link>
 
@@ -150,20 +206,24 @@ const Navbar = () => {
                         {/* Right: Actions */}
                         <div className="flex items-center gap-1 lg:gap-2">
                             {/* Wishlist */}
-                            <Link to="/wishlist" className="relative p-2.5 hover:bg-gray-100 rounded-full transition-colors group">
-                                <Heart size={20} className="text-gray-500 group-hover:text-red-500 transition-colors" />
+                            <Link to="/wishlist" className={`relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale ${isWishlistBumping ? 'animate-wishlist-pulse' : ''}`}>
+                                <Heart size={20} className={`text-gray-500 group-hover:text-red-500 transition-colors ${isWishlistBumping ? 'text-red-500 fill-red-500' : ''}`} />
                                 {wishlistCount > 0 && (
-                                    <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-bold">
+                                    <span className={`absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-bold transition-transform duration-200 ${isWishlistBumping ? 'scale-125' : 'scale-100'}`}>
                                         {wishlistCount}
                                     </span>
                                 )}
                             </Link>
 
                             {/* Cart */}
-                            <Link to="/cart" className="relative p-2.5 hover:bg-gray-100 rounded-full transition-colors group">
-                                <ShoppingBag size={20} className="text-gray-500 group-hover:text-secondary transition-colors" />
+                            <Link to="/cart" className={`relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale ${isCartBumping ? 'animate-cart-bump' : ''}`}>
+                                {isCartBumping ? (
+                                    <ShoppingCart size={20} className="text-secondary transition-colors" />
+                                ) : (
+                                    <ShoppingBag size={20} className="text-gray-500 group-hover:text-secondary transition-colors" />
+                                )}
                                 {cart.length > 0 && (
-                                    <span className="absolute -top-0.5 -right-0.5 bg-secondary text-white text-[10px] min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-bold">
+                                    <span className={`absolute -top-0.5 -right-0.5 bg-secondary text-white text-[10px] min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-bold transition-transform duration-200 ${isCartBumping ? 'scale-125' : 'scale-100'}`}>
                                         {cart.length}
                                     </span>
                                 )}
@@ -171,10 +231,11 @@ const Navbar = () => {
 
                             {/* User Profile */}
                             {user ? (
-                                <div className="relative profile-dropdown">
+                                <div className="relative profile-dropdown flex items-center gap-2">
+                                    {/* Avatar Button */}
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setProfileDropdownOpen(!profileDropdownOpen); }}
-                                        className="flex items-center gap-2 ml-2 group"
+                                        className="flex items-center gap-1 group"
                                     >
                                         <div className="relative">
                                             {/* Outer Ring Animation */}
@@ -191,6 +252,24 @@ const Navbar = () => {
                                             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-white"></span>
                                         </div>
                                         <ChevronDown size={14} className={`text-gray-400 hidden lg:block transition-transform duration-200 ${profileDropdownOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {/* Greeting - After Avatar */}
+                                    <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-gray-50 to-white rounded-full border border-gray-100">
+                                        <span className="text-base">{greeting.emoji}</span>
+                                        <div>
+                                            <p className={`text-[10px] font-bold ${greeting.color}`}>{greeting.text},</p>
+                                            <p className="text-xs font-semibold text-gray-700">{user.name?.split(' ')[0] || 'User'}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Sign Out Button */}
+                                    <button
+                                        onClick={handleLogout}
+                                        className="hidden lg:flex items-center justify-center p-2 bg-red-50 hover:bg-red-100 text-red-500 rounded-full transition-all"
+                                        title="Sign Out"
+                                    >
+                                        <LogOut size={16} />
                                     </button>
 
                                     {profileDropdownOpen && (
@@ -345,9 +424,6 @@ const Navbar = () => {
                                             <ShieldCheck size={18} /> Admin
                                         </Link>
                                     )}
-                                    <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 text-red-500 text-sm">
-                                        <LogOut size={18} /> Sign Out
-                                    </button>
                                 </>
                             )}
 

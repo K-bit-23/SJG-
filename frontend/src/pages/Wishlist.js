@@ -88,7 +88,7 @@ const Wishlist = () => {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {wishlist.map(product => (
-                            <div key={getProductId(product)} className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all group">
+                            <div key={getProductId(product)} className="bg-white rounded-xl overflow-hidden shadow-sm hover-float hover-glow transition-all group border border-transparent">
                                 {/* Image */}
                                 <div className="relative h-48 bg-gray-100 overflow-hidden">
                                     <img

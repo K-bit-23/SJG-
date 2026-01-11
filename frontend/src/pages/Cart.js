@@ -90,7 +90,7 @@ const Cart = () => {
                             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                                 <div className="divide-y divide-gray-100">
                                     {cart.map((item, index) => (
-                                        <div key={item.id} className="p-4 lg:p-5 hover:bg-gray-50/50 transition-colors">
+                                        <div key={item.id} className="p-4 lg:p-5 hover:bg-white hover:shadow-md hover-scale hover-glow rounded-xl transition-all m-2 border border-transparent">
                                             <div className="flex gap-4">
                                                 {/* Product Image */}
                                                 <div className="w-24 h-24 lg:w-28 lg:h-28 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
@@ -157,7 +157,7 @@ const Cart = () => {
 
                         {/* Order Summary */}
                         <div className="lg:w-96">
-                            <div className="bg-white rounded-2xl shadow-sm overflow-hidden sticky top-32">
+                            <div className="bg-white rounded-2xl shadow-sm overflow-hidden sticky top-32 hover-glow transition-all">
                                 <div className="p-5 border-b border-gray-100">
                                     <h2 className="text-lg font-bold text-gray-800">Order Summary</h2>
                                 </div>

@@ -67,20 +67,23 @@ class UserSerializer(serializers.Serializer):
 class BannerSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False)
     title = serializers.CharField(allow_blank=True)
-    price = serializers.CharField(allow_blank=True)
     subtitle = serializers.CharField(allow_blank=True)
+    description = serializers.CharField(allow_blank=True, required=False)
     img = serializers.CharField(allow_blank=True)
+    btnText = serializers.CharField(allow_blank=True, required=False)
+    btnLink = serializers.CharField(allow_blank=True, required=False)
 
 class ServiceSerializer(serializers.Serializer):
+    name = serializers.CharField(allow_blank=True)
+    desc = serializers.CharField(allow_blank=True)
     icon = serializers.CharField(allow_blank=True)
-    title = serializers.CharField(allow_blank=True)
-    description = serializers.CharField(allow_blank=True)
-    color_class = serializers.CharField(allow_blank=True)
+    color = serializers.CharField(allow_blank=True)
+    price = serializers.CharField(allow_blank=True)
 
 class TrustStripSerializer(serializers.Serializer):
     icon = serializers.CharField(allow_blank=True)
     title = serializers.CharField(allow_blank=True)
-    subtitle = serializers.CharField(allow_blank=True)
+    desc = serializers.CharField(allow_blank=True)
 
 class HomePageContentSerializer(serializers.Serializer):
     banners = BannerSerializer(many=True)

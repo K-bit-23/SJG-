@@ -27,6 +27,58 @@
         animation: bounce 2s infinite;
     }
 
+    /* Premium Hover Utilities */
+    .hover-float {
+        @apply transition-transform duration-300 hover:-translate-y-2;
+    }
+
+    .hover-glow {
+        @apply transition-all duration-300 hover:shadow-[0_0_20px_rgba(79, 70, 229, 0.3)] hover:border-secondary/30;
+    }
+
+    .hover-scale {
+        @apply transition-transform duration-300 hover:scale-105 active:scale-95;
+    }
+
+    @keyframes cartBump {
+        0% {
+            transform: scale(1) translateX(0);
+        }
+
+        25% {
+            transform: scale(1.4) translateX(-5px) rotate(-15deg);
+        }
+
+        50% {
+            transform: scale(1.5) translateX(0) rotate(0deg);
+        }
+
+        75% {
+            transform: scale(1.4) translateX(5px) rotate(15deg);
+        }
+
+        100% {
+            transform: scale(1) translateX(0);
+        }
+    }
+
+    /* Wishlist Pulse Animation */
+    .animate-wishlist-pulse {
+        animation: wishlistPulse 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    }
+
+    @keyframes wishlistPulse {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.3);
+        }
+    }
+
     @keyframes fadeIn {
         from {
             opacity: 0;
