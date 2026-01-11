@@ -1,4 +1,39 @@
-@import './theme.css';
+/* Theme Variables */
+:root {
+  /* Brand Colors - Premium Violet/Blue Gradients */
+  --primary-color: #6e8efb;
+  --primary-dark: #5a75cf;
+  --secondary-color: #a777e3;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #6e8efb 0%, #a777e3 100%);
+  --gradient-hover: linear-gradient(135deg, #5a75cf 0%, #9059d0 100%);
+  --gradient-text: linear-gradient(45deg, #6e8efb, #a777e3);
+
+  /* Backgrounds */
+  --bg-color: #f8f9fa;
+  --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+
+  /* Glassmorphism Tokens */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg-dark: rgba(0, 0, 0, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+
+  /* Text Colors */
+  --text-primary: #2d3748;
+  --text-secondary: #718096;
+  --text-light: #a0aec0;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+
+  /* Fonts */
+  --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-code: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
 
 html {
   scroll-behavior: smooth;

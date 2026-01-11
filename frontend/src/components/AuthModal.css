@@ -14,29 +14,27 @@
     animation: fadeIn 0.3s ease-out;
 }
 
-/* Vertical Modal Container */
+/* Compact Vertical Modal */
 .auth-modal-horizontal {
     position: relative;
-    width: 420px;
+    width: 360px;
     max-width: 95vw;
     background: white;
-    border-radius: 20px;
+    border-radius: 16px;
     overflow: visible;
-    box-shadow:
-        0 30px 80px rgba(0, 0, 0, 0.2),
-        0 0 1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2), 0 0 1px rgba(0, 0, 0, 0.1);
     animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Logo at Top */
+/* Logo Circle Background */
 .auth-modal-horizontal::before {
     content: '';
     position: absolute;
-    top: -45px;
+    top: -35px;
     left: 50%;
     transform: translateX(-50%);
-    width: 90px;
-    height: 90px;
+    width: 70px;
+    height: 70px;
     background: white;
     border-radius: 50%;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -46,13 +44,13 @@
 /* Close Button */
 .auth-modal-close {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 8px;
+    right: 8px;
     background: rgba(255, 255, 255, 0.9);
     color: #6e8efb;
     border: none;
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
@@ -60,7 +58,7 @@
     justify-content: center;
     z-index: 100;
     transition: all 0.3s;
-    font-size: 14px;
+    font-size: 11px;
 }
 
 .auth-modal-close:hover {
@@ -72,122 +70,127 @@
 /* Logo Image */
 .auth-logo-top {
     position: absolute;
-    top: -40px;
+    top: -32px;
     left: 50%;
     transform: translateX(-50%);
-    width: 80px;
-    height: 80px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
-    border: 4px solid white;
+    border: 3px solid white;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     z-index: 11;
     object-fit: cover;
 }
 
-/* Gradient Header */
+/* Compact Gradient Header */
 .auth-modal-left-side {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 50px 30px 25px;
-    border-radius: 20px 20px 0 0;
+    padding: 40px 20px 18px;
+    border-radius: 16px 16px 0 0;
     text-align: center;
     position: relative;
 }
 
 .auth-branding h2 {
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 700;
     color: white;
     margin: 0;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Form Section */
+/* Compact Form Section */
 .auth-modal-right-side {
-    padding: 35px 35px 30px;
+    padding: 24px 20px 20px;
     background: white;
-    border-radius: 0 0 20px 20px;
+    border-radius: 0 0 16px 16px;
 }
 
-/* --- New Form Styles --- */
+/* Form Container */
 .auth-form-container {
     width: 100%;
-    max-width: 100%;
     margin: 0 auto;
 }
 
 .auth-title {
-    font-size: 24px;
+    font-size: 18px;
     font-weight: 700;
     color: #333;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
 }
 
 .auth-subtitle {
-    font-size: 13px;
+    font-size: 11px;
     color: #888;
-    margin-bottom: 25px;
+    margin-bottom: 18px;
+    line-height: 1.4;
 }
 
 .auth-error-msg {
-    background: #ffe3e3;
-    color: #d63031;
-    padding: 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    margin-bottom: 20px;
-    border: 1px solid #ff7675;
+    background: #fff5f5;
+    color: #e74c3c;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ffebee;
 }
 
-/* Form Group */
-.modern-form-group {
-    margin-bottom: 20px;
+/* Compact Input Group */
+.input-group {
+    margin-bottom: 14px;
 }
 
-.modern-form-group label {
+.input-group label {
     display: block;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: #555;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
 }
 
-.input-with-icon {
+/* Compact Input Wrapper */
+.fancy-input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
 }
 
-.input-with-icon i {
+.fancy-input-wrapper .input-icon {
     position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    /* True Center */
-    color: #aaa;
-    font-size: 16px;
-    transition: color 0.3s;
+    left: 10px;
+    color: #999;
+    font-size: 13px;
     pointer-events: none;
-    /* Let clicks pass through left icon */
 }
 
-/* Password Toggle - Specific Override */
-.input-with-icon .password-toggle-icon {
-    left: auto;
-    /* Reset left */
-    right: 15px;
-    /* Far Right */
-    pointer-events: auto;
-    /* Enable clicks */
-    cursor: pointer;
-}
-
-.input-with-icon input {
+.fancy-input-wrapper input {
     width: 100%;
-    padding: 12px 15px 12px 45px;
-    /* Space for icon */
-    border: 1px solid #ddd;
+    padding: 9px 10px 9px 34px;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
+    font-size: 13px;
+    transition: all 0.3s;
+    background: #fafafa;
+}
+
+.fancy-input-wrapper input:focus {
     background: #fff;
+    border-color: #6e8efb;
+    box-shadow: 0 0 0 3px rgba(110, 142, 251, 0.1);
+    outline: none;
+}
+
+.fancy-input-wrapper input:focus+.input-icon,
+.fancy-input-wrapper:focus-within .input-icon {
+    color: #6e8efb;
+}
+
+/* Password Toggle */
+.fancy-input-wrapper .password-toggle-icon {
+    position: absolute;
+    right: 10px;
+    left: auto;
     outline: none;
     font-size: 14px;
     color: #333;
@@ -221,6 +224,26 @@
     cursor: pointer;
     font-size: 13px;
     color: #666;
+}
+
+/* Auth Header Section */
+.auth-header-section {
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+/* Compact Register Form */
+.auth-form-container .input-group:last-of-type {
+    margin-bottom: 12px;
+}
+
+/* Smaller spacing for register with 4 fields */
+.auth-form-fields .input-group {
+    margin-bottom: 12px;
+}
+
+.auth-form-fields .input-group:last-child {
+    margin-bottom: 14px;
 }
 
 .custom-checkbox input {
@@ -259,20 +282,20 @@
 /* Modern Submit Button */
 .funky-submit-btn {
     width: 100%;
-    padding: 14px;
+    padding: 12px;
     border: none;
     border-radius: 50px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     background-size: 200% auto;
     color: #fff;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
 .funky-submit-btn:hover {

@@ -28,7 +28,8 @@
   },
   "scripts": {
     "start": "set HOST=0.0.0.0&& react-scripts start",
-    "build": "react-scripts build",
+    "build": "set \"GENERATE_SOURCEMAP=false\" && set \"DISABLE_ESLINT_PLUGIN=true\" && react-scripts build",
+    "build:dev": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
