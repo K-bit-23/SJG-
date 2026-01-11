@@ -2,8 +2,23 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import axios from 'axios';
 import reportWebVitals from './reportWebVitals';
 import ErrorBoundary from './components/ErrorBoundary';
+
+// Configure Axios Base URL for connecting Firebase -> Render
+axios.defaults.baseURL = window.location.hostname === 'localhost'
+  ? 'http://localhost:8000'
+  : 'https://sjg-backend.onrender.com';
+
+// Add interceptor to handle errors globally if needed
+axios.interceptors.response.use(
+  response => response,
+  error => {
+    console.error('API Error:', error.response || error.message);
+    return Promise.reject(error);
+  }
+);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

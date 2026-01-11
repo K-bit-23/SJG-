@@ -71,15 +71,15 @@ const AdminPanel = () => {
                     axios.get('/api/products/').catch(() => ({ data: [] }))
                 ]);
                 setStats(statsRes.data);
-                setProducts(productsRes.data);
+                setProducts(Array.isArray(productsRes.data) ? productsRes.data : []);
             }
             if (activeTab === 'orders' || activeTab === 'dashboard') {
                 const ordersRes = await axios.get('/api/orders/').catch(() => ({ data: [] }));
-                setOrders(ordersRes.data);
+                setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
             }
             if (activeTab === 'users') {
                 const usersRes = await axios.get('/api/users/').catch(() => ({ data: [] }));
-                setUsers(usersRes.data);
+                setUsers(Array.isArray(usersRes.data) ? usersRes.data : []);
             }
             if (activeTab === 'content') {
                 const contentRes = await axios.get('/api/content/home/').catch(() => ({ data: { banners: [], services: [], trust_strip: [] } }));
@@ -350,7 +350,7 @@ const AdminPanel = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
-                                        {orders.slice(0, 5).map(order => (
+                                        {Array.isArray(orders) && orders.slice(0, 5).map(order => (
                                             <tr key={order.order_id} className="hover:bg-gray-50">
                                                 <td className="p-3 font-medium text-secondary">{order.order_id}</td>
                                                 <td className="p-3">{order.user_name}</td>
@@ -393,7 +393,7 @@ const AdminPanel = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y">
-                                    {products.map(product => (
+                                    {Array.isArray(products) && products.map(product => (
                                         <tr key={product.id || product._id} className="hover:bg-gray-50">
                                             <td className="p-3 flex items-center gap-3">
                                                 <img src={product.image || '/placeholder.png'} alt="" className="w-10 h-10 rounded bg-gray-100 object-cover" />
@@ -496,7 +496,7 @@ const AdminPanel = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y">
-                                        {users.map(u => (
+                                        {Array.isArray(users) && users.map(u => (
                                             <tr key={u.uid} className="hover:bg-gray-50">
                                                 <td className="p-3 flex items-center gap-3">
                                                     <div className="w-8 h-8 bg-secondary/10 rounded-full flex items-center justify-center text-secondary">
@@ -556,7 +556,7 @@ const AdminPanel = () => {
                                             </button>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {homeContent.banners.map((banner, idx) => (
+                                            {Array.isArray(homeContent.banners) && homeContent.banners.map((banner, idx) => (
                                                 <div key={idx} className="group relative bg-gray-50 rounded-xl overflow-hidden border border-gray-100 hover:shadow-md transition-all">
                                                     <img src={banner.img} alt="" className="w-full h-32 object-cover" />
                                                     <div className="p-3">
@@ -585,7 +585,7 @@ const AdminPanel = () => {
                                             </button>
                                         </div>
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                                            {homeContent.services.map((service, idx) => (
+                                            {Array.isArray(homeContent.services) && homeContent.services.map((service, idx) => (
                                                 <div key={idx} className="bg-gray-50 p-4 rounded-xl text-center border border-gray-100 hover:shadow-md transition-all">
                                                     <div className={`w-10 h-10 mx-auto rounded-lg bg-gradient-to-br ${service.color} flex items-center justify-center text-white mb-2 shadow-sm`}>
                                                         <Edit size={16} /> {/* Placeholder for icon */}

@@ -62,7 +62,11 @@ const Products = () => {
             try {
                 setLoading(true);
                 const res = await axios.get('/api/products/');
-                setProducts(res.data);
+                if (Array.isArray(res.data)) {
+                    setProducts(res.data);
+                } else {
+                    throw new Error("Invalid data format received from API");
+                }
             } catch (err) {
                 console.error("Error fetching products:", err);
                 setProducts([
@@ -173,7 +177,6 @@ const Products = () => {
                                 <option value="price-low">Price: Low-High</option>
                                 <option value="price-high">Price: High-Low</option>
                                 <option value="name-asc">A-Z</option>
-                                <option value="rating">Top Rated</option>
                             </select>
                             <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                         </div>
@@ -293,10 +296,13 @@ const Products = () => {
                                             <div>
                                                 <span className="text-lg font-bold text-primary">₹{product.price}</span>
                                             </div>
-                                            <div className="flex items-center gap-1 bg-yellow-50 px-2 py-0.5 rounded-full">
-                                                <Star size={12} className="text-yellow-500 fill-current" />
-                                                <span className="text-xs font-bold text-yellow-700">{product.rating || 4.5}</span>
-                                            </div>
+                                            <button
+                                                onClick={(e) => handleAddToCart(product, e)}
+                                                className="p-2 bg-secondary text-white rounded-full hover:bg-indigo-600 transition-all hover-scale shadow-lg shadow-secondary/20"
+                                                title="Add to Cart"
+                                            >
+                                                <ShoppingBag size={18} />
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -314,10 +320,6 @@ const Products = () => {
                                         <div>
                                             <span className="text-xs text-secondary font-medium">{product.category}</span>
                                             <h3 className="font-semibold text-gray-800">{product.name}</h3>
-                                            <div className="flex items-center gap-1 mt-1">
-                                                <Star size={12} className="text-yellow-500 fill-current" />
-                                                <span className="text-xs text-gray-500">{product.rating || 4.5}</span>
-                                            </div>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <span className="text-xl font-bold text-primary">₹{product.price}</span>
@@ -388,8 +390,7 @@ const Products = () => {
                                 {[
                                     { value: 'featured', label: 'Featured' },
                                     { value: 'price-low', label: 'Price: Low to High' },
-                                    { value: 'price-high', label: 'Price: High to Low' },
-                                    { value: 'rating', label: 'Top Rated' }
+                                    { value: 'price-high', label: 'Price: High to Low' }
                                 ].map(opt => (
                                     <button
                                         key={opt.value}
