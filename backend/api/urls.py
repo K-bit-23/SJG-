@@ -20,7 +20,8 @@ from .views import (
     UserListCreateView,
     UserDetailView,
     HomePageContentView,
-    ChatBotConfigView
+    ChatBotConfigView,
+    UserProfileView
 )
 from .payment_views import CreatePaymentIntentView, ConfirmPaymentView
 
@@ -42,6 +43,9 @@ urlpatterns = [
     # User endpoints (for Admin Panel)
     path('users/', UserListCreateView.as_view(), name='user-list-create'),
     path('users/<str:uid>/', UserDetailView.as_view(), name='user-detail'),
+    
+    # Profile endpoints (for User Profile page)
+    path('profile/<str:email>/', UserProfileView.as_view(), name='user-profile'),
 
     # Content endpoints
     path('content/home/', HomePageContentView.as_view(), name='home-page-content'),

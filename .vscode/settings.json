@@ -1,6 +1,5 @@
 {
-  "python.defaultInterpreterPath": "c:\\Users\\KARTHIKEYAN\\Desktop\\finalyproj\\SJG-\\backend\\venv\\Scripts\\python.exe",
-  "python.analysis.extraPaths": [
-    "./backend/venv/Lib/site-packages"
-  ]
+  "css.lint.unknownAtRules": "ignore",
+  "json.schemaDownload.enable": false,
+  "json.validate.enable": true
 }

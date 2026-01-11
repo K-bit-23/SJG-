@@ -454,3 +454,65 @@ class ChatBotConfigView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserProfileView(APIView):
+    """Get or Update User Profile (address, settings, preferences)"""
+    
+    def get(self, request, email):
+        try:
+            collection = mongo_client.get_collection('user_profiles')
+            profile = collection.find_one({'email': email})
+            
+            if not profile:
+                # Return empty profile structure
+                return Response({
+                    'email': email,
+                    'fullName': '',
+                    'phone': '',
+                    'photoURL': '',
+                    'dateOfBirth': '',
+                    'gender': '',
+                    'address': {
+                        'addressLine1': '',
+                        'addressLine2': '',
+                        'city': '',
+                        'state': '',
+                        'pincode': '',
+                        'country': 'India'
+                    },
+                    'appSettings': {
+                        'locationAccess': False,
+                        'notifications': True,
+                        'emailUpdates': True,
+                        'smsAlerts': False,
+                        'darkMode': False
+                    }
+                })
+            
+            # Convert ObjectId to string
+            profile['id'] = str(profile.pop('_id', ''))
+            return Response(profile)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def post(self, request, email):
+        try:
+            collection = mongo_client.get_collection('user_profiles')
+            profile_data = request.data
+            profile_data['email'] = email
+            profile_data['updated_at'] = datetime.now()
+            
+            collection.update_one(
+                {'email': email},
+                {'$set': profile_data},
+                upsert=True
+            )
+            
+            updated_profile = collection.find_one({'email': email})
+            updated_profile['id'] = str(updated_profile.pop('_id', ''))
+            
+            return Response(updated_profile, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
