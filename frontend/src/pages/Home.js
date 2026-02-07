@@ -365,39 +365,7 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Trust Badges - Redesigned */}
-            <section className="bg-gray-50 py-10 border-t border-gray-100">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="text-center md:text-left">
-                            <h3 className="text-sm font-bold text-gray-800 mb-1">Trusted by 10,000+ Happy Customers</h3>
-                            <p className="text-xs text-gray-500">We accept all major payment methods</p>
-                        </div>
-                        <div className="flex flex-wrap justify-center items-center gap-4">
-                            <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-100 hover-float hover-glow cursor-default">
-                                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xs font-bold">P</div>
-                                <span className="text-sm font-medium text-gray-700">PayTM</span>
-                            </div>
-                            <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-100">
-                                <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white text-xs font-bold">Pe</div>
-                                <span className="text-sm font-medium text-gray-700">PhonePe</span>
-                            </div>
-                            <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-100">
-                                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 via-red-500 to-yellow-500 rounded-lg flex items-center justify-center text-white text-xs font-bold">G</div>
-                                <span className="text-sm font-medium text-gray-700">GPay</span>
-                            </div>
-                            <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-100">
-                                <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white text-xs font-bold">U</div>
-                                <span className="text-sm font-medium text-gray-700">UPI</span>
-                            </div>
-                            <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-gray-100">
-                                <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center text-white text-xs font-bold">V</div>
-                                <span className="text-sm font-medium text-gray-700">Visa</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+
         </div>
     );
 };

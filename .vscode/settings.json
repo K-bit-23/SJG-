@@ -1,5 +1,8 @@
 {
   "css.lint.unknownAtRules": "ignore",
   "json.schemaDownload.enable": false,
-  "json.validate.enable": true
+  "json.validate.enable": true,
+  "files.readonlyInclude": {
+    "{**/.c4z/.extsrcs/*.PROTSYM.cbl,**/.c4z/.extsrcs/*.PROTSYM.listing}": true
+  }
 }
