@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     Package, TrendingUp, Users, DollarSign, Activity, AlertCircle, RefreshCw,
     Box, ShoppingCart, UserCircle, Home, Edit, Wifi, WifiOff, Plus, Trash2,
-    Save, X, Eye, CheckCircle, Clock, Settings, Menu, LogOut, BarChart2, PieChart, TrendingDown, Calendar
+    Save, X, Eye, CheckCircle, Clock, Settings, Menu, LogOut, BarChart2, PieChart, TrendingDown, Calendar, Receipt, Download, Print
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -22,6 +22,13 @@ const AdminPanel = () => {
     const [orders, setOrders] = useState([]);
     const [products, setProducts] = useState([]);
     const [users, setUsers] = useState([]);
+
+    // Billing States
+    const [billingItems, setBillingItems] = useState([]);
+    const [billingCustomer, setBillingCustomer] = useState({ name: '', phone: '', email: '' });
+    const [billingProductSearch, setBillingProductSearch] = useState('');
+    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+    const [currentInvoice, setCurrentInvoice] = useState(null);
 
     // Product Modal States
     const [showProductModal, setShowProductModal] = useState(false);
@@ -95,6 +102,8 @@ const AdminPanel = () => {
     const tabs = [
         { id: 'dashboard', label: 'Dashboard', icon: Activity },
         { id: 'business', label: 'Business Analysis', icon: BarChart2 },
+        { id: 'business', label: 'Business Analysis', icon: BarChart2 },
+        { id: 'billing', label: 'Offline Billing', icon: Receipt },
         { id: 'inventory', label: 'Inventory', icon: Box },
         { id: 'orders', label: 'Orders', icon: ShoppingCart },
         { id: 'users', label: 'Users', icon: Users },
@@ -221,6 +230,75 @@ const AdminPanel = () => {
         if (type === 'banner') updated.banners.splice(index, 1);
         else updated.services.splice(index, 1);
         saveHomeContent(updated);
+    };
+
+    // Billing Functions
+    const addToBill = (product) => {
+        const existingItem = billingItems.find(item => item.id === product.id || item.id === product._id);
+        if (existingItem) {
+            setBillingItems(billingItems.map(item =>
+                (item.id === product.id || item.id === product._id) ? { ...item, quantity: item.quantity + 1 } : item
+            ));
+        } else {
+            setBillingItems([...billingItems, {
+                id: product.id || product._id,
+                name: product.name,
+                price: parseFloat(product.price),
+                quantity: 1
+            }]);
+        }
+    };
+
+    const removeFromBill = (productId) => {
+        setBillingItems(billingItems.filter(item => item.id !== productId));
+    };
+
+    const updateBillQuantity = (productId, newQty) => {
+        if (newQty < 1) return;
+        setBillingItems(billingItems.map(item =>
+            item.id === productId ? { ...item, quantity: newQty } : item
+        ));
+    };
+
+    const calculateBillTotal = () => {
+        return billingItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    };
+
+    const generateInvoice = () => {
+        if (billingItems.length === 0) {
+            alert("Please add items to the bill");
+            return;
+        }
+        if (!billingCustomer.name) {
+            alert("Please enter customer name");
+            return;
+        }
+
+        const subTotal = calculateBillTotal();
+        const tax = subTotal * 0.18;
+        const grandTotal = subTotal + tax;
+
+        const invoice = {
+            id: `INV-${Date.now().toString().slice(-6)}`,
+            date: new Date().toLocaleDateString(),
+            customer: billingCustomer,
+            items: billingItems,
+            total: subTotal,
+            tax: tax,
+            grandTotal: grandTotal
+        };
+
+        setCurrentInvoice(invoice);
+        setShowInvoiceModal(true);
+    };
+
+    const printInvoice = () => {
+        const printContent = document.getElementById('invoice-template').innerHTML;
+        const originalContent = document.body.innerHTML;
+        document.body.innerHTML = printContent;
+        window.print();
+        document.body.innerHTML = originalContent;
+        window.location.reload();
     };
 
     const handleLogout = async () => {
@@ -369,6 +447,118 @@ const AdminPanel = () => {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Offline Billing Tab */}
+                {activeTab === 'billing' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Product Selection */}
+                        <div className="lg:col-span-2 space-y-6">
+                            <div className="bg-white p-6 rounded-xl shadow-sm">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-lg font-bold">Select Products</h3>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Search products..."
+                                            className="pl-10 pr-4 py-2 border rounded-lg focus:ring-2 ring-secondary/20 outline-none w-64"
+                                            value={billingProductSearch}
+                                            onChange={(e) => setBillingProductSearch(e.target.value)}
+                                        />
+                                        <i className="absolute left-3 top-3 text-gray-400"><Box size={16} /></i>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto p-1">
+                                    {products
+                                        .filter(p => p.name.toLowerCase().includes(billingProductSearch.toLowerCase()))
+                                        .map(product => (
+                                            <div key={product.id || product._id}
+                                                className="border rounded-lg p-3 hover:shadow-md transition-all cursor-pointer bg-gray-50 hover:bg-white"
+                                                onClick={() => addToBill(product)}
+                                            >
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="w-12 h-12 bg-gray-200 rounded object-cover overflow-hidden">
+                                                        <img src={product.image || '/placeholder.png'} alt="" className="w-full h-full object-cover" />
+                                                    </div>
+                                                    <span className="font-bold text-secondary">₹{product.price}</span>
+                                                </div>
+                                                <h4 className="font-medium text-sm truncate" title={product.name}>{product.name}</h4>
+                                                <p className="text-xs text-gray-500">{product.stock} in stock</p>
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Current Bill */}
+                        <div className="bg-white p-6 rounded-xl shadow-sm h-fit">
+                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                <Receipt size={20} className="text-secondary" /> Current Bill
+                            </h3>
+
+                            {/* Customer Details */}
+                            <div className="space-y-3 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                <input
+                                    type="text"
+                                    placeholder="Customer Name"
+                                    className="w-full bg-transparent border-b border-gray-300 focus:border-secondary outline-none py-1 text-sm"
+                                    value={billingCustomer.name}
+                                    onChange={(e) => setBillingCustomer({ ...billingCustomer, name: e.target.value })}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Phone Number"
+                                    className="w-full bg-transparent border-b border-gray-300 focus:border-secondary outline-none py-1 text-sm"
+                                    value={billingCustomer.phone}
+                                    onChange={(e) => setBillingCustomer({ ...billingCustomer, phone: e.target.value })}
+                                />
+                            </div>
+
+                            {/* Bill Items */}
+                            <div className="space-y-3 mb-6 max-h-[300px] overflow-y-auto">
+                                {billingItems.map((item, idx) => (
+                                    <div key={idx} className="flex items-center justify-between text-sm">
+                                        <div className="flex-1">
+                                            <div className="font-medium">{item.name}</div>
+                                            <div className="text-gray-500 text-xs text-left">₹{item.price} x {item.quantity}</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center border rounded">
+                                                <button onClick={() => updateBillQuantity(item.id, item.quantity - 1)} className="px-2 hover:bg-gray-100">-</button>
+                                                <span className="px-2">{item.quantity}</span>
+                                                <button onClick={() => updateBillQuantity(item.id, item.quantity + 1)} className="px-2 hover:bg-gray-100">+</button>
+                                            </div>
+                                            <button onClick={() => removeFromBill(item.id)} className="text-red-500 hover:text-red-700"><Trash2 size={14} /></button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {billingItems.length === 0 && <p className="text-center text-gray-400 text-sm py-4">No items added</p>}
+                            </div>
+
+                            {/* Totals */}
+                            <div className="border-t pt-4 space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-600">Subtotal</span>
+                                    <span>₹{calculateBillTotal().toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-gray-600">Tax (18%)</span>
+                                    <span>₹{(calculateBillTotal() * 0.18).toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between font-bold text-lg pt-2 border-t mt-2">
+                                    <span>Total</span>
+                                    <span className="text-secondary">₹{(calculateBillTotal() * 1.18).toFixed(2)}</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={generateInvoice}
+                                className="w-full mt-6 bg-secondary text-white py-3 rounded-xl font-bold hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-secondary/30"
+                            >
+                                <Receipt size={18} /> Generate Invoice
+                            </button>
                         </div>
                     </div>
                 )}
@@ -538,8 +728,8 @@ const AdminPanel = () => {
                                                     <td className="p-3 text-right font-bold">{trx.amt}</td>
                                                     <td className="p-3 text-center">
                                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${trx.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                                                                trx.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                                                                    'bg-red-100 text-red-700'
+                                                            trx.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                                'bg-red-100 text-red-700'
                                                             }`}>
                                                             {trx.status}
                                                         </span>
@@ -942,6 +1132,90 @@ const AdminPanel = () => {
                     </div>
                 </div>
             )}
+
+            {/* Invoice Modal Template */}
+            {showInvoiceModal && currentInvoice && (
+                <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                        <div className="p-4 border-b flex justify-between items-center bg-gray-50">
+                            <h3 className="font-bold flex items-center gap-2"><Receipt size={18} /> Invoice Generated</h3>
+                            <button onClick={() => setShowInvoiceModal(false)} className="p-1 hover:bg-gray-200 rounded-full"><X size={20} /></button>
+                        </div>
+
+                        <div className="overflow-y-auto flex-1 p-8 bg-white" id="invoice-template">
+                            <div className="flex justify-between items-start mb-8 border-b pb-6">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-secondary mb-2">SJG Stationery</h1>
+                                    <p className="text-gray-500 text-sm w-48">123, Main Street, Tech Park, Chennai - 600001</p>
+                                    <p className="text-gray-500 text-sm">Phone: +91 93600 24821</p>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-2xl font-bold text-gray-800">INVOICE</div>
+                                    <p className="text-gray-500 font-medium mt-1">{currentInvoice.id}</p>
+                                    <p className="text-gray-500 text-sm mt-1">Date: {currentInvoice.date}</p>
+                                </div>
+                            </div>
+
+                            <div className="mb-8 p-4 bg-gray-50 rounded-lg">
+                                <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">Bill To</h3>
+                                <p className="font-bold text-lg">{currentInvoice.customer.name}</p>
+                                {currentInvoice.customer.phone && <p className="text-gray-600 text-sm">{currentInvoice.customer.phone}</p>}
+                                {currentInvoice.customer.email && <p className="text-gray-600 text-sm">{currentInvoice.customer.email}</p>}
+                            </div>
+
+                            <table className="w-full mb-8">
+                                <thead className="bg-gray-50 text-gray-900 border-y border-gray-200 uppercase text-xs">
+                                    <tr>
+                                        <th className="py-3 px-4 text-left font-bold">Item Description</th>
+                                        <th className="py-3 px-4 text-center font-bold">Qty</th>
+                                        <th className="py-3 px-4 text-right font-bold">Price</th>
+                                        <th className="py-3 px-4 text-right font-bold">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-sm">
+                                    {currentInvoice.items.map((item, i) => (
+                                        <tr key={i} className="border-b border-gray-100">
+                                            <td className="py-3 px-4 font-medium text-gray-700">{item.name}</td>
+                                            <td className="py-3 px-4 text-center text-gray-600">{item.quantity}</td>
+                                            <td className="py-3 px-4 text-right text-gray-600">₹{item.price.toFixed(2)}</td>
+                                            <td className="py-3 px-4 text-right font-bold text-gray-800">₹{(item.price * item.quantity).toFixed(2)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            <div className="flex justify-end mb-8">
+                                <div className="w-64 space-y-2">
+                                    <div className="flex justify-between text-gray-600 text-sm">
+                                        <span>Subtotal</span>
+                                        <span>₹{currentInvoice.total.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-gray-600 text-sm">
+                                        <span>Tax (18% GST)</span>
+                                        <span>₹{currentInvoice.tax.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-xl font-bold text-secondary pt-3 border-t border-gray-200 mt-2">
+                                        <span>Grand Total</span>
+                                        <span>₹{currentInvoice.grandTotal.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="text-center text-gray-400 text-xs border-t pt-6">
+                                <p className="mb-1">Thank you for your business!</p>
+                                <p>For any queries, contact support@sjgstationery.com</p>
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
+                            <button onClick={printInvoice} className="bg-secondary text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-600 transition-colors flex items-center gap-2">
+                                <Print size={18} /> Print Invoice
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Home Content Modal */}
             {showHomeModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
