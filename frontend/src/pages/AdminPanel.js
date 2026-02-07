@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     Package, TrendingUp, Users, DollarSign, Activity, AlertCircle, RefreshCw,
     Box, ShoppingCart, UserCircle, Home, Edit, Wifi, WifiOff, Plus, Trash2,
-    Save, X, Eye, CheckCircle, Clock, Settings, Menu, LogOut
+    Save, X, Eye, CheckCircle, Clock, Settings, Menu, LogOut, BarChart2, PieChart, TrendingDown, Calendar
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -94,6 +94,7 @@ const AdminPanel = () => {
 
     const tabs = [
         { id: 'dashboard', label: 'Dashboard', icon: Activity },
+        { id: 'business', label: 'Business Analysis', icon: BarChart2 },
         { id: 'inventory', label: 'Inventory', icon: Box },
         { id: 'orders', label: 'Orders', icon: ShoppingCart },
         { id: 'users', label: 'Users', icon: Users },
@@ -367,6 +368,217 @@ const AdminPanel = () => {
                                         )}
                                     </tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Business Analysis Tab */}
+                {activeTab === 'business' && (
+                    <div className="space-y-8">
+                        {/* 1. Key Performance Indicators (KPIs) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <p className="text-gray-500 text-sm font-medium">Monthly Revenue</p>
+                                        <h3 className="text-2xl font-bold text-gray-800 mt-1">₹45,250</h3>
+                                    </div>
+                                    <div className="p-2 bg-blue-50 text-blue-500 rounded-lg">
+                                        <DollarSign size={20} />
+                                    </div>
+                                </div>
+                                <div className="flex items-center text-green-500 text-sm font-medium">
+                                    <TrendingUp size={16} className="mr-1" />
+                                    <span>+12.5%</span>
+                                    <span className="text-gray-400 font-normal ml-2">vs last month</span>
+                                </div>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <p className="text-gray-500 text-sm font-medium">Total Orders</p>
+                                        <h3 className="text-2xl font-bold text-gray-800 mt-1">1,254</h3>
+                                    </div>
+                                    <div className="p-2 bg-purple-50 text-purple-500 rounded-lg">
+                                        <ShoppingCart size={20} />
+                                    </div>
+                                </div>
+                                <div className="flex items-center text-green-500 text-sm font-medium">
+                                    <TrendingUp size={16} className="mr-1" />
+                                    <span>+8.2%</span>
+                                    <span className="text-gray-400 font-normal ml-2">vs last month</span>
+                                </div>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-orange-500">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <p className="text-gray-500 text-sm font-medium">Avg. Order Value</p>
+                                        <h3 className="text-2xl font-bold text-gray-800 mt-1">₹350</h3>
+                                    </div>
+                                    <div className="p-2 bg-orange-50 text-orange-500 rounded-lg">
+                                        <TrendingUp size={20} />
+                                    </div>
+                                </div>
+                                <div className="flex items-center text-red-500 text-sm font-medium">
+                                    <TrendingDown size={16} className="mr-1" />
+                                    <span>-2.4%</span>
+                                    <span className="text-gray-400 font-normal ml-2">vs last month</span>
+                                </div>
+                            </div>
+                            <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <p className="text-gray-500 text-sm font-medium">Conversion Rate</p>
+                                        <h3 className="text-2xl font-bold text-gray-800 mt-1">3.8%</h3>
+                                    </div>
+                                    <div className="p-2 bg-green-50 text-green-500 rounded-lg">
+                                        <Activity size={20} />
+                                    </div>
+                                </div>
+                                <div className="flex items-center text-green-500 text-sm font-medium">
+                                    <TrendingUp size={16} className="mr-1" />
+                                    <span>+1.2%</span>
+                                    <span className="text-gray-400 font-normal ml-2">vs last month</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 2. Visual Analysis Charts (CSS Based) */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* Revenue Chart Trend */}
+                            <div className="bg-white p-6 rounded-xl shadow-sm">
+                                <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                                    <BarChart2 size={20} className="text-secondary" /> Revenue Trend (Last 6 Months)
+                                </h3>
+                                <div className="h-64 flex items-end justify-between gap-2 px-2">
+                                    {[
+                                        { month: 'Aug', val: 30, amount: '₹30k' },
+                                        { month: 'Sep', val: 45, amount: '₹45k' },
+                                        { month: 'Oct', val: 35, amount: '₹35k' },
+                                        { month: 'Nov', val: 60, amount: '₹60k' },
+                                        { month: 'Dec', val: 80, amount: '₹80k' },
+                                        { month: 'Jan', val: 65, amount: '₹65k' }
+                                    ].map((item, idx) => (
+                                        <div key={idx} className="flex flex-col items-center gap-2 group w-full">
+                                            <div className="relative w-full bg-gray-100 rounded-t-lg overflow-hidden h-48 flex items-end">
+                                                <div
+                                                    className="w-full bg-secondary hover:bg-indigo-600 transition-all duration-500 rounded-t-lg relative group-hover:shadow-lg"
+                                                    style={{ height: `${item.val}%` }}
+                                                >
+                                                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        {item.amount}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs font-medium text-gray-500">{item.month}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Top Categories */}
+                            <div className="bg-white p-6 rounded-xl shadow-sm">
+                                <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                                    <PieChart size={20} className="text-secondary" /> Top Categories Performance
+                                </h3>
+                                <div className="space-y-6">
+                                    {[
+                                        { name: 'Notebooks & Paper', percentage: 45, color: 'bg-blue-500', sales: '₹22,400' },
+                                        { name: 'Office Supplies', percentage: 25, color: 'bg-purple-500', sales: '₹12,450' },
+                                        { name: 'Art Supplies', percentage: 20, color: 'bg-pink-500', sales: '₹9,800' },
+                                        { name: 'Tech Accessories', percentage: 10, color: 'bg-orange-500', sales: '₹4,500' },
+                                    ].map((cat, idx) => (
+                                        <div key={idx} className="mb-4">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-sm font-medium text-gray-700">{cat.name}</span>
+                                                <span className="text-sm font-bold text-gray-900">{cat.sales}</span>
+                                            </div>
+                                            <div className="w-full bg-gray-100 rounded-full h-2.5">
+                                                <div
+                                                    className={`h-2.5 rounded-full ${cat.color} transition-all duration-1000`}
+                                                    style={{ width: `${cat.percentage}%` }}
+                                                ></div>
+                                            </div>
+                                            <div className="text-right mt-1">
+                                                <span className="text-xs text-gray-500">{cat.percentage}% of total sales</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Recent Transactions & Customer Insights */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+                                <h3 className="text-lg font-bold mb-4">Latest Transactions</h3>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="text-xs text-gray-500 uppercase bg-gray-50">
+                                            <tr>
+                                                <th className="p-3 text-left">Transaction ID</th>
+                                                <th className="p-3 text-left">Customer</th>
+                                                <th className="p-3 text-left">Date</th>
+                                                <th className="p-3 text-right">Amount</th>
+                                                <th className="p-3 text-center">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="text-sm divide-y">
+                                            {[
+                                                { id: '#TRX-9821', user: 'Rahul Kumar', date: '06 Feb, 2026', amt: '₹1,250', status: 'Completed' },
+                                                { id: '#TRX-9820', user: 'Priya Sharma', date: '06 Feb, 2026', amt: '₹450', status: 'Pending' },
+                                                { id: '#TRX-9819', user: 'Amit Singh', date: '05 Feb, 2026', amt: '₹2,100', status: 'Completed' },
+                                                { id: '#TRX-9818', user: 'Sneha Gupta', date: '05 Feb, 2026', amt: '₹890', status: 'Failed' },
+                                            ].map((trx, idx) => (
+                                                <tr key={idx} className="hover:bg-gray-50">
+                                                    <td className="p-3 font-medium text-gray-700">{trx.id}</td>
+                                                    <td className="p-3">{trx.user}</td>
+                                                    <td className="p-3 text-gray-500">{trx.date}</td>
+                                                    <td className="p-3 text-right font-bold">{trx.amt}</td>
+                                                    <td className="p-3 text-center">
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${trx.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                                                                trx.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                                                                    'bg-red-100 text-red-700'
+                                                            }`}>
+                                                            {trx.status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-xl shadow-sm p-6">
+                                <h3 className="text-lg font-bold mb-4">Customer Insights</h3>
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="p-2 bg-blue-100 text-blue-600 rounded-full"><Users size={16} /></div>
+                                            <h4 className="font-bold text-sm">New Customers</h4>
+                                        </div>
+                                        <p className="text-2xl font-bold">145</p>
+                                        <p className="text-xs text-green-500 flex items-center mt-1"><TrendingUp size={12} className="mr-1" /> +12 this week</p>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="p-2 bg-purple-100 text-purple-600 rounded-full"><Clock size={16} /></div>
+                                            <h4 className="font-bold text-sm">Avg. Session</h4>
+                                        </div>
+                                        <p className="text-2xl font-bold">4m 32s</p>
+                                        <p className="text-xs text-green-500 flex items-center mt-1"><TrendingUp size={12} className="mr-1" /> +25s vs last week</p>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="p-2 bg-orange-100 text-orange-600 rounded-full"><RefreshCw size={16} /></div>
+                                            <h4 className="font-bold text-sm">Return Rate</h4>
+                                        </div>
+                                        <p className="text-2xl font-bold">2.4%</p>
+                                        <p className="text-xs text-red-500 flex items-center mt-1"><TrendingDown size={12} className="mr-1" /> -0.5% vs last week</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
