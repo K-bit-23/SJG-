@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     Package, TrendingUp, Users, DollarSign, Activity, AlertCircle, RefreshCw,
     Box, ShoppingCart, UserCircle, Home, Edit, Wifi, WifiOff, Plus, Trash2,
-    Save, X, Eye, CheckCircle, Clock, Settings, Menu, LogOut, BarChart2, PieChart, TrendingDown, Calendar, Receipt, Download, Print, Globe, Copy, Printer, Layers
+    Save, X, Eye, CheckCircle, Clock, Settings, Menu, LogOut, BarChart2, PieChart, TrendingDown, Calendar, Receipt, Download, Globe, Copy, Printer, Layers
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -101,7 +101,6 @@ const AdminPanel = () => {
 
     const tabs = [
         { id: 'dashboard', label: 'Dashboard', icon: Activity },
-        { id: 'business', label: 'Business Analysis', icon: BarChart2 },
         { id: 'business', label: 'Business Analysis', icon: BarChart2 },
         { id: 'billing', label: 'Offline Billing', icon: Receipt },
         { id: 'inventory', label: 'Inventory', icon: Box },
@@ -1296,7 +1295,7 @@ const AdminPanel = () => {
 
                         <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
                             <button onClick={printInvoice} className="bg-secondary text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-600 transition-colors flex items-center gap-2">
-                                <Print size={18} /> Print Invoice
+                                <Printer size={18} /> Print Invoice
                             </button>
                         </div>
                     </div>
