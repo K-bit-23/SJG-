@@ -10,7 +10,7 @@ start cmd /k "cd /d !PROJECT_DIR! && cd backend && python manage.py runserver 0.
 
 REM Start frontend server
 echo Starting frontend server on all devices...
-start cmd /k "cd /d !PROJECT_DIR! && cd frontend && set HOST=0.0.0.0 && npm start"
+start cmd /k "cd /d !PROJECT_DIR! && cd frontend && npm start"
 
 echo Both servers are starting on all network devices...
 echo Backend: http://<your-ip>:8000
