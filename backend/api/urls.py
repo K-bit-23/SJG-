@@ -21,7 +21,10 @@ from .views import (
     UserDetailView,
     HomePageContentView,
     ChatBotConfigView,
-    UserProfileView
+    UserProfileView,
+    RegisterView,
+    LoginView,
+    UserOrdersView
 )
 from .payment_views import CreatePaymentIntentView, ConfirmPaymentView
 
@@ -54,6 +57,11 @@ urlpatterns = [
     # Payment endpoints
     path('create-payment-intent/', CreatePaymentIntentView.as_view(), name='create-payment-intent'),
     path('confirm-payment/', ConfirmPaymentView.as_view(), name='confirm-payment'),
+
+    # Mobile Auth & User specific endpoints
+    path('register/', RegisterView.as_view(), name='mobile-register'),
+    path('login/', LoginView.as_view(), name='mobile-login'),
+    path('user-orders/<str:user_email>/', UserOrdersView.as_view(), name='user-orders'),
 ]
 
 # ============================================================================

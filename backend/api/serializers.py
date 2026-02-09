@@ -21,8 +21,15 @@ class ProductSerializer(serializers.Serializer):
     description = serializers.CharField(required=False, allow_blank=True)
     image = serializers.CharField(required=False, allow_blank=True)
     stock = serializers.IntegerField(default=0)
+    inStock = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
+
+    def get_inStock(self, obj):
+        # Handle both dict (from MongoDB) and object
+        if isinstance(obj, dict):
+            return obj.get('stock', 0) > 0
+        return getattr(obj, 'stock', 0) > 0
 
 class OrderItemSerializer(serializers.Serializer):
     product_id = serializers.CharField()
@@ -54,13 +61,20 @@ class ContactMessageSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(read_only=True)
 
 class UserSerializer(serializers.Serializer):
-    uid = serializers.CharField()
+    id = ObjectIdField(read_only=True, source='_id')
+    uid = serializers.CharField(required=False, allow_null=True)
     email = serializers.EmailField()
     display_name = serializers.CharField(required=False, allow_blank=True)
+    name = serializers.CharField(required=False, allow_blank=True) # Fallback for mobile app
     photo_url = serializers.CharField(required=False, allow_blank=True)
     role = serializers.CharField(default='user')
+    password = serializers.CharField(write_only=True, required=False)
     created_at = serializers.DateTimeField(read_only=True)
     last_login = serializers.DateTimeField(required=False)
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
 
 # --- Home Page Content Serializers ---
 

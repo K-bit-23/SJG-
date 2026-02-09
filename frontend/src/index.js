@@ -7,8 +7,12 @@ import reportWebVitals from './reportWebVitals';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Configure Axios Base URL for connecting Firebase -> Render
-axios.defaults.baseURL = window.location.hostname === 'localhost'
-  ? 'http://localhost:8000'
+// Configure Axios Base URL for connecting
+const hostname = window.location.hostname;
+const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.');
+
+axios.defaults.baseURL = isLocal
+  ? `http://${hostname}:8000`
   : 'https://sjg-backend.onrender.com';
 
 // Add interceptor to handle errors globally if needed

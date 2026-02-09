@@ -8,7 +8,7 @@ import string
 from .mongodb import mongo_client
 from .serializers import (
     ProductSerializer, OrderSerializer, ContactMessageSerializer, UserSerializer,
-    HomePageContentSerializer, ChatBotConfigSerializer
+    HomePageContentSerializer, ChatBotConfigSerializer, LoginSerializer
 )
 
 class ProductListCreateView(APIView):
@@ -513,6 +513,70 @@ class UserProfileView(APIView):
             updated_profile['id'] = str(updated_profile.pop('_id', ''))
             
             return Response(updated_profile, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class RegisterView(APIView):
+    """Register a new user (for mobile app)"""
+    def post(self, request):
+        try:
+            serializer = UserSerializer(data=request.data)
+            if serializer.is_valid():
+                collection = mongo_client.get_collection('users')
+                user_data = serializer.validated_data
+                email = user_data.get('email')
+                
+                # Check if user already exists
+                if collection.find_one({'email': email}):
+                    return Response({'message': 'User already exists'}, status=status.HTTP_400_BAD_REQUEST)
+                
+                user_data['created_at'] = datetime.now()
+                user_data['updated_at'] = datetime.now()
+                user_data['role'] = 'user'
+                
+                result = collection.insert_one(user_data)
+                user_data['_id'] = result.inserted_id
+                
+                return Response(UserSerializer(user_data).data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class LoginView(APIView):
+    """Login a user (for mobile app)"""
+    def post(self, request):
+        try:
+            serializer = LoginSerializer(data=request.data)
+            if serializer.is_valid():
+                collection = mongo_client.get_collection('users')
+                email = serializer.validated_data.get('email')
+                password = serializer.validated_data.get('password')
+                
+                user = collection.find_one({'email': email})
+                
+                if user and user.get('password') == password: # Simple check for now
+                    # Update last login
+                    collection.update_one({'email': email}, {'$set': {'last_login': datetime.now()}})
+                    user['last_login'] = datetime.now()
+                    
+                    return Response({
+                        'message': 'Login successful',
+                        'user': UserSerializer(user).data
+                    }, status=status.HTTP_200_OK)
+                
+                return Response({'message': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserOrdersView(APIView):
+    """Get all orders for a specific user"""
+    def get(self, request, user_email):
+        try:
+            collection = mongo_client.get_collection('orders')
+            # The mobile app might pass email or id. We'll try both or just email for now based on OrderSerializer
+            orders = list(collection.find({'user_email': user_email}).sort('created_at', -1))
+            return Response(OrderSerializer(orders, many=True).data)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
