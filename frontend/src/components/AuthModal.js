@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { X, Mail, Lock, User, Eye, EyeOff, Fingerprint } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,7 +15,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     const [password, setPassword] = useState('admin123');
     const [name, setName] = useState('Admin User');
 
-    const { login, register, googleLogin } = useAuth();
+    const { login, register, googleLogin, biometricLogin } = useAuth();
 
     if (!isOpen) return null;
 
@@ -48,6 +48,18 @@ const AuthModal = ({ isOpen, onClose }) => {
         try {
             setLoading(true);
             await googleLogin();
+            onClose();
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleBiometricLogin = async () => {
+        try {
+            setLoading(true);
+            await biometricLogin();
             onClose();
         } catch (err) {
             setError(err.message);
@@ -154,14 +166,27 @@ const AuthModal = ({ isOpen, onClose }) => {
                         <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-gray-400">Or continue with</span></div>
                     </div>
 
-                    <button
-                        onClick={handleGoogleLogin}
-                        disabled={loading}
-                        className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
-                    >
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                        <span>Google</span>
-                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={handleGoogleLogin}
+                            disabled={loading}
+                            type="button"
+                            className="flex-1 bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                        >
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                            <span>Google</span>
+                        </button>
+
+                        <button
+                            onClick={handleBiometricLogin}
+                            disabled={loading}
+                            type="button"
+                            className="flex-1 bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                        >
+                            <Fingerprint className="text-primary w-5 h-5" />
+                            <span>Biometric</span>
+                        </button>
+                    </div>
 
                     <div className="mt-6 text-center text-sm text-gray-500">
                         {isLogin ? "New here? " : "Already have an account? "}

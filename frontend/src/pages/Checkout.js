@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, CreditCard, Truck, CheckCircle } from 'lucide-react';
+import { ShieldCheck, CreditCard, Truck, CheckCircle, Smartphone } from 'lucide-react';
 import axios from 'axios';
+import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
 const Checkout = () => {
     const { cart, cartTotal } = useCart(); // Assuming cartTotal exists or I calc it
@@ -16,6 +17,12 @@ const Checkout = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState(1); // 1: Address, 2: Payment
+    const [paymentMethod, setPaymentMethod] = useState('COD');
+    const [upiId, setUpiId] = useState('');
+
+    // Stripe
+    const stripe = useStripe();
+    const elements = useElements();
 
     // Address State
     const [formData, setFormData] = useState({
@@ -47,16 +54,64 @@ const Checkout = () => {
                 items: items,
                 total_amount: total,
                 shipping_address: `${formData.address}, ${formData.city} - ${formData.zip}. Phone: ${formData.phone}`,
-                payment_method: 'COD' // defaulting to COD for MVP simplicity unless Stripe is ready
+                payment_method: paymentMethod + (paymentMethod === 'UPI' ? ` (${upiId})` : '')
             };
 
-            const res = await axios.post('/api/orders/', orderPayload);
+            const orderRes = await axios.post('/api/orders/', orderPayload);
 
-            // If success
-            if (res.status === 201) {
-                // Clear cart (Needs context function)
-                // Assuming cart clearing happens or we redirect
-                alert('Order Placed Successfully! Order ID: ' + res.data.order_id);
+            if (orderRes.status === 201) {
+                const newOrder = orderRes.data;
+
+                // Handle UPI Flow
+                if (paymentMethod === 'UPI') {
+                    if (!upiId) {
+                        alert("Please enter a valid UPI ID or Mobile Number.");
+                        setLoading(false);
+                        return;
+                    }
+                    // Typically, you would integrate a UPI gateway here. For MVP, we'll mark as pending.
+                    alert(`Payment request sent to ${upiId}. Please open your UPI app to approve.`);
+                }
+
+                // 2. Handle Stripe Flow if CARD is selected
+                if (paymentMethod === 'CARD') {
+                    if (!stripe || !elements) {
+                        alert("Stripe hasn't loaded yet. Please try again.");
+                        return;
+                    }
+
+                    const intentRes = await axios.post('/api/create-payment-intent/', {
+                        order_id: newOrder.order_id
+                    });
+
+                    const clientSecret = intentRes.data.clientSecret;
+
+                    const paymentResult = await stripe.confirmCardPayment(clientSecret, {
+                        payment_method: {
+                            card: elements.getElement(CardElement),
+                            billing_details: {
+                                name: formData.name,
+                                email: formData.email,
+                            },
+                        },
+                    });
+
+                    if (paymentResult.error) {
+                        alert(paymentResult.error.message);
+                        return; // Stop here, payment failed
+                    }
+
+                    // Confirm with backend
+                    if (paymentResult.paymentIntent.status === 'succeeded') {
+                        await axios.post('/api/confirm-payment/', {
+                            payment_intent_id: paymentResult.paymentIntent.id,
+                            order_id: newOrder.order_id
+                        });
+                    }
+                }
+
+                // If success (COD or successful Card)
+                alert('Order Placed Successfully! Order ID: ' + newOrder.order_id);
                 navigate('/');
             }
         } catch (error) {
@@ -109,18 +164,77 @@ const Checkout = () => {
                             </form>
                         </div>
 
-                        {/* Payment Method (Visual Only Mock for MVP) */}
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 opacity-60 pointer-events-none relative">
-                            <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10 backdrop-blur-[1px]">
-                                <span className="bg-gray-800 text-white px-3 py-1 rounded text-xs font-bold uppercase tracking-widest">Defaulting to COD</span>
-                            </div>
+                        {/* Payment Method */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative">
                             <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                                 <CreditCard className="text-secondary" /> Payment
                             </h2>
-                            <div className="flex gap-4">
-                                <div className="border border-secondary bg-secondary/5 p-4 rounded-xl flex items-center gap-2 w-full cursor-pointer">
-                                    <div className="w-4 h-4 rounded-full bg-secondary"></div>
-                                    <span className="font-bold text-secondary">Cash on Delivery</span>
+                            <div className="flex flex-col gap-4">
+                                <div
+                                    onClick={() => setPaymentMethod('COD')}
+                                    className={`border p-4 rounded-xl flex items-center gap-3 w-full cursor-pointer transition-all ${paymentMethod === 'COD' ? 'border-secondary bg-secondary/5' : 'border-gray-200'}`}
+                                >
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'COD' ? 'border-secondary' : 'border-gray-300'}`}>
+                                        {paymentMethod === 'COD' && <div className="w-2.5 h-2.5 rounded-full bg-secondary"></div>}
+                                    </div>
+                                    <span className={`font-bold ${paymentMethod === 'COD' ? 'text-secondary' : 'text-gray-600'}`}>Cash on Delivery (COD)</span>
+                                </div>
+
+                                <div
+                                    onClick={() => setPaymentMethod('CARD')}
+                                    className={`border p-4 rounded-xl flex flex-col gap-3 w-full cursor-pointer transition-all ${paymentMethod === 'CARD' ? 'border-secondary bg-secondary/5' : 'border-gray-200'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'CARD' ? 'border-secondary' : 'border-gray-300'}`}>
+                                            {paymentMethod === 'CARD' && <div className="w-2.5 h-2.5 rounded-full bg-secondary"></div>}
+                                        </div>
+                                        <span className={`font-bold ${paymentMethod === 'CARD' ? 'text-secondary' : 'text-gray-600'}`}>Credit / Debit Card (Stripe)</span>
+                                    </div>
+
+                                    {paymentMethod === 'CARD' && (
+                                        <div className="mt-2 pl-8 pr-2">
+                                            <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                                <CardElement options={{
+                                                    style: {
+                                                        base: {
+                                                            fontSize: '16px',
+                                                            color: '#424770',
+                                                            '::placeholder': { color: '#aab7c4' },
+                                                        },
+                                                        invalid: { color: '#9e2146' },
+                                                    },
+                                                }} />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div
+                                    onClick={() => setPaymentMethod('UPI')}
+                                    className={`border p-4 rounded-xl flex flex-col gap-3 w-full cursor-pointer transition-all ${paymentMethod === 'UPI' ? 'border-secondary bg-secondary/5' : 'border-gray-200'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'UPI' ? 'border-secondary' : 'border-gray-300'}`}>
+                                            {paymentMethod === 'UPI' && <div className="w-2.5 h-2.5 rounded-full bg-secondary"></div>}
+                                        </div>
+                                        <span className={`font-bold flex items-center gap-2 ${paymentMethod === 'UPI' ? 'text-secondary' : 'text-gray-600'}`}>
+                                            <Smartphone size={16} /> UPI / Mobile App
+                                        </span>
+                                    </div>
+
+                                    {paymentMethod === 'UPI' && (
+                                        <div className="mt-2 pl-8 pr-2">
+                                            <input
+                                                type="text"
+                                                required={paymentMethod === 'UPI'}
+                                                value={upiId}
+                                                onChange={(e) => setUpiId(e.target.value)}
+                                                placeholder="Enter UPI ID or Mobile Number"
+                                                className="w-full p-3 bg-white border border-gray-200 rounded-lg outline-none focus:ring-2 ring-secondary/20 shadow-sm"
+                                            />
+                                            <p className="text-xs text-gray-400 mt-2">A payment request will be sent directly to your phone.</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

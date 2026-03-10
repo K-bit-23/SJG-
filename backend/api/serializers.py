@@ -69,12 +69,14 @@ class UserSerializer(serializers.Serializer):
     photo_url = serializers.CharField(required=False, allow_blank=True)
     role = serializers.CharField(default='user')
     password = serializers.CharField(write_only=True, required=False)
+    phone = serializers.CharField(required=False, allow_blank=True)
+    street = serializers.CharField(required=False, allow_blank=True)
+    city = serializers.CharField(required=False, allow_blank=True)
+    state = serializers.CharField(required=False, allow_blank=True)
+    zip = serializers.CharField(required=False, allow_blank=True)
     created_at = serializers.DateTimeField(read_only=True)
     last_login = serializers.DateTimeField(required=False)
 
-class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
 
 # --- Home Page Content Serializers ---
 

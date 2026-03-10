@@ -8,9 +8,15 @@ from datetime import datetime
 from .mongodb import mongo_client
 from bson import ObjectId
 
-# Initialize Stripe
-# Ideally, this comes from os.environ
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_4eC39HqLyjWDarjtT1zdp7dc') # Fallback to a dummy key if not set, BUT USER MUST REPLACE
+from django.conf import settings
+import environ
+
+# Initialize environment variables
+env = environ.Env()
+# Try to read .env file in the backend root directory
+environ.Env.read_env(os.path.join(settings.BASE_DIR, '.env'))
+
+stripe.api_key = env('STRIPE_SECRET_KEY', default='')
 
 class CreatePaymentIntentView(APIView):
     def post(self, request):

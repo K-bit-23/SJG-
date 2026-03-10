@@ -1,10 +1,9 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, Bell } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, Bell, Fingerprint } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
-import AuthModal from './AuthModal';
 
 // Wishlist Context
 const WishlistContext = createContext();
@@ -51,14 +50,13 @@ export const WishlistProvider = ({ children }) => {
 };
 
 const Navbar = () => {
-    const { user, logout } = useAuth();
+    const { user, login, logout, biometricLogin } = useAuth();
     const { cart } = useCart();
     const [searchTerm, setSearchTerm] = useState('');
     const [isScrolled, setIsScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [wishlistCount, setWishlistCount] = useState(0);
     const [isCartBumping, setIsCartBumping] = useState(false);
     const [isWishlistBumping, setIsWishlistBumping] = useState(false);
@@ -167,7 +165,6 @@ const Navbar = () => {
 
     return (
         <>
-            <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
 
             <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md' : 'bg-white shadow-sm'}`}>
                 <div className="max-w-7xl mx-auto px-4 lg:px-6">
@@ -340,13 +337,23 @@ const Navbar = () => {
                                     )}
                                 </div>
                             ) : (
-                                <button
-                                    onClick={() => setIsAuthModalOpen(true)}
-                                    className="flex items-center gap-2 bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-full text-sm font-bold transition-all shadow-md hover:shadow-lg ml-2"
-                                >
-                                    <LogIn size={16} />
-                                    <span className="hidden sm:inline">Login</span>
-                                </button>
+                                <div className="flex items-center gap-2 ml-2">
+                                    <button
+                                        onClick={() => biometricLogin()}
+                                        className="flex items-center gap-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 py-2 rounded-full text-sm font-bold transition-all shadow-sm hover:shadow-md group"
+                                        title="Login with Biometrics (Passkey)"
+                                    >
+                                        <Fingerprint size={16} className="group-hover:scale-110 transition-transform" />
+                                        <span className="hidden md:inline">Biometric</span>
+                                    </button>
+                                    <button
+                                        onClick={() => login()}
+                                        className="flex items-center gap-2 bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-full text-sm font-bold transition-all shadow-md hover:shadow-lg"
+                                    >
+                                        <LogIn size={16} />
+                                        <span className="hidden sm:inline">Login</span>
+                                    </button>
+                                </div>
                             )}
 
                             <button className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-full ml-1" onClick={() => setMobileMenuOpen(true)}>
@@ -428,9 +435,14 @@ const Navbar = () => {
                             )}
 
                             {!user && (
-                                <button onClick={() => { setIsAuthModalOpen(true); setMobileMenuOpen(false); }} className="w-full mt-3 bg-primary text-white py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 text-sm">
-                                    <LogIn size={16} /> Login / Register
-                                </button>
+                                <div className="space-y-2 mt-3">
+                                    <button onClick={() => { login(); setMobileMenuOpen(false); }} className="w-full bg-primary text-white py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 text-sm hover:bg-slate-800 transition-colors">
+                                        <LogIn size={16} /> Login / Register
+                                    </button>
+                                    <button onClick={() => { biometricLogin(); setMobileMenuOpen(false); }} className="w-full bg-white border border-gray-200 text-primary py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 text-sm hover:bg-gray-50 transition-colors">
+                                        <Fingerprint size={16} /> Biometric Login
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>
