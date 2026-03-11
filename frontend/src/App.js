@@ -12,6 +12,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import Profile from './pages/Profile';
 import Wishlist from './pages/Wishlist';
+import PaymentSuccess from './pages/PaymentSuccess';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
@@ -41,14 +42,26 @@ function App() {
         <CartProvider>
           <Layout>
             <Routes>
+              {/* Public routes */}
               <Route path="/" element={<Home />} />
-              <Route path="/admin/*" element={<AdminPanel />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/products" element={<Products />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/wishlist" element={<Wishlist />} />
+
+              {/* Admin routes — each tab gets its own URL */}
+              <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/admin/dashboard" element={<AdminPanel />} />
+              <Route path="/admin/business" element={<AdminPanel />} />
+              <Route path="/admin/billing" element={<AdminPanel />} />
+              <Route path="/admin/inventory" element={<AdminPanel />} />
+              <Route path="/admin/orders" element={<AdminPanel />} />
+              <Route path="/admin/users" element={<AdminPanel />} />
+              <Route path="/admin/content" element={<AdminPanel />} />
+              <Route path="/admin/settings" element={<AdminPanel />} />
             </Routes>
           </Layout>
         </CartProvider>

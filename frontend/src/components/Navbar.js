@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, Bell, Fingerprint } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, Bell, Fingerprint, Lock, KeyRound } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -56,6 +56,9 @@ const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+    const [adminModalOpen, setAdminModalOpen] = useState(false);
+    const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' });
+    const [adminError, setAdminError] = useState('');
 
     const [wishlistCount, setWishlistCount] = useState(0);
     const [isCartBumping, setIsCartBumping] = useState(false);
@@ -134,6 +137,22 @@ const Navbar = () => {
         await logout();
         setProfileDropdownOpen(false);
         navigate('/');
+    };
+
+    const handleAdminLogin = (e) => {
+        e.preventDefault();
+        setAdminError('');
+        const ADMIN_EMAIL = 'admin@sjg.com';
+        const ADMIN_PASSWORD = 'admin@123';
+        if (adminCredentials.email === ADMIN_EMAIL && adminCredentials.password === ADMIN_PASSWORD) {
+            // Set local admin session so AdminPanel guard lets us in
+            localStorage.setItem('admin_session', 'true');
+            setAdminModalOpen(false);
+            setAdminCredentials({ email: '', password: '' });
+            navigate('/admin');
+        } else {
+            setAdminError('Invalid admin credentials. Please try again.');
+        }
     };
 
     const getInitials = (name) => {
@@ -353,6 +372,15 @@ const Navbar = () => {
                                         <LogIn size={16} />
                                         <span className="hidden sm:inline">Login</span>
                                     </button>
+                                    {/* Admin Login Button */}
+                                    <button
+                                        onClick={() => setAdminModalOpen(true)}
+                                        className="flex items-center gap-2 bg-amber-50 border-2 border-amber-400 text-amber-700 hover:bg-amber-400 hover:text-white px-3 py-2 rounded-full text-sm font-bold transition-all shadow-sm hover:shadow-md group"
+                                        title="Admin Login"
+                                    >
+                                        <ShieldCheck size={16} className="group-hover:scale-110 transition-transform" />
+                                        <span className="hidden lg:inline">Admin</span>
+                                    </button>
                                 </div>
                             )}
 
@@ -442,6 +470,9 @@ const Navbar = () => {
                                     <button onClick={() => { biometricLogin(); setMobileMenuOpen(false); }} className="w-full bg-white border border-gray-200 text-primary py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 text-sm hover:bg-gray-50 transition-colors">
                                         <Fingerprint size={16} /> Biometric Login
                                     </button>
+                                    <button onClick={() => { setAdminModalOpen(true); setMobileMenuOpen(false); }} className="w-full bg-amber-50 border border-amber-300 text-amber-700 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 text-sm hover:bg-amber-100 transition-colors">
+                                        <ShieldCheck size={16} /> Admin Login
+                                    </button>
                                 </div>
                             )}
                         </div>
@@ -450,6 +481,96 @@ const Navbar = () => {
             )}
 
             <div className="h-16 md:h-[72px]"></div>
+
+            {/* ── Admin Login Modal ── */}
+            {adminModalOpen && (
+                <div
+                    className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+                    onClick={() => { setAdminModalOpen(false); setAdminError(''); }}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+                        onClick={e => e.stopPropagation()}
+                        style={{ animation: 'fadeSlideUp 0.25s ease-out' }}
+                    >
+                        {/* Header */}
+                        <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-white text-center">
+                            <div className="w-16 h-16 bg-amber-400/20 rounded-full flex items-center justify-center mx-auto mb-3 ring-2 ring-amber-400/40">
+                                <ShieldCheck size={32} className="text-amber-400" />
+                            </div>
+                            <h2 className="text-xl font-bold">Admin Access</h2>
+                            <p className="text-white/60 text-sm mt-1">Enter your admin credentials</p>
+                        </div>
+
+                        {/* Form */}
+                        <form onSubmit={handleAdminLogin} className="p-6 space-y-4">
+                            <div>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">Admin Email</label>
+                                <div className="relative">
+                                    <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="email"
+                                        required
+                                        value={adminCredentials.email}
+                                        onChange={e => setAdminCredentials(p => ({ ...p, email: e.target.value }))}
+                                        placeholder="admin@sjg.com"
+                                        className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">Password</label>
+                                <div className="relative">
+                                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="password"
+                                        required
+                                        value={adminCredentials.password}
+                                        onChange={e => setAdminCredentials(p => ({ ...p, password: e.target.value }))}
+                                        placeholder="••••••••"
+                                        className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            {adminError && (
+                                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                    <X size={14} className="text-red-500 shrink-0" />
+                                    <p className="text-red-600 text-xs font-medium">{adminError}</p>
+                                </div>
+                            )}
+
+                            <div className="flex gap-3 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => { setAdminModalOpen(false); setAdminError(''); setAdminCredentials({ email: '', password: '' }); }}
+                                    className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-3 bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-xl text-sm font-bold hover:from-slate-700 hover:to-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg"
+                                >
+                                    <KeyRound size={15} /> Enter Admin
+                                </button>
+                            </div>
+
+                            <p className="text-center text-xs text-gray-400 pt-1">
+                                Default: admin@sjg.com / admin@123
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+                @keyframes fadeSlideUp {
+                    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+            `}</style>
         </>
     );
 };

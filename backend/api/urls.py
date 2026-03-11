@@ -22,11 +22,15 @@ from .views import (
     HomePageContentView,
     ChatBotConfigView,
     UserProfileView,
-    UserOrdersView
+    UserOrdersView,
+    HealthCheckView,
 )
-from .payment_views import CreatePaymentIntentView, ConfirmPaymentView
+from .payment_views import CreatePaymentIntentView, ConfirmPaymentView, CreateCheckoutSessionView
 
 urlpatterns = [
+    # ── Health check (always try first: http://localhost:8000/api/health/) ──
+    path('health/', HealthCheckView.as_view(), name='health-check'),
+
     # Product endpoints
     path('products/', ProductListCreateView.as_view(), name='product-list-create'),
     path('products/<str:pk>/', ProductDetailView.as_view(), name='product-detail'),
@@ -53,6 +57,7 @@ urlpatterns = [
     path('content/chatbot/', ChatBotConfigView.as_view(), name='chatbot-config'),
     
     # Payment endpoints
+    path('create-checkout-session/', CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
     path('create-payment-intent/', CreatePaymentIntentView.as_view(), name='create-payment-intent'),
     path('confirm-payment/', ConfirmPaymentView.as_view(), name='confirm-payment'),
 

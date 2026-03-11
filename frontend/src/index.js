@@ -30,8 +30,8 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
 // Use environment variable, fallback to actual key if not set to avoid needing a server restart
-const PUBLISHABLE_KEY = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY || "pk_test_cHJlc2VudC1haXJlZGFsZS0zMi5jbGVyay5hY2NvdW50cy5kZXYk";
-const STRIPE_PUBLISHABLE_KEY = process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || "pk_test_51So40YCPzKJNrNdNmmvUDOkSB2as457IIak8s4dWtCqmn9VORJwOkOKvIwobYlpi0V0nS1qTyexCqqZ3pNY37epa00FzPS4Qsk";
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_cHJlc2VudC1haXJlZGFsZS0zMi5jbGVyay5hY2NvdW50cy5kZXYk";
+const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "pk_test_51So40YCPzKJNrNdNmmvUDOkSB2as457IIak8s4dWtCqmn9VORJwOkOKvIwobYlpi0V0nS1qTyexCqqZ3pNY37epa00FzPS4Qsk";
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");

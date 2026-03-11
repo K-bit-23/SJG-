@@ -15,18 +15,19 @@ class ObjectIdField(serializers.Field):
 class ProductSerializer(serializers.Serializer):
     id = ObjectIdField(read_only=True, source='_id')
     name = serializers.CharField(max_length=200)
-    product_code = serializers.CharField(max_length=50, required=False, allow_blank=True)  # SKU/Product Code
-    category = serializers.CharField(max_length=100)
+    product_code = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    category = serializers.CharField(max_length=100, required=False, allow_blank=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2)
     description = serializers.CharField(required=False, allow_blank=True)
-    image = serializers.CharField(required=False, allow_blank=True)
+    image = serializers.CharField(required=False, allow_blank=True, max_length=5000000)  # supports base64
     stock = serializers.IntegerField(default=0)
+    status = serializers.CharField(required=False, allow_blank=True, default='active')
+    tags = serializers.CharField(required=False, allow_blank=True)
     inStock = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 
     def get_inStock(self, obj):
-        # Handle both dict (from MongoDB) and object
         if isinstance(obj, dict):
             return obj.get('stock', 0) > 0
         return getattr(obj, 'stock', 0) > 0

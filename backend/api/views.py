@@ -10,6 +10,7 @@ from .serializers import (
     ProductSerializer, OrderSerializer, ContactMessageSerializer, UserSerializer,
     HomePageContentSerializer, ChatBotConfigSerializer
 )
+from .email_utils import send_order_confirmation_after_delay
 
 class ProductListCreateView(APIView):
     """List all products or create a new product"""
@@ -157,7 +158,10 @@ class OrderListCreateView(APIView):
                 order_data['updated_at'] = datetime.now()
                 result = collection.insert_one(order_data)
                 order_data['_id'] = result.inserted_id
-                
+
+                # Fire order confirmation email in 30 seconds (background thread)
+                send_order_confirmation_after_delay(dict(order_data), delay_seconds=30)
+
                 return Response(
                     OrderSerializer(order_data).data,
                     status=status.HTTP_201_CREATED
@@ -200,18 +204,24 @@ class OrderDetailView(APIView):
     def patch(self, request, pk):
         try:
             collection = mongo_client.get_collection('orders')
-            update_data = request.data
+            update_data = dict(request.data)
             update_data['updated_at'] = datetime.now()
-            result = collection.update_one(
-                {'_id': ObjectId(pk)},
-                {'$set': update_data}
-            )
+
+            # Support both MongoDB ObjectId AND custom order_id (e.g. ORD-20260311-XXXX)
+            try:
+                query = {'_id': ObjectId(pk)}
+            except Exception:
+                query = {'order_id': pk}
+
+            result = collection.update_one(query, {'$set': update_data})
+
             if result.matched_count == 0:
                 return Response(
-                    {'error': 'Order not found'},
+                    {'error': f'Order not found: {pk}'},
                     status=status.HTTP_404_NOT_FOUND
                 )
-            order = collection.find_one({'_id': ObjectId(pk)})
+
+            order = collection.find_one(query)
             return Response(OrderSerializer(order).data)
         except Exception as e:
             return Response(
@@ -521,9 +531,38 @@ class UserOrdersView(APIView):
     def get(self, request, user_email):
         try:
             collection = mongo_client.get_collection('orders')
-            # The mobile app might pass email or id. We'll try both or just email for now based on OrderSerializer
             orders = list(collection.find({'user_email': user_email}).sort('created_at', -1))
             return Response(OrderSerializer(orders, many=True).data)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class HealthCheckView(APIView):
+    """GET /api/health/ — returns MongoDB connection status"""
+
+    def get(self, request):
+        try:
+            db = mongo_client.get_database()
+            mongo_client._client.admin.command('ping')
+            collections = db.list_collection_names()
+            counts = {}
+            for col in ['products', 'orders', 'users', 'site_content']:
+                try:
+                    counts[col] = db[col].count_documents({})
+                except Exception:
+                    counts[col] = 'error'
+            return Response({
+                'status':      'ok',
+                'mongodb':     'connected',
+                'database':    db.name,
+                'collections': collections,
+                'counts':      counts,
+            })
+        except Exception as e:
+            return Response({
+                'status':  'error',
+                'mongodb': 'disconnected',
+                'error':   str(e),
+                'fix':     'Check MONGODB_URI in backend/.env and your network connection',
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 

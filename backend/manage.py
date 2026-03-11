@@ -3,6 +3,12 @@
 import os
 import sys
 
+# Load .env file into environment variables before Django settings load
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+except ImportError:
+    pass
 
 def main():
     """Run administrative tasks."""
