@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, Bell, Fingerprint, Lock, KeyRound } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, Bell, Fingerprint, Lock, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -59,6 +59,13 @@ const Navbar = () => {
     const [adminModalOpen, setAdminModalOpen] = useState(false);
     const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' });
     const [adminError, setAdminError] = useState('');
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
+    const [toastMessage, setToastMessage] = useState({ text: '', type: '' });
+
+    const showToast = (text, type = 'error') => {
+        setToastMessage({ text, type });
+        setTimeout(() => setToastMessage({ text: '', type: '' }), 3500);
+    };
 
     const [wishlistCount, setWishlistCount] = useState(0);
     const [isCartBumping, setIsCartBumping] = useState(false);
@@ -149,9 +156,11 @@ const Navbar = () => {
             localStorage.setItem('admin_session', 'true');
             setAdminModalOpen(false);
             setAdminCredentials({ email: '', password: '' });
+            showToast('Admin logged in successfully', 'success');
             navigate('/admin');
         } else {
             setAdminError('Invalid admin credentials. Please try again.');
+            showToast('Invalid admin credentials. Please try again.', 'error');
         }
     };
 
@@ -202,6 +211,11 @@ const Navbar = () => {
                                 <Link to="/products" className="text-gray-600 hover:text-secondary transition-colors font-medium text-sm flex items-center gap-1.5">
                                     <Grid size={16} /> Shop
                                 </Link>
+                                {user && (
+                                    <Link to="/profile?tab=orders" className="text-gray-600 hover:text-secondary transition-colors font-medium text-sm flex items-center gap-1.5">
+                                        <Package size={16} /> My Orders
+                                    </Link>
+                                )}
                             </div>
                         </div>
 
@@ -524,22 +538,22 @@ const Navbar = () => {
                                 <div className="relative">
                                     <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                     <input
-                                        type="password"
+                                        type={showAdminPassword ? "text" : "password"}
                                         required
                                         value={adminCredentials.password}
                                         onChange={e => setAdminCredentials(p => ({ ...p, password: e.target.value }))}
                                         placeholder="••••••••"
-                                        className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-all"
+                                        className="w-full pl-9 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-all"
                                     />
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowAdminPassword(!showAdminPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                    >
+                                        {showAdminPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
                                 </div>
                             </div>
-
-                            {adminError && (
-                                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                    <X size={14} className="text-red-500 shrink-0" />
-                                    <p className="text-red-600 text-xs font-medium">{adminError}</p>
-                                </div>
-                            )}
 
                             <div className="flex gap-3 pt-1">
                                 <button
@@ -571,6 +585,14 @@ const Navbar = () => {
                     to { opacity: 1; transform: translateY(0) scale(1); }
                 }
             `}</style>
+
+            {/* Custom Toast Message */}
+            {toastMessage.text && (
+                <div className={`fixed bottom-4 right-4 z-[200] px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-fade-in ${toastMessage.type === 'error' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-600 border border-green-200'}`}>
+                    {toastMessage.type === 'error' ? <X size={16} className="shrink-0" /> : <ShieldCheck size={16} className="shrink-0" />}
+                    <p className="text-sm font-semibold">{toastMessage.text}</p>
+                </div>
+            )}
         </>
     );
 };

@@ -15,6 +15,7 @@ import Wishlist from './pages/Wishlist';
 import PaymentSuccess from './pages/PaymentSuccess';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import PageLoader from './components/PageLoader';
 
 // Layout wrapper to conditionally show Navbar/Footer
 const Layout = ({ children }) => {
@@ -36,6 +37,17 @@ const Layout = ({ children }) => {
 };
 
 function App() {
+  const [initialLoad, setInitialLoad] = React.useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialLoad(false);
+    }, 1500); // 1.5s simulated loader
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (initialLoad) return <PageLoader />;
+
   return (
     <Router>
       <AuthProvider>
