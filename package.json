@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "run_dev.bat"
+    "dev": ".\\scripts\\run_dev.bat"
   },
   "dependencies": {
     "react-router-dom": "^7.11.0"

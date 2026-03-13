@@ -496,7 +496,9 @@ class UserProfileView(APIView):
                         'notifications': True,
                         'emailUpdates': True,
                         'smsAlerts': False,
-                        'darkMode': False
+                        'darkMode': False,
+                        'floatingShortcut': False,
+                        'overlayMode': False
                     }
                 })
             
