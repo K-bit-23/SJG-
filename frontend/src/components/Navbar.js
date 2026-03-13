@@ -211,11 +211,6 @@ const Navbar = () => {
                                 <Link to="/products" className="text-gray-600 hover:text-secondary transition-colors font-medium text-sm flex items-center gap-1.5">
                                     <Grid size={16} /> Shop
                                 </Link>
-                                {user && (
-                                    <Link to="/profile?tab=orders" className="text-gray-600 hover:text-secondary transition-colors font-medium text-sm flex items-center gap-1.5">
-                                        <Package size={16} /> My Orders
-                                    </Link>
-                                )}
                             </div>
                         </div>
 
@@ -258,6 +253,13 @@ const Navbar = () => {
                                     </span>
                                 )}
                             </Link>
+
+                            {/* My Orders */}
+                            {user && (
+                                <Link to="/profile?tab=orders" className="relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale" title="My Orders">
+                                    <Package size={20} className="text-gray-500 group-hover:text-secondary transition-colors" />
+                                </Link>
+                            )}
 
                             {/* User Profile */}
                             {user ? (
