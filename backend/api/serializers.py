@@ -114,3 +114,26 @@ class ChatBotConfigSerializer(serializers.Serializer):
         default=[],
         allow_empty=True
     )
+
+class AppSettingsSerializer(serializers.Serializer):
+    store_name = serializers.CharField(max_length=200, default="SJG Stationery")
+    contact_email = serializers.EmailField(default="contact@sjg.com")
+    contact_phone = serializers.CharField(max_length=20, default="+91 1234567890")
+    currency = serializers.CharField(max_length=10, default="INR")
+    currency_symbol = serializers.CharField(max_length=5, default="₹")
+    maintenance_mode = serializers.BooleanField(default=False)
+    tax_rate = serializers.FloatField(default=18.0)
+    logo_url = serializers.CharField(required=False, allow_blank=True)
+    footer_text = serializers.CharField(required=False, allow_blank=True)
+
+class UserSettingsSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    location_access = serializers.BooleanField(default=False)
+    notifications = serializers.BooleanField(default=True)
+    email_updates = serializers.BooleanField(default=True)
+    sms_alerts = serializers.BooleanField(default=False)
+    dark_mode = serializers.BooleanField(default=False)
+    floating_shortcut = serializers.BooleanField(default=False)
+    overlay_mode = serializers.BooleanField(default=False)
+    language = serializers.CharField(max_length=20, default="English")
+    updated_at = serializers.DateTimeField(read_only=True)

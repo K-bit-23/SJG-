@@ -3,6 +3,7 @@ import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronD
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useNotifications } from '../context/NotificationContext';
 
 
 // Wishlist Context
@@ -50,22 +51,8 @@ export const WishlistProvider = ({ children }) => {
 };
 
 const Navbar = () => {
-    const { user, login, logout, biometricLogin } = useAuth();
-    const { cart } = useCart();
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isScrolled, setIsScrolled] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-    const [adminModalOpen, setAdminModalOpen] = useState(false);
-    const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' });
-    const [adminError, setAdminError] = useState('');
-    const [showAdminPassword, setShowAdminPassword] = useState(false);
-    const [toastMessage, setToastMessage] = useState({ text: '', type: '' });
-
-    const showToast = (text, type = 'error') => {
-        setToastMessage({ text, type });
-        setTimeout(() => setToastMessage({ text: '', type: '' }), 3500);
-    };
+    const { showToast, notifications } = useNotifications();
+    const [notificationsDropdownOpen, setNotificationsDropdownOpen] = useState(false);
 
     const [wishlistCount, setWishlistCount] = useState(0);
     const [isCartBumping, setIsCartBumping] = useState(false);
@@ -126,6 +113,9 @@ const Navbar = () => {
         const handleClickOutside = (e) => {
             if (!e.target.closest('.profile-dropdown')) {
                 setProfileDropdownOpen(false);
+            }
+            if (!e.target.closest('.notifications-dropdown')) {
+                setNotificationsDropdownOpen(false);
             }
         };
         document.addEventListener('click', handleClickOutside);
@@ -254,9 +244,51 @@ const Navbar = () => {
                                 )}
                             </Link>
 
-                            {/* My Orders */}
+                            {/* Notifications Bell */}
+                            <div className="relative notifications-dropdown">
+                                <button 
+                                    onClick={() => setNotificationsDropdownOpen(!notificationsDropdownOpen)}
+                                    className="relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale"
+                                >
+                                    <Bell size={20} className={`text-gray-500 group-hover:text-primary transition-colors ${notifications.length > 0 ? 'animate-swing' : ''}`} />
+                                    {notifications.length > 0 && (
+                                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+                                    )}
+                                </button>
+
+                                {notificationsDropdownOpen && (
+                                    <div className="absolute right-0 top-full mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in">
+                                        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Alert Center</h3>
+                                            <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-full">{notifications.length} New</span>
+                                        </div>
+                                        <div className="max-h-96 overflow-y-auto">
+                                            {notifications.length === 0 ? (
+                                                <div className="p-8 text-center">
+                                                    <Bell size={32} className="mx-auto text-gray-200 mb-2" />
+                                                    <p className="text-xs text-gray-400 font-bold uppercase">All caught up!</p>
+                                                </div>
+                                            ) : (
+                                                notifications.map(n => (
+                                                    <div key={n.id} className="p-4 border-b border-gray-50 hover:bg-gray-50/80 transition-colors flex gap-3">
+                                                        <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-xs font-bold text-gray-800 leading-tight">{n.message}</p>
+                                                            <p className="text-[10px] text-gray-400 mt-1 font-medium italic">{new Date(n.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                        <div className="p-3 bg-gray-50 text-center border-t border-gray-100">
+                                            <button className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors">Clear All History</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
                             {user && (
-                                <Link to="/profile?tab=orders" className="relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale" title="My Orders">
+                                <Link to="/orders" className="relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale" title="My Orders">
                                     <Package size={20} className="text-gray-500 group-hover:text-secondary transition-colors" />
                                 </Link>
                             )}
@@ -338,7 +370,7 @@ const Navbar = () => {
                                                     <User size={18} className="text-gray-400" />
                                                     <span className="font-medium">My Profile</span>
                                                 </Link>
-                                                <Link to="/profile" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
+                                                <Link to="/orders" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
                                                     <Package size={18} className="text-gray-400" />
                                                     <span className="font-medium">My Orders</span>
                                                 </Link>
@@ -347,7 +379,7 @@ const Navbar = () => {
                                                     <span className="font-medium">Wishlist</span>
                                                     {wishlistCount > 0 && <span className="ml-auto bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-bold">{wishlistCount}</span>}
                                                 </Link>
-                                                <Link to="/profile?tab=settings" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
+                                                <Link to="/settings" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
                                                     <Settings size={18} className="text-gray-400" />
                                                     <span className="font-medium">Settings</span>
                                                 </Link>
@@ -374,19 +406,11 @@ const Navbar = () => {
                             ) : (
                                 <div className="flex items-center gap-2 ml-2">
                                     <button
-                                        onClick={() => biometricLogin()}
-                                        className="flex items-center gap-2 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-3 py-2 rounded-full text-sm font-bold transition-all shadow-sm hover:shadow-md group"
-                                        title="Login with Biometrics (Passkey)"
-                                    >
-                                        <Fingerprint size={16} className="group-hover:scale-110 transition-transform" />
-                                        <span className="hidden md:inline">Biometric</span>
-                                    </button>
-                                    <button
                                         onClick={() => login()}
-                                        className="flex items-center gap-2 bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-full text-sm font-bold transition-all shadow-md hover:shadow-lg"
+                                        className="flex items-center gap-2 bg-gradient-to-r from-primary to-secondary hover:shadow-lg text-white px-6 py-2 rounded-full text-sm font-bold transition-all transform hover:scale-105 active:scale-95 shadow-md"
                                     >
                                         <LogIn size={16} />
-                                        <span className="hidden sm:inline">Login</span>
+                                        <span className="hidden sm:inline">Sign In</span>
                                     </button>
                                     {/* Admin Login Button */}
                                     <button
@@ -464,10 +488,10 @@ const Navbar = () => {
                             {user && (
                                 <>
                                     <div className="border-t my-2"></div>
-                                    <Link to="/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-700 text-sm" onClick={() => setMobileMenuOpen(false)}>
+                                    <Link to="/orders" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-700 text-sm" onClick={() => setMobileMenuOpen(false)}>
                                         <Package size={18} className="text-gray-400" /> My Orders
                                     </Link>
-                                    <Link to="/profile?tab=settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-700 text-sm" onClick={() => setMobileMenuOpen(false)}>
+                                    <Link to="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-700 text-sm" onClick={() => setMobileMenuOpen(false)}>
                                         <Settings size={18} className="text-gray-400" /> Settings
                                     </Link>
                                     {user.role === 'admin' && (
@@ -480,11 +504,8 @@ const Navbar = () => {
 
                             {!user && (
                                 <div className="space-y-2 mt-3">
-                                    <button onClick={() => { login(); setMobileMenuOpen(false); }} className="w-full bg-primary text-white py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 text-sm hover:bg-slate-800 transition-colors">
-                                        <LogIn size={16} /> Login / Register
-                                    </button>
-                                    <button onClick={() => { biometricLogin(); setMobileMenuOpen(false); }} className="w-full bg-white border border-gray-200 text-primary py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 text-sm hover:bg-gray-50 transition-colors">
-                                        <Fingerprint size={16} /> Biometric Login
+                                    <button onClick={() => { login(); setMobileMenuOpen(false); }} className="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 text-sm hover:shadow-lg transition-all active:scale-95">
+                                        <LogIn size={16} /> Sign In
                                     </button>
                                     <button onClick={() => { setAdminModalOpen(true); setMobileMenuOpen(false); }} className="w-full bg-amber-50 border border-amber-300 text-amber-700 py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 text-sm hover:bg-amber-100 transition-colors">
                                         <ShieldCheck size={16} /> Admin Login
@@ -588,13 +609,6 @@ const Navbar = () => {
                 }
             `}</style>
 
-            {/* Custom Toast Message */}
-            {toastMessage.text && (
-                <div className={`fixed bottom-4 right-4 z-[200] px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-fade-in ${toastMessage.type === 'error' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-600 border border-green-200'}`}>
-                    {toastMessage.type === 'error' ? <X size={16} className="shrink-0" /> : <ShieldCheck size={16} className="shrink-0" />}
-                    <p className="text-sm font-semibold">{toastMessage.text}</p>
-                </div>
-            )}
         </>
     );
 };

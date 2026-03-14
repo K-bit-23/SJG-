@@ -373,7 +373,7 @@ export default function Settings() {
             <Text style={styles.rowValue}>English</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={[styles.row, { borderBottomWidth: 0 }]}>
+          <TouchableOpacity style={[styles.row, { borderBottomWidth: 0 }]} onPress={() => router.push('/contact')}>
             <View style={styles.rowLeft}>
               <CircleHelp size={20} color="#666" />
               <Text style={styles.rowText}>Help & Support</Text>

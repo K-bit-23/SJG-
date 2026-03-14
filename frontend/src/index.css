@@ -2,9 +2,28 @@
 /* @tailwind components; */
 /* @tailwind utilities; */
 
+:root {
+    --background: #f1f3f6;
+    --text-primary: #1f2937;
+    --card-bg: #ffffff;
+    --primary: #4f46e5;
+    --secondary: #6366f1;
+}
+
+.dark {
+    --background: #0f172a;
+    --text-primary: #f8fafc;
+    --card-bg: #1e293b;
+    --primary: #818cf8;
+    --secondary: #a5b4fc;
+}
+
 @layer base {
     body {
-        @apply bg-background text-primary font-sans antialiased;
+        background-color: var(--background);
+        color: var(--text-primary);
+        transition: background-color 0.3s, color 0.3s;
+        @apply font-sans antialiased;
     }
 }
 
@@ -38,6 +57,18 @@
 
     .hover-scale {
         @apply transition-transform duration-300 hover:scale-105 active:scale-95;
+    }
+
+    .glass-morphism {
+        @apply bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/30 shadow-xl;
+    }
+
+    .premium-card {
+        @apply bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-xl transition-all duration-500 rounded-3xl;
+    }
+
+    .gradient-text {
+        @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
     }
 
     @keyframes cartBump {

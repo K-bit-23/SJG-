@@ -4,7 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {
     ShieldCheck, CreditCard, Truck, CheckCircle,
-    Smartphone, AlertCircle, ExternalLink, Loader2
+    Smartphone, AlertCircle, ExternalLink, Loader2,
+    Home, Briefcase, Plus, MapPin
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -24,6 +25,8 @@ const Checkout = () => {
 
     const upiLink = `upi://pay?pa=merchant@upi&pn=SJG%20Ecom&am=${total}&cu=INR`;
 
+    const [savedAddresses, setSavedAddresses] = useState([]);
+    const [selectedAddressId, setSelectedAddressId] = useState('new');
     const [formData, setFormData] = useState({
         name: user?.name || user?.displayName || '',
         email: user?.email || '',
@@ -32,6 +35,51 @@ const Checkout = () => {
         zip: '',
         phone: '',
     });
+
+    React.useEffect(() => {
+        if (user?.email) {
+            const fetchProfile = async () => {
+                try {
+                    const res = await axios.get(`/api/profile/${encodeURIComponent(user.email)}/`);
+                    if (res.data.addresses && res.data.addresses.length > 0) {
+                        setSavedAddresses(res.data.addresses);
+                        // Auto-select first address if available
+                        const first = res.data.addresses[0];
+                        setSelectedAddressId(first.id);
+                        setFormData(prev => ({
+                            ...prev,
+                            address: `${first.addressLine1}${first.addressLine2 ? ', ' + first.addressLine2 : ''}`,
+                            city: first.city,
+                            zip: first.pincode
+                        }));
+                    }
+                } catch (err) {
+                    console.warn("Could not fetch saved addresses:", err);
+                }
+            };
+            fetchProfile();
+        }
+    }, [user]);
+
+    const handleAddressSelect = (addr) => {
+        if (addr === 'new') {
+            setSelectedAddressId('new');
+            setFormData(prev => ({
+                ...prev,
+                address: '',
+                city: '',
+                zip: ''
+            }));
+        } else {
+            setSelectedAddressId(addr.id);
+            setFormData(prev => ({
+                ...prev,
+                address: `${addr.addressLine1}${addr.addressLine2 ? ', ' + addr.addressLine2 : ''}`,
+                city: addr.city,
+                zip: addr.pincode
+            }));
+        }
+    };
 
     const handleChange = (e) => setFormData(f => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -119,6 +167,40 @@ const Checkout = () => {
                             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
                                 <Truck className="text-secondary" /> Shipping Details
                             </h2>
+                            {/* Saved Addresses List */}
+                            {savedAddresses.length > 0 && (
+                                <div className="mb-8 overflow-x-auto pb-4 scrollbar-hide">
+                                    <div className="flex gap-4 min-w-max">
+                                        {savedAddresses.map((addr) => (
+                                            <div
+                                                key={addr.id}
+                                                onClick={() => handleAddressSelect(addr)}
+                                                className={`p-4 rounded-xl border-2 transition-all cursor-pointer w-64 ${selectedAddressId === addr.id ? 'border-secondary bg-secondary/5 shadow-md scale-[1.02]' : 'border-gray-100 bg-gray-50 hover:border-gray-200'}`}
+                                            >
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className={`p-1.5 rounded-lg ${selectedAddressId === addr.id ? 'bg-secondary text-white' : 'bg-white text-gray-400 border border-gray-100'}`}>
+                                                        {addr.type === 'Office' ? <Briefcase size={14} /> : <Home size={14} />}
+                                                    </div>
+                                                    <span className={`text-xs font-bold uppercase tracking-wider ${selectedAddressId === addr.id ? 'text-secondary' : 'text-gray-500'}`}>{addr.type}</span>
+                                                    {selectedAddressId === addr.id && <CheckCircle size={14} className="ml-auto text-secondary" />}
+                                                </div>
+                                                <p className="text-xs text-gray-700 line-clamp-2 leading-relaxed">
+                                                    {addr.addressLine1}, {addr.addressLine2 && addr.addressLine2 + ','} {addr.city}
+                                                </p>
+                                                <p className="text-[10px] text-gray-400 mt-1 font-medium">{addr.pincode}</p>
+                                            </div>
+                                        ))}
+                                        <div
+                                            onClick={() => handleAddressSelect('new')}
+                                            className={`p-4 rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-2 cursor-pointer w-48 transition-all ${selectedAddressId === 'new' ? 'border-secondary bg-secondary/5 text-secondary' : 'border-gray-200 text-gray-400 hover:border-gray-300'}`}
+                                        >
+                                            <Plus size={20} />
+                                            <span className="text-xs font-bold">New Address</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <form id="checkout-form" onSubmit={handlePlaceOrder} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-gray-500 uppercase">Full Name</label>
@@ -132,18 +214,33 @@ const Checkout = () => {
                                     <label className="text-xs font-semibold text-gray-500 uppercase">Email</label>
                                     <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full p-3 bg-gray-50 rounded-lg border focus:ring-2 ring-secondary/20 outline-none" placeholder="john@example.com" />
                                 </div>
-                                <div className="md:col-span-2 space-y-1">
-                                    <label className="text-xs font-semibold text-gray-500 uppercase">Address</label>
-                                    <textarea name="address" value={formData.address} onChange={handleChange} required rows={3} className="w-full p-3 bg-gray-50 rounded-lg border focus:ring-2 ring-secondary/20 outline-none" placeholder="Street Address, Area" />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-500 uppercase">City</label>
-                                    <input name="city" value={formData.city} onChange={handleChange} required className="w-full p-3 bg-gray-50 rounded-lg border focus:ring-2 ring-secondary/20 outline-none" placeholder="City" />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-500 uppercase">ZIP Code</label>
-                                    <input name="zip" value={formData.zip} onChange={handleChange} required className="w-full p-3 bg-gray-50 rounded-lg border focus:ring-2 ring-secondary/20 outline-none" placeholder="123456" />
-                                </div>
+                                
+                                {selectedAddressId === 'new' && (
+                                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                                        <div className="md:col-span-2 space-y-1">
+                                            <label className="text-xs font-semibold text-gray-500 uppercase">Shipping Address</label>
+                                            <textarea name="address" value={formData.address} onChange={handleChange} required rows={3} className="w-full p-3 bg-gray-50 rounded-lg border focus:ring-2 ring-secondary/20 outline-none shadow-sm" placeholder="Street Address, Area, Landmark" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-gray-500 uppercase">City</label>
+                                            <input name="city" value={formData.city} onChange={handleChange} required className="w-full p-3 bg-gray-50 rounded-lg border focus:ring-2 ring-secondary/20 outline-none" placeholder="City" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs font-semibold text-gray-500 uppercase">ZIP Code / Pincode</label>
+                                            <input name="zip" value={formData.zip} onChange={handleChange} required className="w-full p-3 bg-gray-50 rounded-lg border focus:ring-2 ring-secondary/20 outline-none" placeholder="123456" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {selectedAddressId !== 'new' && (
+                                    <div className="md:col-span-2 p-4 bg-green-50 border border-green-100 rounded-xl flex items-center gap-3">
+                                        <MapPin className="text-green-500" size={20} />
+                                        <div>
+                                            <p className="text-xs font-bold text-green-700 uppercase tracking-widest">Delivering to Saved Address</p>
+                                            <p className="text-sm text-green-600 mt-1">{formData.address}, {formData.city} - {formData.zip}</p>
+                                        </div>
+                                    </div>
+                                )}
                             </form>
                         </div>
 

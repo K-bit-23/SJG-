@@ -80,14 +80,14 @@ const AdminPanel = () => {
         try {
             if (activeTab === 'dashboard' || activeTab === 'inventory') {
                 const [statsRes, productsRes] = await Promise.all([
-                    axios.get('/api/dashboard/stats/').catch(() => ({ data: { total_revenue: '5,00,000', active_orders: 45, customers_count: 120, products_count: 850 } })),
-                    axios.get('/api/products/').catch(() => ({ data: [] }))
+                    axios.get('/api/dashboard/stats/'),
+                    axios.get('/api/products/')
                 ]);
                 setStats(statsRes.data);
                 setProducts(Array.isArray(productsRes.data) ? productsRes.data : []);
             }
             if (activeTab === 'orders' || activeTab === 'dashboard') {
-                const res = await axios.get('/api/orders/').catch(() => ({ data: [] }));
+                const res = await axios.get('/api/orders/');
                 setOrders(Array.isArray(res.data) ? res.data : []);
             }
             if (activeTab === 'users') {
@@ -95,7 +95,7 @@ const AdminPanel = () => {
                 setUsers(Array.isArray(res.data) ? res.data : []);
             }
             if (activeTab === 'content') {
-                const res = await axios.get('/api/content/home/').catch(() => ({ data: { banners: [], services: [], trust_strip: [] } }));
+                const res = await axios.get('/api/content/home/');
                 setHomeContent(res.data);
             }
             if (activeTab === 'billing') {

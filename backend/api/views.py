@@ -8,9 +8,10 @@ import string
 from .mongodb import mongo_client
 from .serializers import (
     ProductSerializer, OrderSerializer, ContactMessageSerializer, UserSerializer,
-    HomePageContentSerializer, ChatBotConfigSerializer
+    HomePageContentSerializer, ChatBotConfigSerializer, AppSettingsSerializer,
+    UserSettingsSerializer
 )
-from .email_utils import send_order_confirmation_after_delay
+from .email_utils import send_order_confirmation_after_delay, send_order_status_notification
 
 class ProductListCreateView(APIView):
     """List all products or create a new product"""
@@ -160,7 +161,9 @@ class OrderListCreateView(APIView):
                 order_data['_id'] = result.inserted_id
 
                 # Fire order confirmation email in 30 seconds (background thread)
-                send_order_confirmation_after_delay(dict(order_data), delay_seconds=30)
+                # For CARD payments, we wait until payment is confirmed in payment_views.py
+                if order_data.get('payment_method') != 'CARD':
+                    send_order_confirmation_after_delay(dict(order_data), delay_seconds=30)
 
                 return Response(
                     OrderSerializer(order_data).data,
@@ -222,6 +225,11 @@ class OrderDetailView(APIView):
                 )
 
             order = collection.find_one(query)
+            
+            # Notify user if status was changed
+            if 'status' in request.data:
+                send_order_status_notification(dict(order))
+
             return Response(OrderSerializer(order).data)
         except Exception as e:
             return Response(
@@ -483,23 +491,7 @@ class UserProfileView(APIView):
                     'photoURL': '',
                     'dateOfBirth': '',
                     'gender': '',
-                    'address': {
-                        'addressLine1': '',
-                        'addressLine2': '',
-                        'city': '',
-                        'state': '',
-                        'pincode': '',
-                        'country': 'India'
-                    },
-                    'appSettings': {
-                        'locationAccess': False,
-                        'notifications': True,
-                        'emailUpdates': True,
-                        'smsAlerts': False,
-                        'darkMode': False,
-                        'floatingShortcut': False,
-                        'overlayMode': False
-                    }
+                    'addresses': [],
                 })
             
             # Convert ObjectId to string
@@ -535,6 +527,99 @@ class UserOrdersView(APIView):
             collection = mongo_client.get_collection('orders')
             orders = list(collection.find({'user_email': user_email}).sort('created_at', -1))
             return Response(OrderSerializer(orders, many=True).data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserSettingsView(APIView):
+    """Get or Update specific User Settings"""
+
+    def get(self, request, email):
+        try:
+            collection = mongo_client.get_collection('user_settings')
+            settings = collection.find_one({'email': email})
+            
+            if not settings:
+                # Default settings for a new user
+                default_settings = {
+                    'email': email,
+                    'location_access': False,
+                    'notifications': True,
+                    'email_updates': True,
+                    'sms_alerts': False,
+                    'dark_mode': False,
+                    'floating_shortcut': False,
+                    'overlay_mode': False,
+                    'language': 'English'
+                }
+                return Response(default_settings)
+            
+            return Response(UserSettingsSerializer(settings).data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request, email):
+        try:
+            serializer = UserSettingsSerializer(data=request.data)
+            if serializer.is_valid():
+                collection = mongo_client.get_collection('user_settings')
+                settings_data = serializer.validated_data
+                settings_data['email'] = email
+                settings_data['updated_at'] = datetime.now()
+                
+                collection.update_one(
+                    {'email': email},
+                    {'$set': settings_data},
+                    upsert=True
+                )
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AppSettingsView(APIView):
+    """Get or Update Application Global Settings"""
+
+    def get(self, request):
+        try:
+            collection = mongo_client.get_collection('app_settings')
+            settings_doc = collection.find_one({'type': 'global'})
+            
+            if not settings_doc:
+                # Default settings
+                default_settings = {
+                    'store_name': 'SJG Stationery',
+                    'contact_email': 'contact@sjg.com',
+                    'contact_phone': '+91 1234567890',
+                    'currency': 'INR',
+                    'currency_symbol': '₹',
+                    'maintenance_mode': False,
+                    'tax_rate': 18.0,
+                    'logo_url': '',
+                    'footer_text': '© 2026 SJG Stationery. All rights reserved.'
+                }
+                return Response(default_settings)
+            
+            return Response(AppSettingsSerializer(settings_doc).data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        try:
+            serializer = AppSettingsSerializer(data=request.data)
+            if serializer.is_valid():
+                collection = mongo_client.get_collection('app_settings')
+                settings_data = serializer.validated_data
+                settings_data['type'] = 'global'
+                settings_data['updated_at'] = datetime.now()
+                
+                collection.update_one(
+                    {'type': 'global'},
+                    {'$set': settings_data},
+                    upsert=True
+                )
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

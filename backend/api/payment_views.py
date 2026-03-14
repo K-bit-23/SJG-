@@ -7,6 +7,7 @@ from datetime import datetime
 from .mongodb import mongo_client
 from bson import ObjectId
 from django.conf import settings
+from .email_utils import send_order_confirmation_after_delay
 
 # Read Stripe secret key from Django settings (.env)
 stripe.api_key = getattr(settings, 'STRIPE_SECRET_KEY', os.environ.get('STRIPE_SECRET_KEY', ''))
@@ -181,11 +182,16 @@ class ConfirmPaymentView(APIView):
                         'status':             'processing',
                         'payment_status':     'paid',
                         'payment_intent_id':  payment_intent_id,
-                        'updated_at':         datetime.utcnow(),
+                        'updated_at':         datetime.now(),
                     }}
                 )
                 if result.matched_count == 0:
                     return Response({'error': 'Order not found in DB'}, status=status.HTTP_404_NOT_FOUND)
+
+                # Fire order confirmation email in 30 seconds (background thread)
+                order = collection.find_one({'order_id': order_id})
+                if order:
+                    send_order_confirmation_after_delay(dict(order), delay_seconds=30)
 
                 return Response({'status': 'success', 'message': 'Payment confirmed. Order is now processing.'})
             else:
@@ -196,5 +202,60 @@ class ConfirmPaymentView(APIView):
 
         except stripe.error.StripeError as e:
             return Response({'error': str(e.user_message)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ---------------------------------------------------------------------------
+# Confirm Stripe Session (called from PaymentSuccess.js)
+# ---------------------------------------------------------------------------
+
+class ConfirmStripeSessionView(APIView):
+    """
+    POST /api/confirm-stripe-session/
+    Body: { session_id, order_id }
+    """
+    def post(self, request):
+        try:
+            session_id = request.data.get('session_id')
+            order_id = request.data.get('order_id')
+
+            if not session_id:
+                return Response({'error': 'session_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Retrieve session from Stripe
+            session = stripe.checkout.Session.retrieve(session_id)
+            
+            if session.payment_status == 'paid':
+                collection = mongo_client.get_collection('orders')
+                
+                # Find order (support both formats)
+                query = {'order_id': order_id} if order_id else {'stripe_session_id': session_id}
+                order = collection.find_one(query)
+                
+                if not order:
+                    return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+
+                # Update order if not already processing
+                if order.get('payment_status') != 'paid':
+                    collection.update_one(
+                        {'_id': order['_id']},
+                        {'$set': {
+                            'status': 'processing',
+                            'payment_status': 'paid',
+                            'updated_at': datetime.now(),
+                        }}
+                    )
+                    
+                    # Fire email
+                    updated_order = collection.find_one({'_id': order['_id']})
+                    send_order_confirmation_after_delay(dict(updated_order), delay_seconds=30)
+                    
+                    return Response({'status': 'success', 'message': 'Payment confirmed and email scheduled.'})
+                
+                return Response({'status': 'already_confirmed', 'message': 'Order was already confirmed.'})
+            
+            return Response({'status': 'pending', 'message': 'Payment is not yet confirmed by Stripe.'})
+
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

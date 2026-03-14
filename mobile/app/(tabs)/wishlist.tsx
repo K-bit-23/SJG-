@@ -69,7 +69,7 @@ export default function Wishlist() {
               <Heart size={40} color="#fca5a5" />
             </View>
             <Text style={styles.emptyTitle}>Your wishlist is empty</Text>
-            <Text style={styles.emptyDesc}>Save items you love by clicking the heart icon on products. They'll appear here!</Text>
+            <Text style={styles.emptyDesc}>Save items you love by clicking the heart icon on products. They&apos;ll appear here!</Text>
             <TouchableOpacity style={styles.browseBtn} onPress={() => router.push('/(tabs)/products')}>
               <ShoppingBag size={18} color="#d4af37" />
               <Text style={styles.browseBtnText}>Browse Products</Text>

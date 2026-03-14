@@ -18,7 +18,7 @@ from django.core.mail import EmailMultiAlternatives
 # HTML email template
 # ---------------------------------------------------------------------------
 
-def _build_html(order: dict) -> str:
+def _build_html(order: dict, status_label: str = "Order Confirmed") -> str:
     order_id   = order.get('order_id', 'N/A')
     user_name  = order.get('user_name', 'Valued Customer')
     user_email = order.get('user_email', '')
@@ -26,6 +26,15 @@ def _build_html(order: dict) -> str:
     total      = order.get('total_amount', 0)
     address    = order.get('shipping_address', 'N/A')
     pay_method = order.get('payment_method', 'N/A')
+    status     = order.get('status', 'pending')
+
+    # Status specific messaging
+    status_msg = {
+        "pending": "We've received your order and it's currently pending.",
+        "processing": "Good news! We've started processing your order.",
+        "completed": "Your order has been completed and is on its way!",
+        "cancelled": "Your order has been cancelled. Please contact us for details.",
+    }.get(status, "Thank you for your order! We'll start processing it shortly.")
 
     rows = ''.join(
         f'''
@@ -45,7 +54,7 @@ def _build_html(order: dict) -> str:
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Order Confirmed</title>
+  <title>{status_label}</title>
 </head>
 <body style="margin:0;padding:0;background:#f5f5f5;font-family:'Segoe UI',Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
@@ -61,7 +70,7 @@ def _build_html(order: dict) -> str:
             <h1 style="margin:0;color:#fff;font-size:26px;font-weight:800;
                        letter-spacing:-0.5px;">SJG Stationery</h1>
             <p style="margin:8px 0 0;color:rgba(255,255,255,.8);font-size:14px;">
-              Order Confirmed &#10003;
+              {status_label} &#10003;
             </p>
           </td>
         </tr>
@@ -73,8 +82,7 @@ def _build_html(order: dict) -> str:
               Hi {user_name},
             </h2>
             <p style="margin:0;color:#6b7280;font-size:15px;line-height:1.6;">
-              Thank you for your order! We've received it and will start
-              processing it shortly.
+              {status_msg}
             </p>
           </td>
         </tr>
@@ -184,13 +192,21 @@ def _build_html(order: dict) -> str:
 # Plain-text fallback
 # ---------------------------------------------------------------------------
 
-def _build_text(order: dict) -> str:
+def _build_text(order: dict, status_label: str = "Order Confirmed") -> str:
     order_id   = order.get('order_id', 'N/A')
     user_name  = order.get('user_name', 'Valued Customer')
     items      = order.get('items', [])
     total      = order.get('total_amount', 0)
     address    = order.get('shipping_address', 'N/A')
     pay_method = order.get('payment_method', 'N/A')
+    status     = order.get('status', 'pending')
+
+    status_msg = {
+        "pending": "received and is currently pending",
+        "processing": "now being processed",
+        "completed": "completed and shipped",
+        "cancelled": "been cancelled",
+    }.get(status, "received")
 
     item_lines = '\n'.join(
         f"  - {i.get('product_name','Product')} x{i.get('quantity',1)}  "
@@ -201,7 +217,7 @@ def _build_text(order: dict) -> str:
     return f"""
 Hi {user_name},
 
-Your order has been confirmed!
+{status_label}! Your order has been {status_msg}.
 
 Order ID   : {order_id}
 Total      : Rs.{float(total):.2f}
@@ -219,9 +235,10 @@ Thank you for shopping at SJG Stationery!
 # Core send function (runs in a background thread)
 # ---------------------------------------------------------------------------
 
-def _send(order: dict, delay_seconds: int):
-    """Wait, then send the confirmation email."""
-    time.sleep(delay_seconds)
+def _send(order: dict, delay_seconds: int, status_label: str):
+    """Wait, then send the confirmation/update email."""
+    if delay_seconds > 0:
+        time.sleep(delay_seconds)
 
     notify_email = getattr(settings, 'ORDER_NOTIFY_EMAIL', settings.EMAIL_HOST_USER)
     customer_email = order.get('user_email', '')
@@ -234,9 +251,9 @@ def _send(order: dict, delay_seconds: int):
         return
 
     try:
-        subject = f"Order Confirmed: {order_id} | SJG Stationery"
-        html_body = _build_html(order)
-        text_body = _build_text(order)
+        subject = f"{status_label}: {order_id} | SJG Stationery"
+        html_body = _build_html(order, status_label)
+        text_body = _build_text(order, status_label)
 
         msg = EmailMultiAlternatives(
             subject=subject,
@@ -247,7 +264,7 @@ def _send(order: dict, delay_seconds: int):
         msg.attach_alternative(html_body, "text/html")
         msg.send(fail_silently=False)
 
-        print(f"[EMAIL] Order confirmation sent for {order_id} -> {recipients}")
+        print(f"[EMAIL] Notification sent: {status_label} for {order_id} -> {recipients}")
 
     except Exception as exc:
         print(f"[EMAIL] Failed to send for {order_id}: {exc}")
@@ -255,19 +272,35 @@ def _send(order: dict, delay_seconds: int):
 
 
 # ---------------------------------------------------------------------------
-# Public API — call this from views.py after creating an order
+# Public API
 # ---------------------------------------------------------------------------
 
 def send_order_confirmation_after_delay(order: dict, delay_seconds: int = 30):
     """
     Launch a daemon thread that waits `delay_seconds` then sends the email.
-    Non-blocking — returns immediately.
     """
     t = threading.Thread(
         target=_send,
-        args=(order, delay_seconds),
-        name=f"email-{order.get('order_id','?')}",
+        args=(order, delay_seconds, "Order Confirmed"),
+        name=f"email-conf-{order.get('order_id','?')}",
         daemon=True,
     )
     t.start()
     print(f"[EMAIL] Scheduled confirmation for order {order.get('order_id')} in {delay_seconds}s")
+
+
+def send_order_status_notification(order: dict):
+    """
+    Send an immediate status update notification (e.g. Processing, Shipped).
+    """
+    status = order.get('status', 'Update').capitalize()
+    status_label = f"Order {status}"
+    
+    t = threading.Thread(
+        target=_send,
+        args=(order, 0, status_label),
+        name=f"email-upd-{order.get('order_id','?')}",
+        daemon=True,
+    )
+    t.start()
+    print(f"[EMAIL] Sending immediate status update: {status_label} for {order.get('order_id')}")

@@ -45,7 +45,7 @@ export default function Checkout() {
 
   const finalizeOrder = () => {
     clearCart();
-    router.replace('/(tabs)/orders');
+    router.replace('/payment-success?order_id=DEMO-' + Date.now());
   };
 
   return (

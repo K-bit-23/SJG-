@@ -24,8 +24,13 @@ from .views import (
     UserProfileView,
     UserOrdersView,
     HealthCheckView,
+    AppSettingsView,
+    UserSettingsView,
 )
-from .payment_views import CreatePaymentIntentView, ConfirmPaymentView, CreateCheckoutSessionView
+from .payment_views import (
+    CreatePaymentIntentView, ConfirmPaymentView, CreateCheckoutSessionView,
+    ConfirmStripeSessionView
+)
 
 urlpatterns = [
     # ── Health check (always try first: http://localhost:8000/api/health/) ──
@@ -55,14 +60,17 @@ urlpatterns = [
     # Content endpoints
     path('content/home/', HomePageContentView.as_view(), name='home-page-content'),
     path('content/chatbot/', ChatBotConfigView.as_view(), name='chatbot-config'),
+    path('settings/', AppSettingsView.as_view(), name='app-settings'),
     
     # Payment endpoints
     path('create-checkout-session/', CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
     path('create-payment-intent/', CreatePaymentIntentView.as_view(), name='create-payment-intent'),
     path('confirm-payment/', ConfirmPaymentView.as_view(), name='confirm-payment'),
+    path('confirm-stripe-session/', ConfirmStripeSessionView.as_view(), name='confirm-stripe-session'),
 
     # Mobile Auth & User specific endpoints
     path('user-orders/<str:user_email>/', UserOrdersView.as_view(), name='user-orders'),
+    path('user-settings/<str:email>/', UserSettingsView.as_view(), name='user-settings'),
 ]
 
 # ============================================================================

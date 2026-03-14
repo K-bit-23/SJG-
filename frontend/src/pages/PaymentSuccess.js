@@ -1,14 +1,36 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Package, ArrowRight, Home } from 'lucide-react';
+import { CheckCircle, Package, ArrowRight, Home, Loader2 } from 'lucide-react';
+import axios from 'axios';
 
 const PaymentSuccess = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const orderId = searchParams.get('order_id') || '';
-    const [countdown, setCountdown] = useState(8);
+    const sessionId = searchParams.get('session_id') || '';
+    const [countdown, setCountdown] = useState(10);
+    const [status, setStatus] = useState('confirming'); // confirming, success, error
 
     useEffect(() => {
+        const confirmPayment = async () => {
+            if (sessionId) {
+                try {
+                    await axios.post('/api/confirm-stripe-session/', {
+                        session_id: sessionId,
+                        order_id: orderId
+                    });
+                    setStatus('success');
+                } catch (err) {
+                    console.error('Confirmation error:', err);
+                    setStatus('error');
+                }
+            } else {
+                setStatus('success');
+            }
+        };
+
+        confirmPayment();
+
         const timer = setInterval(() => {
             setCountdown(prev => {
                 if (prev <= 1) {
@@ -20,7 +42,7 @@ const PaymentSuccess = () => {
             });
         }, 1000);
         return () => clearInterval(timer);
-    }, [navigate]);
+    }, [navigate, sessionId, orderId]);
 
     return (
         <div style={{
@@ -52,20 +74,29 @@ const PaymentSuccess = () => {
                         boxShadow: '0 8px 32px rgba(34,197,94,0.4)',
                         animation: 'successPulse 2s ease-in-out infinite'
                     }}>
-                        <CheckCircle size={52} color="white" strokeWidth={2.5} />
+                        {status === 'confirming' ? (
+                            <Loader2 size={52} color="white" strokeWidth={2.5} className="animate-spin" />
+                        ) : status === 'error' ? (
+                            <Package size={52} color="white" strokeWidth={2.5} />
+                        ) : (
+                            <CheckCircle size={52} color="white" strokeWidth={2.5} />
+                        )}
                     </div>
                 </div>
 
                 <h1 style={{
                     fontSize: '32px', fontWeight: '800',
-                    color: '#15803d', marginBottom: '8px', lineHeight: 1.2
+                    color: status === 'error' ? '#dc2626' : '#15803d', marginBottom: '8px', lineHeight: 1.2
                 }}>
-                    Payment Successful! 🎉
+                    {status === 'confirming' ? 'Confirming Payment...' : 
+                     status === 'error' ? 'Payment Verification Failed' : 
+                     'Payment Successful! 🎉'}
                 </h1>
 
                 <p style={{ color: '#6b7280', fontSize: '16px', marginBottom: '32px', lineHeight: 1.6 }}>
-                    Your order has been confirmed and is now being processed.
-                    You'll receive an email confirmation shortly.
+                    {status === 'confirming' ? 'Please wait while we verify your transaction with Stripe.' :
+                     status === 'error' ? 'There was a problem verifying your payment. Please contact support if your account was debited.' :
+                     "Your order has been confirmed and is now being processed. You'll receive an email confirmation shortly (within 30 seconds)."}
                 </p>
 
                 {orderId && (

@@ -4,6 +4,8 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { useCart } from '../../context/CartContext';
 import { useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import ChatBot from '../../components/ChatBot';
+import WhatsAppButton from '../../components/WhatsAppButton';
 
 export default function TabLayout() {
   const { cartCount } = useCart();
@@ -45,7 +47,8 @@ export default function TabLayout() {
         <Tabs.Screen
           name="explore"
           options={{
-            href: null,
+            title: 'Services',
+            tabBarIcon: ({ color }) => <Plus size={24} color={color} />,
           }}
         />
         <Tabs.Screen
@@ -88,6 +91,9 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
+
+      <ChatBot />
+      <WhatsAppButton />
 
       {showFAB && (
         <TouchableOpacity 

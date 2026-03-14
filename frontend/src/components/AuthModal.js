@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, Eye, EyeOff, Fingerprint } from 'lucide-react';
+import { X, Mail, Lock, User, Eye, EyeOff, Fingerprint, ChevronRight, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,6 +8,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [biometricType, setBiometricType] = useState('none'); // 'none', 'face', 'fingerprint'
     const navigate = useNavigate();
 
     // Form States - Pre-filled with admin credentials for easy access
@@ -155,36 +156,51 @@ const AuthModal = ({ isOpen, onClose }) => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-primary hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+                            className="w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-indigo-600 hover:to-primary text-white font-bold py-4 rounded-2xl shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed mt-4 flex items-center justify-center gap-2"
                         >
-                            {loading ? 'Processing...' : (isLogin ? 'Login' : 'create Account')}
+                            {loading ? (
+                                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                            ) : (isLogin ? 'Sign In Now' : 'Create Account')}
                         </button>
-                    </form>
 
-                    <div className="relative my-6">
-                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
-                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-gray-400">Or continue with</span></div>
-                    </div>
+                        {/* Biometric Integration Dropdown */}
+                        <div className="mt-6 pt-6 border-t border-gray-100/50">
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Security Preference</label>
+                            <div className="relative group/bio">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within/bio:text-primary transition-colors">
+                                    {biometricType === 'face' ? <Eye size={18} /> : <Fingerprint size={18} />}
+                                </div>
+                                <select
+                                    value={biometricType}
+                                    onChange={(e) => setBiometricType(e.target.value)}
+                                    className="w-full pl-12 pr-10 py-3.5 bg-gray-50/50 hover:bg-white border border-gray-100 rounded-2xl appearance-none focus:outline-none focus:ring-4 ring-primary/5 transition-all text-sm font-bold text-gray-700 cursor-pointer"
+                                >
+                                    <option value="none">Standard Password</option>
+                                    <option value="face">Face Authenticate</option>
+                                    <option value="fingerprint">Fingerprint Scan</option>
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-300">
+                                    <ChevronRight size={16} className="rotate-90" />
+                                </div>
+                            </div>
+                            
+                            {biometricType !== 'none' && (
+                                <p className="text-[10px] text-gray-400 mt-2 text-center animate-fade-in">
+                                    You will be prompted for {biometricType} on next login.
+                                </p>
+                            )}
+                        </div>
+                    </form>
 
                     <div className="flex gap-3">
                         <button
                             onClick={handleGoogleLogin}
                             disabled={loading}
                             type="button"
-                            className="flex-1 bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
+                            className="w-full bg-white/80 backdrop-blur-md border border-gray-200 text-gray-700 font-bold py-3.5 rounded-2xl hover:bg-white hover:shadow-md transition-all flex items-center justify-center gap-3 active:scale-95"
                         >
                             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                            <span>Google</span>
-                        </button>
-
-                        <button
-                            onClick={handleBiometricLogin}
-                            disabled={loading}
-                            type="button"
-                            className="flex-1 bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-50 transition-all flex items-center justify-center gap-2"
-                        >
-                            <Fingerprint className="text-primary w-5 h-5" />
-                            <span>Biometric</span>
+                            <span className="text-sm">Continue with Google</span>
                         </button>
                     </div>
 
