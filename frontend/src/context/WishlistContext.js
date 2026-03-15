@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { useAuth } from './AuthContext';
+import api from '../utils/api';
 
 const WishlistContext = createContext();
 
@@ -11,17 +13,54 @@ export const useWishlist = () => {
 };
 
 export const WishlistProvider = ({ children }) => {
-    const [wishlist, setWishlist] = useState(() => {
-        const saved = localStorage.getItem('wishlist');
-        return saved ? JSON.parse(saved) : [];
-    });
+    const { user } = useAuth();
+    const [wishlist, setWishlist] = useState([]);
+    const isInitialMount = useRef(true);
 
+    // Initial Load
+    useEffect(() => {
+        const fetchWishlist = async () => {
+            if (user) {
+                try {
+                    const userEmail = user.emailAddresses ? user.emailAddresses[0].emailAddress : user.email;
+                    const { data } = await api.get(`/profile/${encodeURIComponent(userEmail)}/`);
+                    if (data.wishlist) {
+                        setWishlist(data.wishlist);
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch wishlist from DB:", err);
+                    // Fallback to localStorage
+                    const saved = localStorage.getItem('wishlist');
+                    if (saved) setWishlist(JSON.parse(saved));
+                }
+            } else {
+                const saved = localStorage.getItem('wishlist');
+                if (saved) setWishlist(JSON.parse(saved));
+            }
+        };
+        fetchWishlist();
+    }, [user]);
+
+    // Sync to DB and LocalStorage
     useEffect(() => {
         localStorage.setItem('wishlist', JSON.stringify(wishlist));
-        // Dispatch event for other components not yet using this context
         window.dispatchEvent(new Event('storage'));
-        window.dispatchEvent(new Event('wishlistUpdate'));
-    }, [wishlist]);
+        
+        const syncWishlist = async () => {
+            if (user && !isInitialMount.current) {
+                try {
+                    const userEmail = user.emailAddresses ? user.emailAddresses[0].emailAddress : user.email;
+                    await api.post(`/profile/${encodeURIComponent(userEmail)}/`, { wishlist });
+                } catch (err) {
+                    console.error("Failed to sync wishlist to DB:", err);
+                }
+            }
+            if (isInitialMount.current) isInitialMount.current = false;
+        };
+        
+        const timeoutId = setTimeout(syncWishlist, 1000); // Debounce sync
+        return () => clearTimeout(timeoutId);
+    }, [wishlist, user]);
 
     const getProductId = (product) => product.id || product._id;
 

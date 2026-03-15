@@ -24,6 +24,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { NotificationProvider } from './context/NotificationContext';
 import Settings from '../client/pages/Settings';
 
 import ScrollToTop from './components/ScrollToTop';
@@ -142,8 +143,9 @@ function App() {
     <Router>
       <AuthProvider>
         <LanguageProvider>
-          <CartProvider>
-            <WishlistProvider>
+          <NotificationProvider>
+            <CartProvider>
+              <WishlistProvider>
               <SettingsManager>
                 <PageLoader open={pageLoading} />
                 <AdminRedirect>
@@ -167,6 +169,7 @@ function App() {
               </SettingsManager>
             </WishlistProvider>
           </CartProvider>
+        </NotificationProvider>
         </LanguageProvider>
       </AuthProvider>
     </Router>

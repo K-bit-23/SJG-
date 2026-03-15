@@ -13,7 +13,7 @@ from .mongodb import mongo_client
 from .serializers import (
     ProductSerializer, OrderSerializer, ContactMessageSerializer, UserSerializer,
     HomePageContentSerializer, ChatBotConfigSerializer, AdminDataSerializer,
-    NotificationSerializer
+    NotificationSerializer, ChatMessageSerializer
 )
 from django.core.mail import EmailMultiAlternatives, send_mail
 from django.utils.html import strip_tags
@@ -730,9 +730,8 @@ class ChatMessageView(APIView):
             session_id = request.query_params.get('session_id')
             query = {'session_id': session_id} if session_id else {}
             messages = list(collection.find(query).sort('created_at', 1))
-            for msg in messages:
-                msg['id'] = str(msg.pop('_id'))
-            return Response(ChatMessageSerializer(messages, many=True).data)
+            serializer = ChatMessageSerializer(messages, many=True)
+            return Response(serializer.data)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
