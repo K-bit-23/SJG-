@@ -132,8 +132,8 @@ function App() {
     // Hide loader when page has fully loaded (including assets)
     const hide = () => setTimeout(() => setPageLoading(false), 500);
     
-    // Safety timeout: don't show loader for more than 3 seconds
-    const safetyTimeout = setTimeout(hide, 3000);
+    // Safety timeout: don't show loader for more than 1.5 seconds
+    const safetyTimeout = setTimeout(hide, 1500);
 
     if (document.readyState === 'complete') {
       hide();
@@ -153,13 +153,13 @@ function App() {
 
   return (
     <Router>
+      <PageLoader open={pageLoading} />
       <AuthProvider>
         <LanguageProvider>
           <NotificationProvider>
             <CartProvider>
               <WishlistProvider>
               <SettingsManager>
-                <PageLoader open={pageLoading} />
                 <AdminRedirect>
                   <Layout>
                     <Routes>

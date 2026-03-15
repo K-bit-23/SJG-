@@ -141,7 +141,8 @@ const Checkout = () => {
                 items: items,
                 total_amount: total,
                 shipping_address: `${formData.address}, ${formData.city} - ${formData.zip}. Phone: ${formData.phone}`,
-                payment_method: paymentMethod
+                payment_method: paymentMethod,
+                transaction_id: formData.utr || ''
             };
 
             const res = await api.post('/orders/', orderPayload);
@@ -166,14 +167,9 @@ const Checkout = () => {
 
                     // Redirect to Stripe Checkout
                     window.location.href = url;
-                } else if (paymentMethod === 'UPI') {
-                    // Save UTR if needed (we could send it in order creation too, but for now just mock success)
-                    alert('Order Placed Successfully via UPI! Order ID: ' + orderId + '\nUTR: ' + formData.utr);
-                    navigate('/');
                 } else {
-                    // Local COD
-                    alert('Order Placed Successfully! Order ID: ' + orderId);
-                    navigate('/');
+                    // Redirect to Success page for COD/UPI
+                    navigate(`/payment-success?order_id=${orderId}&amount=${total}`);
                 }
             }
         } catch (error) {
