@@ -7,6 +7,7 @@ import random
 import string
 import os
 import base64
+import io
 from pathlib import Path
 from .mongodb import mongo_client
 from .serializers import (
@@ -18,6 +19,17 @@ from django.core.mail import EmailMultiAlternatives, send_mail
 from django.utils.html import strip_tags
 from django.conf import settings
 import threading
+
+# ReportLab is used to generate PDF invoice attachments
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.units import mm
+    from reportlab.pdfgen import canvas
+    from reportlab.platypus import Table, TableStyle
+    REPORTLAB_AVAILABLE = True
+except ImportError:
+    REPORTLAB_AVAILABLE = False
 
 class ProductListCreateView(APIView):
     """List all products or create a new product"""
@@ -141,6 +153,106 @@ def _load_logo_base64():
         return None
 
 
+def generate_invoice_pdf(order_data):
+    """Generate a PDF invoice bytes for the order."""
+    if not REPORTLAB_AVAILABLE:
+        return None
+
+    try:
+        buffer = io.BytesIO()
+        c = canvas.Canvas(buffer, pagesize=A4)
+        width, height = A4
+        margin = 40
+
+        # Header
+        c.setFont('Helvetica-Bold', 26)
+        c.setFillColor(colors.HexColor('#EB4034'))
+        c.drawString(margin, height - 60, 'INVOICE')
+
+        c.setFont('Helvetica', 10)
+        c.setFillColor(colors.black)
+        c.drawString(margin, height - 85, 'SJG Stationery')
+        c.drawString(margin, height - 100, '123 Station Road, Chennai - 600001')
+        c.drawString(margin, height - 115, 'Phone: +91 98765 43210')
+        c.drawString(margin, height - 130, 'Email: support@sjg.com')
+
+        # Order details box
+        order_id = order_data.get('order_id', '')
+        created_at = order_data.get('created_at')
+        date_display = created_at.strftime('%d-%m-%Y') if hasattr(created_at, 'strftime') else str(created_at or '')
+        status = order_data.get('status', 'Pending').title()
+
+        x = width - margin - 200
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(x, height - 85, 'Order #:')
+        c.drawString(x, height - 100, 'Date:')
+        c.drawString(x, height - 115, 'Status:')
+
+        c.setFont('Helvetica', 10)
+        c.drawString(x + 60, height - 85, order_id)
+        c.drawString(x + 60, height - 100, date_display)
+        c.drawString(x + 60, height - 115, status)
+
+        # Billing / Shipping
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(margin, height - 160, 'BILL TO')
+        c.drawString(width / 2 + 20, height - 160, 'SHIP TO')
+
+        c.setFont('Helvetica', 10)
+        user_name = order_data.get('user_name', '')
+        shipping_address = order_data.get('shipping_address', '')
+        lines = [user_name] + (shipping_address.split('\n') if shipping_address else [])
+        y_line = height - 175
+        for line in lines:
+            c.drawString(margin, y_line, line)
+            c.drawString(width / 2 + 20, y_line, line)
+            y_line -= 12
+
+        # Items Table
+        table_data = [['Description', 'Qty', 'Unit Price', 'Total']]
+        items = order_data.get('items', [])
+        for item in items:
+            name = item.get('product_name') or item.get('name') or ''
+            qty = item.get('quantity', 0)
+            price = float(item.get('price', 0))
+            total = qty * price
+            table_data.append([name, str(qty), f'₹{price:.2f}', f'₹{total:.2f}'])
+
+        # Totals
+        total_amount = float(order_data.get('total_amount', 0))
+        shipping = 0 if total_amount > 999 else 50
+        balance_due = total_amount + shipping
+
+        table_data.append(['', '', 'Subtotal', f'₹{total_amount:.2f}'])
+        table_data.append(['', '', 'Shipping', f'₹{shipping:.2f}'])
+        table_data.append(['', '', 'Balance Due', f'₹{balance_due:.2f}'])
+
+        table = Table(table_data, colWidths=[200, 60, 80, 80])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#EB4034')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 0.25, colors.gray),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
+        ]))
+
+        table.wrapOn(c, width - margin * 2, height)
+        table.drawOn(c, margin, y_line - 140)
+
+        # Footer
+        c.setFont('Helvetica', 9)
+        c.setFillColor(colors.gray)
+        c.drawCentredString(width / 2, 30, 'Thank you for your business!')
+
+        c.showPage()
+        c.save()
+
+        buffer.seek(0)
+        return buffer.read()
+    except Exception:
+        return None
+
+
 def send_order_email(order_data):
     """Send order confirmation email with invoice-style layout."""
     try:
@@ -249,6 +361,12 @@ def send_order_email(order_data):
         text_content = strip_tags(html_content)
         msg = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [user_email])
         msg.attach_alternative(html_content, "text/html")
+
+        # Attach PDF invoice if available
+        pdf_invoice = generate_invoice_pdf(order_data)
+        if pdf_invoice:
+            msg.attach(f"Invoice_{order_id}.pdf", pdf_invoice, "application/pdf")
+
         msg.send()
         print(f"Order email sent to {user_email}")
 
@@ -328,9 +446,7 @@ class OrderListCreateView(APIView):
                             
                 order_data['created_at'] = datetime.now()
                 order_data['updated_at'] = datetime.now()
-                result = collection.insert_one(order_data)
-                order_data['_id'] = result.inserted_id
-                
+
                 # Decrement stock for each product in the order, and warn admin if stock gets low
                 low_stock_items = []
                 try:
@@ -344,7 +460,6 @@ class OrderListCreateView(APIView):
                             continue
 
                         # Resolve product record (ObjectId first, then fallback to string)
-                        query = None
                         try:
                             query = {'_id': ObjectId(pid)}
                         except Exception:
@@ -372,6 +487,14 @@ class OrderListCreateView(APIView):
                             })
                 except Exception as stock_err:
                     print(f"Failed to update stock: {str(stock_err)}")
+                    return Response(
+                        {'error': 'Failed to update stock. Please try again later.'},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+
+                # Save order after stock has been adjusted
+                result = collection.insert_one(order_data)
+                order_data['_id'] = result.inserted_id
 
                 # Send order confirmation email asynchronously
                 threading.Thread(target=send_order_email, args=(order_data,)).start()
