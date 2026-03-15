@@ -101,6 +101,11 @@ const AdminPanel = () => {
                 const contentRes = await api.get('content/home/').catch(() => ({ data: { banners: [], services: [], trust_strip: [] } }));
                 setHomeContent(contentRes.data);
             }
+            // Always fetch settings for global use (GST, Currency)
+            const settingsRes = await api.get('/settings/').catch(() => ({ data: {} }));
+            if (settingsRes.data) {
+                localStorage.setItem('admin_settings', JSON.stringify(settingsRes.data));
+            }
         } catch (err) {
             setError('Failed to load data. Backend may be offline.');
         } finally {
@@ -199,11 +204,43 @@ const AdminPanel = () => {
     const updateBillQuantity = (id, qty) => { if (qty < 1) return; setBillingItems(billingItems.map(i => i.id === id ? { ...i, quantity: qty } : i)); };
     const updateItemPrice = (id, price) => setBillingItems(billingItems.map(i => i.id === id ? { ...i, price: parseFloat(price) || 0 } : i));
     const calculateBillTotal = () => billingItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-    const generateInvoice = () => {
+    const generateInvoice = async () => {
         if (!billingItems.length || !billingCustomer.name) return alert('Enter customer details and items');
-        const subTotal = calculateBillTotal();
-        setCurrentInvoice({ id: `INV-${Date.now().toString().slice(-6)}`, date: new Date().toLocaleDateString(), customer: billingCustomer, items: billingItems, total: subTotal, tax: subTotal * 0.18, grandTotal: subTotal * 1.18 });
-        setShowInvoiceModal(true);
+        
+        try {
+            const adminSettings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
+            const gstRate = adminSettings.gst_percentage || 18;
+            const subTotal = calculateBillTotal();
+            const tax = (subTotal * gstRate) / 100;
+            const grandTotal = subTotal + tax;
+
+            // 1. Save to Backend (Decrements inventory)
+            const res = await api.post('orders/offline/', {
+                items: billingItems,
+                customer: billingCustomer,
+                total: grandTotal
+            });
+
+            if (res.data.success) {
+                setCurrentInvoice({ 
+                    id: res.data.order_id, 
+                    date: new Date().toLocaleDateString(), 
+                    customer: billingCustomer, 
+                    items: billingItems, 
+                    total: subTotal, 
+                    tax: tax, 
+                    grandTotal: grandTotal,
+                    settings: adminSettings
+                });
+                setShowInvoiceModal(true);
+                // Reset billing
+                setBillingItems([]);
+                setBillingCustomer({ name: '', phone: '', email: '' });
+                fetchData(); // Refresh product stock
+            }
+        } catch (err) {
+            alert('Failed to process offline order');
+        }
     };
     const printInvoice = () => { const c = document.getElementById('invoice-template').innerHTML, orig = document.body.innerHTML; document.body.innerHTML = c; window.print(); document.body.innerHTML = orig; window.location.reload(); };
 

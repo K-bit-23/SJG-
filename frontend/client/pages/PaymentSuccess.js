@@ -59,70 +59,68 @@ const PaymentSuccess = () => {
         <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 pt-20 pb-12">
             <div className="max-w-2xl w-full">
                 {/* Success Card */}
-                <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-blue-100/50 p-8 md:p-12 text-center relative overflow-hidden">
-                    {/* Decorative Background Elements */}
-                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 via-blue-500 to-purple-600"></div>
-                    <div className="absolute -top-24 -right-24 w-48 h-48 bg-green-50 rounded-full blur-3xl opacity-50"></div>
-                    <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
+                <div className="bg-white rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] p-12 md:p-20 text-center relative overflow-hidden backdrop-blur-3xl border border-white">
+                    {/* Decorative Elements */}
+                    <div className="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500"></div>
+                    <div className="absolute -top-40 -right-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-[100px]"></div>
+                    <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-pink-500/10 rounded-full blur-[100px]"></div>
 
                     <div className="relative z-10">
-                        {/* Animated Icon */}
-                        <div className="mb-8 relative flex justify-center">
-                            <div className="absolute inset-0 bg-green-100 rounded-full scale-150 blur-xl opacity-50 animate-pulse"></div>
-                            <div className="relative bg-green-500 text-white p-6 rounded-full shadow-lg shadow-green-200 animate-bounce-subtle">
-                                <CheckCircle size={48} strokeWidth={2.5} />
+                        {/* Grand Success Icon */}
+                        <div className="mb-12 relative flex justify-center">
+                            <div className="absolute inset-0 bg-emerald-400 rounded-full scale-[2.5] blur-[80px] opacity-20 animate-pulse"></div>
+                            <div className="relative bg-gradient-to-br from-emerald-400 to-teal-600 text-white p-10 rounded-[2.5rem] shadow-2xl shadow-emerald-200/50 animate-bounce-subtle">
+                                <CheckCircle size={72} strokeWidth={3} />
                             </div>
                         </div>
 
-                        <h1 className="text-4xl md:text-5xl font-black text-slate-800 mb-4 tracking-tight">
-                            Success! <span className="text-green-500">Order Placed</span>
+                        <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-6 tracking-tighter leading-none">
+                            PAYMENT <span className="text-indigo-600">VERIFIED!</span>
                         </h1>
                         
-                        <p className="text-slate-500 text-lg mb-10 max-w-md mx-auto leading-relaxed">
-                            Your payment was processed successfully. We've started preparing your items for delivery!
+                        <p className="text-slate-500 text-xl mb-12 max-w-lg mx-auto font-bold leading-relaxed">
+                            Your transaction has been secured. We're now curating your stationery experience with love and care.
                         </p>
 
-                        {/* Order Info Plate */}
-                        <div className="bg-slate-50 rounded-3xl p-6 md:p-8 mb-10 border border-slate-100">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                                <div className="space-y-1">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Order Reference</p>
-                                    <p className="text-lg font-bold text-slate-700 text-center md:text-left">#{orderId || 'ORD-' + Math.random().toString(36).substr(2, 6).toUpperCase()}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest text-center md:text-left">Amount Paid</p>
-                                    <p className="text-lg font-bold text-slate-700 text-center md:text-left">₹{amount || '1,436.00'}</p>
-                                </div>
+                        {/* Order Identity Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                            <div className="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 group hover:border-indigo-200 transition-all">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 text-center">Receipt Reference</p>
+                                <p className="text-2xl font-black text-slate-800 tracking-tighter text-center">#{orderId?.split('-').pop() || 'SYNCING'}</p>
                             </div>
-                            
-                            <div className="mt-6 pt-6 border-t border-slate-200/60 flex flex-col items-center justify-center gap-3">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                                    <p className="text-sm font-semibold text-slate-600">Confirmation email sent to your inbox</p>
-                                </div>
-                                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-4 py-1.5 rounded-full">
-                                    Redirecting to home in {countdown}s
-                                </p>
+                            <div className="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 group hover:border-indigo-200 transition-all">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 text-center">Transaction Value</p>
+                                <p className="text-2xl font-black text-indigo-600 tracking-tighter text-center">₹{amount || '1,436.00'}</p>
+                            </div>
+                        </div>
+                        
+                        <div className="flex flex-col items-center justify-center gap-6 mb-12">
+                            <div className="flex items-center gap-3 bg-emerald-50 px-6 py-3 rounded-2xl">
+                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
+                                <p className="text-sm font-black text-emerald-700 uppercase tracking-widest">Confirmation email dispatched</p>
+                            </div>
+                            <div className="flex items-center gap-2 text-indigo-500 font-black text-xs uppercase tracking-[0.3em] bg-indigo-50 px-8 py-4 rounded-full border border-indigo-100/50">
+                                <Clock size={16} className="animate-spin-slow" />
+                                Landing home in {countdown}s
                             </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        {/* High Impact Actions */}
+                        <div className="flex flex-col sm:flex-row gap-6 justify-center">
                             <button
                                 onClick={() => navigate('/')}
-                                className="group relative px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold flex items-center justify-center gap-2 transition-all hover:bg-slate-800 hover:scale-105 active:scale-95 shadow-xl shadow-slate-200"
+                                className="group px-10 py-6 bg-slate-900 text-white rounded-[2rem] font-black flex items-center justify-center gap-3 transition-all hover:bg-slate-800 hover:-translate-y-2 active:scale-95 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] text-sm uppercase tracking-widest"
                             >
                                 <Home size={20} />
-                                <span>Return Home</span>
-                                <ArrowRight size={18} className="translate-x-0 group-hover:translate-x-1 transition-transform" />
+                                Back to Base
                             </button>
 
                             <button
                                 onClick={() => navigate(orderId ? `/track-order/${orderId}` : '/orders')}
-                                className="px-8 py-4 bg-white text-slate-700 border-2 border-slate-100 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all hover:bg-slate-50 hover:border-slate-200 active:scale-95 shadow-sm"
+                                className="group px-10 py-6 bg-white text-slate-900 border-4 border-slate-100 rounded-[2rem] font-black flex items-center justify-center gap-3 transition-all hover:bg-slate-50 hover:border-indigo-100 active:scale-95 text-sm uppercase tracking-widest"
                             >
-                                <Receipt size={20} className="text-slate-400" />
-                                <span>Track Order</span>
+                                <Receipt size={20} className="text-indigo-500" />
+                                Track My Box
                             </button>
                         </div>
                     </div>
