@@ -869,6 +869,7 @@ const AdminPanel = () => {
                                     <thead className="bg-gray-50 text-gray-600 text-sm">
                                         <tr>
                                             <th className="p-3 text-left">Order ID</th>
+                                            <th className="p-3 text-left">Date/Time</th>
                                             <th className="p-3 text-left">Customer</th>
                                             <th className="p-3 text-left">Items</th>
                                             <th className="p-3 text-left">Status</th>
@@ -880,6 +881,15 @@ const AdminPanel = () => {
                                         {orders.map(order => (
                                             <tr key={order.order_id} className="hover:bg-gray-50">
                                                 <td className="p-3 font-medium text-secondary">{order.order_id}</td>
+                                                <td className="p-3 text-xs text-gray-500">
+                                                    {order.created_at ? new Date(order.created_at).toLocaleString('en-IN', {
+                                                        day: '2-digit',
+                                                        month: 'short',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    }) : 'N/A'}
+                                                </td>
                                                 <td className="p-3">
                                                     <div>{order.user_name}</div>
                                                     <div className="text-xs text-gray-500">{order.user_email}</div>

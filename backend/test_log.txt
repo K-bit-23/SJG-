@@ -1,4 +1,0 @@
-Loading env from: D:\projects\SJG-\backend\.env
-Attempting to connect to smtp.gmail.com:587 as karthikeyankarthikeyan0414@gmail.com...
-Password: ezelffqqcoewijsc
-ERROR: (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials 41be03b00d2f7-c73eb996257sm6605280a12.9 - gsmtp')
