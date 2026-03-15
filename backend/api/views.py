@@ -203,7 +203,7 @@ def get_logo_base64():
 
 
 def generate_invoice_pdf(order_data):
-    \"\"\"Generate a premium PDF invoice bytes for the order.\"\"\"
+    """Generate a premium PDF invoice bytes for the order."""
     if not REPORTLAB_AVAILABLE:
         return None
 
@@ -221,11 +221,11 @@ def generate_invoice_pdf(order_data):
         bg_light = colors.HexColor('#f8fafc')      # Slate-50
 
         # Pre-fetch Global Settings
-        store_name = \"SJG STATIONERY\"
-        store_address = \"Sakthi Nagar, Thindal, Erode - 638012.\"
-        store_phone = \"+91 93600 24821\"
-        store_email = \"sjgvxerox@gmail.com\"
-        currency_sym = \"₹\"
+        store_name = "SJG STATIONERY"
+        store_address = "Sakthi Nagar, Thindal, Erode - 638012."
+        store_phone = "+91 93600 24821"
+        store_email = "sjgvxerox@gmail.com"
+        currency_sym = "₹"
         gst_rate = 18
 
         try:
@@ -252,21 +252,21 @@ def generate_invoice_pdf(order_data):
         else:
             c.setFont('Helvetica-Bold', 28)
             c.setFillColor(colors.white)
-            c.drawString(margin, height - 75, \"SJG.\")
+            c.drawString(margin, height - 75, "SJG.")
 
         # Invoice Text
         c.setFillColor(colors.white)
         c.setFont('Helvetica-Bold', 32)
-        c.drawRightString(width - margin, height - 65, \"INVOICE\")
+        c.drawRightString(width - margin, height - 65, "INVOICE")
         c.setFont('Helvetica', 9)
-        c.drawRightString(width - margin, height - 85, \"REGULAR TAX INVOICE\")
+        c.drawRightString(width - margin, height - 85, "REGULAR TAX INVOICE")
 
         # 2. Information Block
         info_y = height - 170
         c.setFillColor(primary_color)
         c.setFont('Helvetica-Bold', 11)
-        c.drawString(margin, info_y, \"CUSTOMER DETAILS\")
-        c.drawString(width/2 + 20, info_y, \"INVOICE DETAILS\")
+        c.drawString(margin, info_y, "CUSTOMER DETAILS")
+        c.drawString(width/2 + 20, info_y, "INVOICE DETAILS")
         
         c.setStrokeColor(bg_light)
         c.setLineWidth(1)
@@ -291,9 +291,9 @@ def generate_invoice_pdf(order_data):
         if not created_at: created_at = datetime.now()
         date_str = created_at.strftime('%d %B %Y') if hasattr(created_at, 'strftime') else str(created_at)
         
-        c.drawString(width/2 + 20, info_y - 25, f\"Invoice No: {order_id}\")
-        c.drawString(width/2 + 20, info_y - 42, f\"Issue Date: {date_str}\")
-        c.drawString(width/2 + 20, info_y - 57, f\"Payment: {str(order_data.get('payment_method', 'Offline')).capitalize()}\")
+        c.drawString(width/2 + 20, info_y - 25, f"Invoice No: {order_id}")
+        c.drawString(width/2 + 20, info_y - 42, f"Issue Date: {date_str}")
+        c.drawString(width/2 + 20, info_y - 57, f"Payment: {str(order_data.get('payment_method', 'Offline')).capitalize()}")
 
         # 3. Items Table
         table_y = info_y - 120
@@ -303,10 +303,10 @@ def generate_invoice_pdf(order_data):
         
         c.setFillColor(primary_color)
         c.setFont('Helvetica-Bold', 9)
-        c.drawString(margin + 10, table_y + 8, \"ITEM DESCRIPTION\")
-        c.drawCentredString(width - margin - 140, table_y + 8, \"QTY\")
-        c.drawRightString(width - margin - 80, table_y + 8, \"UNIT PRICE\")
-        c.drawRightString(width - margin - 10, table_y + 8, \"AMOUNT\")
+        c.drawString(margin + 10, table_y + 8, "ITEM DESCRIPTION")
+        c.drawCentredString(width - margin - 140, table_y + 8, "QTY")
+        c.drawRightString(width - margin - 80, table_y + 8, "UNIT PRICE")
+        c.drawRightString(width - margin - 10, table_y + 8, "AMOUNT")
 
         # Rows
         items = order_data.get('items', [])
@@ -324,8 +324,8 @@ def generate_invoice_pdf(order_data):
             
             c.drawString(margin + 10, row_y, name[:50])
             c.drawCentredString(width - margin - 140, row_y, str(qty))
-            c.drawRightString(width - margin - 80, row_y, f\"{currency_sym}{price:,.2f}\")
-            c.drawRightString(width - margin - 10, row_y, f\"{currency_sym}{line_total:,.2f}\")
+            c.drawRightString(width - margin - 80, row_y, f"{currency_sym}{price:,.2f}")
+            c.drawRightString(width - margin - 10, row_y, f"{currency_sym}{line_total:,.2f}")
             
             c.setStrokeColor(bg_light)
             c.line(margin, row_y - 8, width - margin, row_y - 8)
@@ -346,18 +346,18 @@ def generate_invoice_pdf(order_data):
         actual_subtotal = total_amt / (1 + (gst_rate/100))
         gst_amt = total_amt - actual_subtotal
 
-        c.drawRightString(width - margin - 100, summary_y, \"Subtotal\")
-        c.drawRightString(width - margin - 10, summary_y, f\"{currency_sym}{actual_subtotal:,.2f}\")
+        c.drawRightString(width - margin - 100, summary_y, "Subtotal")
+        c.drawRightString(width - margin - 10, summary_y, f"{currency_sym}{actual_subtotal:,.2f}")
         
         c.setFont('Helvetica', 10)
         c.setFillColor(text_muted)
-        c.drawRightString(width - margin - 100, summary_y - 20, f\"Tax (GST {gst_rate}%)\")
-        c.drawRightString(width - margin - 10, summary_y - 20, f\"{currency_sym}{gst_amt:,.2f}\")
+        c.drawRightString(width - margin - 100, summary_y - 20, f"Tax (GST {gst_rate}%)")
+        c.drawRightString(width - margin - 10, summary_y - 20, f"{currency_sym}{gst_amt:,.2f}")
         
         c.setFillColor(primary_color)
         c.setFont('Helvetica-Bold', 16)
-        c.drawRightString(width - margin - 100, summary_y - 50, \"GRAND TOTAL\")
-        c.drawRightString(width - margin - 10, summary_y - 50, f\"{currency_sym}{total_amt:,.2f}\")
+        c.drawRightString(width - margin - 100, summary_y - 50, "GRAND TOTAL")
+        c.drawRightString(width - margin - 10, summary_y - 50, f"{currency_sym}{total_amt:,.2f}")
 
         # 5. Footer & Terms
         c.setStrokeColor(primary_color)
@@ -369,16 +369,16 @@ def generate_invoice_pdf(order_data):
         c.setFont('Helvetica', 8)
         c.setFillColor(text_muted)
         c.drawString(margin, 88, store_address)
-        c.drawString(margin, 78, f\"WhatsApp: {store_phone}  |  Email: {store_email}\")
+        c.drawString(margin, 78, f"WhatsApp: {store_phone}  |  Email: {store_email}")
         
         c.setFont('Helvetica-Bold', 10)
         c.setFillColor(primary_color)
-        c.drawRightString(width - margin, 100, \"Store Manager\")
+        c.drawRightString(width - margin, 100, "Store Manager")
         c.setFont('Helvetica', 8)
-        c.drawRightString(width - margin, 88, \"(Authorized Signatory)\")
+        c.drawRightString(width - margin, 88, "(Authorized Signatory)")
         
         c.setFont('Helvetica-Oblique', 8)
-        c.drawCentredString(width/2, 40, \"Thank you for your business! Please visit again.\")
+        c.drawCentredString(width/2, 40, "Thank you for your business! Please visit again.")
 
         c.showPage()
         c.save()
