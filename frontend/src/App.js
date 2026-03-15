@@ -46,7 +46,7 @@ const Layout = ({ children }) => {
   const isHomePage = location.pathname === '/';
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f1f3f6]">
+    <div className="flex flex-col min-h-screen bg-[var(--background)] transition-colors duration-300">
       {!isAdminPage && <Navbar />}
       {!isAdminPage && <WhatsAppButton />}
       {!isAdminPage && <ChatBot />}
@@ -58,6 +58,59 @@ const Layout = ({ children }) => {
       {isHomePage && <Footer />}
     </div>
   );
+};
+
+const SettingsManager = ({ children }) => {
+  const { user } = useAuth();
+  
+  React.useEffect(() => {
+    // 1. Fetch Global App Settings
+    const fetchGlobalSettings = async () => {
+      try {
+        const { data } = await axios.get('/api/settings/');
+        localStorage.setItem('appSettings', JSON.stringify(data));
+      } catch (err) {
+        console.warn("Using default settings. API unreachable.");
+      }
+    };
+    fetchGlobalSettings();
+
+    // Apply cached theme immediately
+    const cachedSettings = localStorage.getItem('userSettings');
+    if (cachedSettings) {
+      const { dark_mode } = JSON.parse(cachedSettings);
+      if (dark_mode) document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (!user) {
+      document.documentElement.classList.remove('dark');
+      return;
+    }
+
+    // 2. Fetch User Specific Settings
+    const fetchUserSettings = async () => {
+      try {
+        const { data } = await axios.get(`/api/user-settings/${encodeURIComponent(user.email)}/`);
+        
+        // Apply Dark Mode
+        if (data.dark_mode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+
+        // Apply Language (could be more complex, but let's store it)
+        localStorage.setItem('userSettings', JSON.stringify(data));
+      } catch (err) {
+        console.error("Failed to sync user settings:", err);
+      }
+    };
+    fetchUserSettings();
+  }, [user]);
+
+  return children;
 };
 
 function App() {

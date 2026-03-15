@@ -120,7 +120,10 @@ const Home = () => {
                     setServices(res.data.services);
                 }
             })
-            .catch(err => console.log("Using default static content"));
+            .catch(err => {
+                console.error("Home content fetch failed:", err);
+                setError('Failed to load home content');
+            });
     }, []);
 
     useEffect(() => {

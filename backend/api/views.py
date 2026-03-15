@@ -286,7 +286,7 @@ class OrderDetailView(APIView):
     def patch(self, request, pk):
         try:
             collection = mongo_client.get_collection('orders')
-            update_data = request.data
+            update_data = dict(request.data)
             update_data['updated_at'] = datetime.now()
             
             # Try to find by ObjectID first, then by custom order_id
@@ -301,7 +301,7 @@ class OrderDetailView(APIView):
             )
             if result.matched_count == 0:
                 return Response(
-                    {'error': 'Order not found'},
+                    {'error': f'Order not found: {pk}'},
                     status=status.HTTP_404_NOT_FOUND
                 )
             order = collection.find_one(query)

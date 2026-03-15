@@ -6,7 +6,6 @@ import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import api from '../utils/api';
 
-import AuthModal from './AuthModal';
 
 // Wishlist Context
 const WishlistContext = createContext();
@@ -65,7 +64,6 @@ const Navbar = () => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [wishlistCount, setWishlistCount] = useState(0);
     const [isCartBumping, setIsCartBumping] = useState(false);
     const [isWishlistBumping, setIsWishlistBumping] = useState(false);
@@ -180,6 +178,24 @@ const Navbar = () => {
         navigate('/');
     };
 
+    const handleAdminLogin = (e) => {
+        e.preventDefault();
+        setAdminError('');
+        const ADMIN_EMAIL = 'admin@sjg.com';
+        const ADMIN_PASSWORD = 'admin@123';
+        if (adminCredentials.email === ADMIN_EMAIL && adminCredentials.password === ADMIN_PASSWORD) {
+            // Set local admin session so AdminPanel guard lets us in
+            localStorage.setItem('admin_session', 'true');
+            setAdminModalOpen(false);
+            setAdminCredentials({ email: '', password: '' });
+            showToast('Admin logged in successfully', 'success');
+            navigate('/admin');
+        } else {
+            setAdminError('Invalid admin credentials. Please try again.');
+            showToast('Invalid admin credentials. Please try again.', 'error');
+        }
+    };
+
     const getInitials = (name) => {
         if (!name) return 'U';
         return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -209,7 +225,6 @@ const Navbar = () => {
 
     return (
         <>
-            <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
 
             <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md' : 'bg-white shadow-sm'}`}>
                 <div className="max-w-7xl mx-auto px-4 lg:px-6">
@@ -349,6 +364,55 @@ const Navbar = () => {
                                     </span>
                                 )}
                             </Link>
+
+                            {/* Notifications Bell */}
+                            <div className="relative notifications-dropdown">
+                                <button 
+                                    onClick={() => setNotificationsDropdownOpen(!notificationsDropdownOpen)}
+                                    className="relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale"
+                                >
+                                    <Bell size={20} className={`text-gray-500 group-hover:text-primary transition-colors ${notifications.length > 0 ? 'animate-swing' : ''}`} />
+                                    {notifications.length > 0 && (
+                                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+                                    )}
+                                </button>
+
+                                {notificationsDropdownOpen && (
+                                    <div className="absolute right-0 top-full mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in">
+                                        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Alert Center</h3>
+                                            <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-full">{notifications.length} New</span>
+                                        </div>
+                                        <div className="max-h-96 overflow-y-auto">
+                                            {notifications.length === 0 ? (
+                                                <div className="p-8 text-center">
+                                                    <Bell size={32} className="mx-auto text-gray-200 mb-2" />
+                                                    <p className="text-xs text-gray-400 font-bold uppercase">All caught up!</p>
+                                                </div>
+                                            ) : (
+                                                notifications.map(n => (
+                                                    <div key={n.id} className="p-4 border-b border-gray-50 hover:bg-gray-50/80 transition-colors flex gap-3">
+                                                        <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-xs font-bold text-gray-800 leading-tight">{n.message}</p>
+                                                            <p className="text-[10px] text-gray-400 mt-1 font-medium italic">{new Date(n.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                        <div className="p-3 bg-gray-50 text-center border-t border-gray-100">
+                                            <button className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors">Clear All History</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {user && (
+                                <Link to="/orders" className="relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale" title="My Orders">
+                                    <Package size={20} className="text-gray-500 group-hover:text-secondary transition-colors" />
+                                </Link>
+                            )}
 
                             {/* User Profile */}
                             {user ? (
@@ -559,6 +623,97 @@ const Navbar = () => {
             )}
 
             <div className="h-16 md:h-[72px]"></div>
+
+            {/* ── Admin Login Modal ── */}
+            {adminModalOpen && (
+                <div
+                    className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+                    onClick={() => { setAdminModalOpen(false); setAdminError(''); }}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+                        onClick={e => e.stopPropagation()}
+                        style={{ animation: 'fadeSlideUp 0.25s ease-out' }}
+                    >
+                        {/* Header */}
+                        <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-white text-center">
+                            <div className="w-16 h-16 bg-amber-400/20 rounded-full flex items-center justify-center mx-auto mb-3 ring-2 ring-amber-400/40">
+                                <ShieldCheck size={32} className="text-amber-400" />
+                            </div>
+                            <h2 className="text-xl font-bold">Admin Access</h2>
+                            <p className="text-white/60 text-sm mt-1">Enter your admin credentials</p>
+                        </div>
+
+                        {/* Form */}
+                        <form onSubmit={handleAdminLogin} className="p-6 space-y-4">
+                            <div>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">Admin Email</label>
+                                <div className="relative">
+                                    <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="email"
+                                        required
+                                        value={adminCredentials.email}
+                                        onChange={e => setAdminCredentials(p => ({ ...p, email: e.target.value }))}
+                                        placeholder="admin@sjg.com"
+                                        className="w-full pl-9 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-all"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1.5">Password</label>
+                                <div className="relative">
+                                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type={showAdminPassword ? "text" : "password"}
+                                        required
+                                        value={adminCredentials.password}
+                                        onChange={e => setAdminCredentials(p => ({ ...p, password: e.target.value }))}
+                                        placeholder="••••••••"
+                                        className="w-full pl-9 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-all"
+                                    />
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowAdminPassword(!showAdminPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                                    >
+                                        {showAdminPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => { setAdminModalOpen(false); setAdminError(''); setAdminCredentials({ email: '', password: '' }); }}
+                                    className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-3 bg-gradient-to-r from-slate-800 to-slate-900 text-white rounded-xl text-sm font-bold hover:from-slate-700 hover:to-slate-800 transition-all flex items-center justify-center gap-2 shadow-lg"
+                                >
+                                    <KeyRound size={15} /> Enter Admin
+                                </button>
+                            </div>
+
+                            <p className="text-center text-xs text-gray-400 pt-1">
+                                Default: admin@sjg.com / admin@123
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+                @keyframes fadeSlideUp {
+                    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+                    to { opacity: 1; transform: translateY(0) scale(1); }
+                }
+            `}</style>
+
         </>
     );
 };

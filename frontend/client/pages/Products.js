@@ -70,16 +70,7 @@ const Products = () => {
                 }
             } catch (err) {
                 console.error("Error fetching products:", err);
-                setProducts([
-                    { id: 1, name: 'Premium Notebook Set', price: 299, category: 'Notebooks', image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=400', stock: 25, rating: 4.5 },
-                    { id: 2, name: 'Executive Pen Collection', price: 599, category: 'Pens', image: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?w=400', stock: 50, rating: 4.8 },
-                    { id: 3, name: 'Art Supplies Bundle', price: 1299, category: 'Art Supplies', image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400', stock: 15, rating: 4.2 },
-                    { id: 4, name: 'Scientific Calculator', price: 899, category: 'Electronics', image: 'https://images.unsplash.com/photo-1564466809058-bf4114d55352?w=400', stock: 30, rating: 4.6 },
-                    { id: 5, name: 'Desk Organizer Pro', price: 449, category: 'Office', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400', stock: 20, rating: 4.3 },
-                    { id: 6, name: 'Highlighter Pack (12)', price: 199, category: 'Markers', image: 'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=400', stock: 100, rating: 4.7 },
-                    { id: 7, name: 'Premium Sketchbook A4', price: 399, category: 'Notebooks', image: 'https://images.unsplash.com/photo-1531346878377-a5be20888e57?w=400', stock: 40, rating: 4.4 },
-                    { id: 8, name: 'Fountain Pen Classic', price: 1499, category: 'Pens', image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400', stock: 10, rating: 4.9 },
-                ]);
+                setProducts([]);
             } finally {
                 setLoading(false);
             }

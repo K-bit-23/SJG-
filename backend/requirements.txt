@@ -7,5 +7,6 @@ certifi
 whitenoise==6.6.0
 gunicorn==21.2.0
 python-dotenv
+django-environ
 
 stripe

@@ -15,14 +15,22 @@ class ObjectIdField(serializers.Field):
 class ProductSerializer(serializers.Serializer):
     id = ObjectIdField(read_only=True, source='_id')
     name = serializers.CharField(max_length=200)
-    product_code = serializers.CharField(max_length=50, required=False, allow_blank=True)  # SKU/Product Code
-    category = serializers.CharField(max_length=100)
+    product_code = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    category = serializers.CharField(max_length=100, required=False, allow_blank=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2)
     description = serializers.CharField(required=False, allow_blank=True)
-    image = serializers.CharField(required=False, allow_blank=True)
+    image = serializers.CharField(required=False, allow_blank=True, max_length=5000000)  # supports base64
     stock = serializers.IntegerField(default=0)
+    status = serializers.CharField(required=False, allow_blank=True, default='active')
+    tags = serializers.CharField(required=False, allow_blank=True)
+    inStock = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
+
+    def get_inStock(self, obj):
+        if isinstance(obj, dict):
+            return obj.get('stock', 0) > 0
+        return getattr(obj, 'stock', 0) > 0
 
 class OrderItemSerializer(serializers.Serializer):
     product_id = serializers.CharField()
@@ -62,13 +70,22 @@ class ChatMessageSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(read_only=True)
 
 class UserSerializer(serializers.Serializer):
-    uid = serializers.CharField()
+    id = ObjectIdField(read_only=True, source='_id')
+    uid = serializers.CharField(required=False, allow_null=True)
     email = serializers.EmailField()
     display_name = serializers.CharField(required=False, allow_blank=True)
+    name = serializers.CharField(required=False, allow_blank=True) # Fallback for mobile app
     photo_url = serializers.CharField(required=False, allow_blank=True)
     role = serializers.CharField(default='user')
+    password = serializers.CharField(write_only=True, required=False)
+    phone = serializers.CharField(required=False, allow_blank=True)
+    street = serializers.CharField(required=False, allow_blank=True)
+    city = serializers.CharField(required=False, allow_blank=True)
+    state = serializers.CharField(required=False, allow_blank=True)
+    zip = serializers.CharField(required=False, allow_blank=True)
     created_at = serializers.DateTimeField(read_only=True)
     last_login = serializers.DateTimeField(required=False)
+
 
 # --- Home Page Content Serializers ---
 

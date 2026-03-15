@@ -14,7 +14,6 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Sync user with backend
     const syncUserWithBackend = async (userData) => {
         try {
             await api.post('users/', {
