@@ -1,0 +1,15 @@
+{
+  "buildCommand": "npm install && npm run build -w frontend",
+  "outputDirectory": "frontend/build",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://sjg-backend.onrender.com/api/$1"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
