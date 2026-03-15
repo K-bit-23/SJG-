@@ -131,11 +131,23 @@ function App() {
   useEffect(() => {
     // Hide loader when page has fully loaded (including assets)
     const hide = () => setTimeout(() => setPageLoading(false), 500);
+    
+    // Safety timeout: don't show loader for more than 3 seconds
+    const safetyTimeout = setTimeout(hide, 3000);
+
     if (document.readyState === 'complete') {
       hide();
+      clearTimeout(safetyTimeout);
     } else {
-      window.addEventListener('load', hide);
-      return () => window.removeEventListener('load', hide);
+      const handleLoad = () => {
+        hide();
+        clearTimeout(safetyTimeout);
+      };
+      window.addEventListener('load', handleLoad);
+      return () => {
+        window.removeEventListener('load', handleLoad);
+        clearTimeout(safetyTimeout);
+      };
     }
   }, []);
 

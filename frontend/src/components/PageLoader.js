@@ -1,7 +1,8 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 
-const PageLoader = () => {
+const PageLoader = ({ open }) => {
+    if (!open) return null;
     return (
         <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white backdrop-blur-sm">
             <div className="relative flex flex-col items-center">
