@@ -104,13 +104,15 @@ const OrderTracking = () => {
                             className="absolute top-1/2 -translate-y-[80%] -translate-x-1/2 transition-all duration-1000 ease-in-out z-20"
                             style={{ left: `${(currentStep / 3) * 100}%` }}
                         >
-                            <div className="relative">
-                                <div className="bg-primary text-white p-2.5 rounded-xl shadow-lg shadow-blue-200">
-                                    <Truck size={24} className="animate-pulse" />
+                            <div className="relative group">
+                                <div className="bg-primary text-white p-2.5 rounded-xl shadow-xl shadow-blue-400/40 relative">
+                                    <div className="absolute inset-0 bg-primary rounded-xl blur-md opacity-40 animate-pulse"></div>
+                                    <Truck size={24} className="relative z-10 animate-bounce-subtle" />
                                 </div>
                                 {/* Floating Tooltip */}
-                                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap font-bold">
-                                    On the move!
+                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-3 py-1 rounded-lg whitespace-nowrap font-bold opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    Your package is {steps[currentStep].label.toLowerCase()}
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-x-4 border-x-transparent border-t-4 border-t-slate-800"></div>
                                 </div>
                             </div>
                         </div>

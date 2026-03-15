@@ -97,7 +97,7 @@ const PaymentSuccess = () => {
                             </button>
 
                             <button
-                                onClick={() => navigate('/orders')}
+                                onClick={() => navigate(orderId ? `/track-order/${orderId}` : '/orders')}
                                 className="px-8 py-4 bg-white text-slate-700 border-2 border-slate-100 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all hover:bg-slate-50 hover:border-slate-200 active:scale-95 shadow-sm"
                             >
                                 <Receipt size={20} className="text-slate-400" />

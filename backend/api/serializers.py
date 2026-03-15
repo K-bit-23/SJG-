@@ -38,7 +38,7 @@ class OrderSerializer(serializers.Serializer):
     items = OrderItemSerializer(many=True)
     total_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
     status = serializers.ChoiceField(
-        choices=['pending', 'processing', 'completed', 'cancelled'],
+        choices=['pending', 'processing', 'shipped', 'completed', 'cancelled'],
         default='pending'
     )
     shipping_address = serializers.CharField()
