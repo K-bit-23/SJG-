@@ -1,13 +1,13 @@
 import React from 'react';
-import { Package, Users, DollarSign, Box, TrendingUp } from 'lucide-react';
+import { Package, Users, DollarSign, Box, TrendingUp, Truck, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AdminDashboard = ({ stats, orders, getStatusBadge }) => {
     const statCards = [
         { title: "Total Revenue", value: `₹${stats.total_revenue}`, icon: DollarSign, color: "bg-blue-500", target: "/admin/business" },
-        { title: "Active Orders", value: stats.active_orders, icon: Package, color: "bg-orange-500", target: "/admin/orders" },
-        { title: "Customers", value: stats.customers_count, icon: Users, color: "bg-green-500", target: "/admin/users" },
-        { title: "Products", value: stats.products_count, icon: Box, color: "bg-purple-500", target: "/admin/inventory" }
+        { title: "Active Orders", value: stats.non_delivered_orders || 0, icon: Package, color: "bg-orange-500", target: "/admin/orders" },
+        { title: "Delivered", value: stats.delivered_orders || 0, icon: Truck, color: "bg-emerald-500", target: "/admin/orders?status=completed" },
+        { title: "Offline Purchase", value: "New Bill", icon: ShoppingCart, color: "bg-indigo-600", target: "/admin/billing" }
     ];
 
     return (

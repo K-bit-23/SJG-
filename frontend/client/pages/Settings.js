@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../src/context/AuthContext';
 import { useNotifications } from '../../src/context/NotificationContext';
-import { Settings as SettingsIcon, MapPinned, Bell, Mail, MessageSquare, Shield, LogOut, Save } from 'lucide-react';
+import { Settings as SettingsIcon, MapPinned, Bell, Mail, Camera, Shield, LogOut, Save, Clock } from 'lucide-react';
 import api from '../../src/utils/api';
 import AccountLayout from '../../src/components/AccountLayout';
 
@@ -15,7 +15,7 @@ const Settings = () => {
         locationAccess: false,
         notifications: true,
         emailUpdates: true,
-        smsAlerts: false,
+        cameraAccess: false,
         darkMode: false
     });
 
@@ -29,7 +29,7 @@ const Settings = () => {
 
                 const res = await api.get(`/profile/${encodeURIComponent(userEmail)}/`);
                 if (res.data.appSettings) {
-                    setAppSettings(res.data.appSettings);
+                    setAppSettings(prev => ({ ...prev, ...res.data.appSettings }));
                 }
             } catch (error) {
                 console.error("Error fetching settings:", error);
@@ -52,6 +52,19 @@ const Settings = () => {
             );
         } else {
             alert("Geolocation is not supported by this browser.");
+        }
+    };
+
+    const requestCameraAccess = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            setAppSettings(prev => ({ ...prev, cameraAccess: true }));
+            showToast("Camera access granted!", 'success');
+            // Close stream immediately as we just need permission check for settings
+            stream.getTracks().forEach(track => track.stop());
+        } catch (error) {
+            showToast("Camera access denied or not available.", 'error');
+            setAppSettings(prev => ({ ...prev, cameraAccess: false }));
         }
     };
 
@@ -137,6 +150,22 @@ const Settings = () => {
                                 }}
                             />
 
+                            {/** Camera Access Row **/}
+                            <ToggleRow
+                                icon={<Camera size={18} />}
+                                iconBg="bg-purple-50 text-purple-600 border border-purple-100"
+                                title="Camera Access"
+                                description="Enable camera for scanning and photos"
+                                checked={appSettings.cameraAccess}
+                                onChange={(checked) => {
+                                    if (checked) {
+                                        requestCameraAccess();
+                                    } else {
+                                        setAppSettings(prev => ({ ...prev, cameraAccess: false }));
+                                    }
+                                }}
+                            />
+
                             {/** Toggle rows **/}
                             <ToggleRow
                                 icon={<Bell size={18} />}
@@ -154,15 +183,6 @@ const Settings = () => {
                                 description="Receive newsletters and promotions"
                                 checked={appSettings.emailUpdates}
                                 onChange={(checked) => setAppSettings(prev => ({ ...prev, emailUpdates: checked }))}
-                            />
-
-                            <ToggleRow
-                                icon={<MessageSquare size={18} />}
-                                iconBg="bg-teal-50 text-teal-600 border border-teal-100"
-                                title="SMS Alerts"
-                                description="Receive order updates via SMS"
-                                checked={appSettings.smsAlerts}
-                                onChange={(checked) => setAppSettings(prev => ({ ...prev, smsAlerts: checked }))}
                             />
                         </div>
                     </section>

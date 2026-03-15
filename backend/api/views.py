@@ -140,7 +140,56 @@ def generate_order_id():
     random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
     return f'ORD-{timestamp}-{random_str}'
 
-def _load_logo_base64():
+class OfflineOrderView(APIView):
+    """Process an offline purchase and update inventory"""
+    
+    def post(self, request):
+        try:
+            data = request.data
+            items = data.get('items', [])
+            customer = data.get('customer', {})
+            
+            if not items:
+                return Response({'error': 'No items in order'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            products_collection = mongo_client.get_collection('products')
+            orders_collection = mongo_client.get_collection('orders')
+            
+            # 1. Update Inventory for each item
+            for item in items:
+                product_id = item.get('id')
+                qty = item.get('quantity', 1)
+                
+                # Decrement stock in MongoDB
+                products_collection.update_one(
+                    {'_id': ObjectId(product_id)},
+                    {'$inc': {'stock': -qty}}
+                )
+            
+            # 2. Create Order Record
+            order_id = f"OFF-{int(datetime.now().timestamp())}"
+            order_data = {
+                'order_id': order_id,
+                'user_name': customer.get('name', 'Offline Customer'),
+                'user_email': customer.get('email', 'offline@sjg.com'),
+                'user_phone': customer.get('phone', ''),
+                'items': items,
+                'total_amount': data.get('total', 0),
+                'status': 'completed',
+                'payment_status': 'paid',
+                'payment_method': 'offline',
+                'created_at': datetime.now(),
+                'updated_at': datetime.now()
+            }
+            
+            orders_collection.insert_one(order_data)
+            
+            return Response({'success': True, 'order_id': order_id})
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def get_logo_base64():
     """Load the project logo as a base64 string for email embedding."""
     try:
         logo_path = Path(settings.BASE_DIR) / '..' / 'frontend' / 'public' / 'logo.png'
@@ -184,14 +233,21 @@ def generate_invoice_pdf(order_data):
         c.drawRightString(width - margin, height - 55, f'DATE: {date_display}')
         c.drawRightString(width - margin, height - 70, f'INVOICE NO: {order_id.split("-")[-1] or order_id}')
 
-        # 4. Company Info
-        c.setFont('Helvetica', 10)
+        # 4. Logo and Company Info
+        logo_path = os.path.join(settings.BASE_DIR, '..', 'frontend', 'public', 'logo.png')
+        if os.path.exists(logo_path):
+            c.drawImage(logo_path, margin, height - 150, width=45*mm, preserveAspectRatio=True, mask='auto')
+        
+        c.setFont('Helvetica-Bold', 12)
         c.setFillColor(colors.black)
-        c.drawString(margin, height - 90, 'SJG Stationery')
-        c.drawString(margin, height - 105, '123 Station Road, SJG Campus')
-        c.drawString(margin, height - 117, 'Chennai, Tamilnadu - 600001')
-        c.drawString(margin, height - 129, 'Phone: +91 93600 24821')
-        c.drawString(margin, height - 141, 'Email: support@sjg.com')
+        c.drawString(width - margin - 200, height - 100, 'SJG STATIONERY')
+        
+        c.setFont('Helvetica', 9)
+        c.setFillColor(colors.HexColor('#4B5563'))
+        c.drawString(width - margin - 200, height - 115, 'Sakthi Nagar, Thindal,')
+        c.drawString(width - margin - 200, height - 127, 'Erode - 638012.')
+        c.drawString(width - margin - 200, height - 139, 'Phone: +91 93600 24821')
+        c.drawString(width - margin - 200, height - 151, 'Email: sjgvxerox@gmail.com')
 
         # 5. BILL TO / SHIP TO
         c.setFont('Helvetica-Bold', 11)
@@ -611,6 +667,12 @@ class DashboardStatsView(APIView):
             total_messages = messages_collection.count_documents({})
             total_users = users_collection.count_documents({})
             
+            # Delivered vs Non-Delivered
+            delivered_orders = orders_collection.count_documents({'status': 'completed'})
+            non_delivered_orders = orders_collection.count_documents({
+                'status': {'$nin': ['completed', 'cancelled']}
+            })
+            
             # Calculate total revenue
             pipeline = [
                 {'$group': {'_id': None, 'total': {'$sum': '$total_amount'}}}
@@ -618,8 +680,7 @@ class DashboardStatsView(APIView):
             revenue_result = list(orders_collection.aggregate(pipeline))
             total_revenue = float(revenue_result[0]['total']) if revenue_result else 0
             
-            # Monthly Revenue Trend (Last 6 months)
-            # This is a simplified version. For production, you'd want actual month names and year handling.
+            # Monthly Revenue Trend
             monthly_pipeline = [
                 {
                     '$group': {
@@ -632,36 +693,15 @@ class DashboardStatsView(APIView):
             ]
             monthly_revenue = list(orders_collection.aggregate(monthly_pipeline))
             
-            # Category Performance
-            # We join orders with products to get categories, or just count products per category for now 
-            # as a simple representation of category data.
-            category_pipeline = [
-                {
-                    '$group': {
-                        '_id': '$category',
-                        'count': {'$sum': 1},
-                        'stock': {'$sum': '$stock'}
-                    }
-                },
-                {'$sort': {'count': -1}}
-            ]
-            category_stats = list(products_collection.aggregate(category_pipeline))
-            
-            # Recent orders
-            recent_orders = list(orders_collection.find().sort('created_at', -1).limit(5))
-            
             return Response({
-                'total_products': total_products,      # Also keep original just in case
-                'products_count': total_products,       # Used by AdminPanel
-                'total_orders': total_orders,           # Also keep original
-                'active_orders': total_orders,          # Used by AdminPanel
-                'total_messages': total_messages,
-                'total_users': total_users,
-                'customers_count': total_users,         # Used by AdminPanel
                 'total_revenue': total_revenue,
+                'active_orders': total_orders,
+                'customers_count': total_users,
+                'products_count': total_products,
+                'delivered_orders': delivered_orders,
+                'non_delivered_orders': non_delivered_orders,
                 'monthly_revenue': monthly_revenue,
-                'category_stats': category_stats,
-                'recent_orders': OrderSerializer(recent_orders, many=True).data
+                'total_messages': total_messages
             })
         except Exception as e:
             return Response(
@@ -1132,7 +1172,7 @@ class HealthCheckView(APIView):
             return Response({"status": "degraded", "error": str(e)}, status=status.HTTP_200_OK)
 
 class AppSettingsView(APIView):
-    """Get global application settings"""
+    """Get and update global application settings"""
     def get(self, request):
         try:
             collection = mongo_client.get_collection('admin_data')
@@ -1143,10 +1183,38 @@ class AppSettingsView(APIView):
                     'store_name': 'SJG Stationery',
                     'currency': 'INR (₹)',
                     'whatsapp': '+91 93600 24821',
-                    'address': '123, Main Street, Tech Park, Chennai - 600001'
+                    'address': 'Sakthi Nagar, Thindal, Erode - 638012.',
+                    'email': 'sjgvxerox@gmail.com',
+                    'gst_percentage': 18,
+                    'service_gst': 18,
+                    'is_online_payment_enabled': True,
+                    'is_cod_enabled': True
                 })
             settings['id'] = str(settings.pop('_id'))
             return Response(settings)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        try:
+            data = request.data
+            collection = mongo_client.get_collection('admin_data')
+            
+            # Ensure type is settings
+            data['type'] = 'settings'
+            data['updated_at'] = datetime.now()
+            
+            # Upsert settings
+            collection.update_one(
+                {'type': 'settings'},
+                {'$set': data},
+                upsert=True
+            )
+            
+            # Return fresh data
+            updated_settings = collection.find_one({'type': 'settings'})
+            updated_settings['id'] = str(updated_settings.pop('_id'))
+            return Response(updated_settings)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

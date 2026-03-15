@@ -15,6 +15,7 @@ from .views import (
     ProductDetailView,
     OrderListCreateView,
     OrderDetailView,
+    OfflineOrderView,
     DashboardStatsView,
     ContactMessageView,
     ChatMessageView,
@@ -47,6 +48,7 @@ urlpatterns = [
     
     # Order endpoints
     path('orders/', OrderListCreateView.as_view(), name='order-list-create'),
+    path('orders/offline/', OfflineOrderView.as_view(), name='offline-order'),
     path('orders/<str:pk>/', OrderDetailView.as_view(), name='order-detail'),
     
     # Dashboard endpoints
