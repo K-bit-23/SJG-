@@ -2,30 +2,29 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import axios from 'axios';
 import reportWebVitals from './reportWebVitals';
 import ErrorBoundary from './components/ErrorBoundary';
 
-// Configure Axios Base URL for connecting Firebase -> Render
-axios.defaults.baseURL = window.location.hostname === 'localhost'
-  ? 'http://localhost:8000'
-  : 'https://sjg-backend.onrender.com';
+import { ClerkProvider } from '@clerk/clerk-react';
 
-// Add interceptor to handle errors globally if needed
-axios.interceptors.response.use(
-  response => response,
-  error => {
-    console.error('API Error:', error.response || error.message);
-    return Promise.reject(error);
-  }
-);
+const getEnv = (key) => {
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) return import.meta.env[key];
+  if (typeof process !== 'undefined' && process.env && process.env[key]) return process.env[key];
+  return null;
+};
+
+const CLERK_PUBLISHABLE_KEY = getEnv('VITE_CLERK_PUBLISHABLE_KEY') || 
+                              getEnv('REACT_APP_CLERK_PUBLISHABLE_KEY') || 
+                              'pk_test_cHJlc2VudC1haXJlZGFsZS0zMi5jbGVyay5hY2NvdW50cy5kZXYk';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </ClerkProvider>
   </React.StrictMode>
 );
 

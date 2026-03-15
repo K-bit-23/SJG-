@@ -1,8 +1,55 @@
 {
+  "name": "sjg-monorepo",
+  "version": "1.0.0",
+  "description": "SJG - Stationery Junction Group Monorepo",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "mobile"
+  ],
   "scripts": {
-    "dev": "run_dev.bat"
+    "install:all": "npm run install:frontend && npm run install:mobile && npm run install:backend",
+    "install:frontend": "cd frontend && npm install",
+    "install:mobile": "cd mobile && npm install",
+    "install:backend": "cd backend && pip install -r requirements.txt",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:mobile\" \"npm run dev:backend\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:mobile": "cd mobile && npx expo start",
+    "dev:backend": "cd backend && python manage.py runserver",
+    "build": "npm run build:frontend && npm run build:mobile",
+    "build:frontend": "cd frontend && npm run build",
+    "build:mobile": "cd mobile && npx expo build",
+    "clean": "npm run clean:frontend && npm run clean:mobile && npm run clean:backend",
+    "clean:frontend": "cd frontend && rm -rf node_modules dist",
+    "clean:mobile": "cd mobile && rm -rf node_modules .expo",
+    "clean:backend": "cd backend && rm -rf __pycache__ *.pyc",
+    "lint": "npm run lint:frontend && npm run lint:mobile",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:mobile": "cd mobile && npm run lint",
+    "test": "npm run test:frontend && npm run test:mobile && npm run test:backend",
+    "test:frontend": "cd frontend && npm run test",
+    "test:mobile": "cd mobile && npm run test",
+    "test:backend": "cd backend && python manage.py test"
   },
-  "dependencies": {
-    "react-router-dom": "^7.11.0"
-  }
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/sjg.git"
+  },
+  "keywords": [
+    "ecommerce",
+    "stationery",
+    "react",
+    "django",
+    "expo",
+    "monorepo"
+  ],
+  "author": "SJG Team",
+  "license": "MIT"
 }

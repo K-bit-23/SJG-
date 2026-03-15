@@ -1,6 +1,16 @@
 import pymongo
 from django.conf import settings
 import certifi
+import dns.resolver
+
+# Fix DNS resolution issues for MongoDB SRV records
+# Some local networks/ISPs have slow or blocking DNS for SRV lookups
+try:
+    dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
+    dns.resolver.default_resolver.nameservers = ['8.8.8.8', '8.8.4.4', '1.1.1.1']
+    print("✓ Configured custom DNS resolver (8.8.8.8) for MongoDB connectivity")
+except Exception as e:
+    print(f"! Warning: Failed to configure custom DNS resolver: {e}")
 
 class MongoDBClient:
     _instance = None

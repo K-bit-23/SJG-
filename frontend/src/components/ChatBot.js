@@ -1,8 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import api from '../utils/api';
 
 const ChatBot = () => {
+    const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
+    const [sessionId, setSessionId] = useState(null);
     const [messages, setMessages] = useState([
         { type: 'bot', text: 'Hello! 👋 Welcome to SJG Stationery. How can I help you today?' }
     ]);
@@ -17,6 +21,25 @@ const ChatBot = () => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    useEffect(() => {
+        const existingSession = localStorage.getItem('chat_session_id') || `session_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        localStorage.setItem('chat_session_id', existingSession);
+        setSessionId(existingSession);
+
+        const loadHistory = async () => {
+            try {
+                const res = await api.get('/messages/', { params: { session_id: existingSession } });
+                if (Array.isArray(res.data) && res.data.length > 0) {
+                    setMessages(res.data.map(m => ({ type: m.sender, text: m.text })));
+                }
+            } catch (err) {
+                console.warn('Unable to load chat history', err);
+            }
+        };
+
+        loadHistory();
+    }, []);
 
     // Simple bot responses
     const getBotResponse = (userMessage) => {
@@ -62,17 +85,40 @@ const ChatBot = () => {
     const handleSend = () => {
         if (!inputValue.trim()) return;
 
-        // Add user message
         const userMessage = inputValue;
+        const currentSession = sessionId || localStorage.getItem('chat_session_id');
+        const userEmail = user?.email || '';
+
+        // Add user message locally
         setMessages(prev => [...prev, { type: 'user', text: userMessage }]);
         setInputValue('');
         setIsTyping(true);
+
+        // Persist user message
+        api.post('/messages/', {
+            session_id: currentSession,
+            sender: 'user',
+            text: userMessage,
+            user_email: userEmail
+        }).catch(() => {
+            // ignore persistence errors
+        });
 
         // Simulate bot thinking
         setTimeout(() => {
             const botResponse = getBotResponse(userMessage);
             setMessages(prev => [...prev, { type: 'bot', text: botResponse }]);
             setIsTyping(false);
+
+            // Persist bot response
+            api.post('/messages/', {
+                session_id: currentSession,
+                sender: 'bot',
+                text: botResponse,
+                user_email: userEmail
+            }).catch(() => {
+                // ignore persistence errors
+            });
         }, 800);
     };
 
@@ -93,7 +139,7 @@ const ChatBot = () => {
         <>
             {/* Chat Window */}
             {isOpen && (
-                <div className="fixed bottom-24 right-4 w-80 sm:w-96 h-[500px] bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden border border-gray-100 animate-slide-up">
+                <div className="fixed bottom-[5rem] right-6 w-72 sm:w-80 h-[450px] bg-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] z-50 flex flex-col overflow-hidden border border-gray-100 animate-slide-up">
                     {/* Header */}
                     <div className="bg-gradient-to-r from-primary to-secondary p-4 text-white flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -186,15 +232,15 @@ const ChatBot = () => {
             {/* Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`fixed bottom-4 right-4 z-50 p-3.5 rounded-full shadow-lg transition-all duration-300 ${isOpen
-                        ? 'bg-gray-600 hover:bg-gray-700 rotate-0'
-                        : 'bg-gradient-to-r from-primary to-secondary hover:shadow-xl hover:scale-110'
+                className={`fixed bottom-6 right-6 z-50 p-3 rounded-full shadow-2xl transition-all duration-300 ${isOpen
+                        ? 'bg-slate-800 hover:bg-slate-900 rotate-0'
+                        : 'bg-gradient-to-br from-[#249089] to-[#25D366] hover:shadow-[0_10px_30px_-10px_rgba(36,144,137,0.5)] hover:scale-110'
                     }`}
             >
                 {isOpen ? (
-                    <X size={22} className="text-white" />
+                    <X size={18} className="text-white" />
                 ) : (
-                    <MessageCircle size={22} className="text-white" />
+                    <MessageCircle size={18} className="text-white" />
                 )}
             </button>
 

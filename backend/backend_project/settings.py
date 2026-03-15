@@ -1,7 +1,11 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env file
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-new-backend-key-change-in-production')
 
@@ -62,7 +66,7 @@ DATABASES = {
 }
 
 # MongoDB Configuration
-MONGODB_URI = os.environ.get('MONGODB_URI', 'mongodb+srv://karthi:karthi07@sjg.cdlgflc.mongodb.net/?retryWrites=true&w=majority&appName=SJG')
+MONGODB_URI = os.environ.get('MONGODB_URI')
 MONGODB_NAME = os.environ.get('MONGODB_NAME', 'sjg_db')
 
 AUTH_PASSWORD_VALIDATORS = []
@@ -75,9 +79,22 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-STATICFILES_DIRS = [
-    BASE_DIR.parent / 'frontend' / 'build' / 'static',
-]
+STATICFILES_DIRS = []
+FRONTEND_BUILD_DIR = BASE_DIR.parent / 'frontend' / 'build'
+
+if os.path.exists(FRONTEND_BUILD_DIR):
+    # Vite uses 'assets' instead of 'static'
+    STATIC_ASSETS = FRONTEND_BUILD_DIR / 'assets'
+    if os.path.exists(STATIC_ASSETS):
+        STATICFILES_DIRS.append(STATIC_ASSETS)
+    else:
+        # Fallback for if build exists but assets doesn't (old CRA style)
+        STATIC_STATIC = FRONTEND_BUILD_DIR / 'static'
+        if os.path.exists(STATIC_STATIC):
+            STATICFILES_DIRS.append(STATIC_STATIC)
+        else:
+            # Just add the build dir itself as a root
+            STATICFILES_DIRS.append(FRONTEND_BUILD_DIR)
 
 STORAGES = {
     "default": {
@@ -107,3 +124,12 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ]
 }
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)

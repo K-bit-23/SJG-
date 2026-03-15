@@ -1,8 +1,9 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, Bell } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, Bell, CheckCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useLanguage } from '../context/LanguageContext';
 
 import AuthModal from './AuthModal';
 
@@ -53,10 +54,12 @@ export const WishlistProvider = ({ children }) => {
 const Navbar = () => {
     const { user, logout } = useAuth();
     const { cart } = useCart();
+    const { t } = useLanguage();
     const [searchTerm, setSearchTerm] = useState('');
     const [isScrolled, setIsScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
 
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [wishlistCount, setWishlistCount] = useState(0);
@@ -119,6 +122,9 @@ const Navbar = () => {
             if (!e.target.closest('.profile-dropdown')) {
                 setProfileDropdownOpen(false);
             }
+            if (!e.target.closest('.notifications-dropdown')) {
+                setNotificationsOpen(false);
+            }
         };
         document.addEventListener('click', handleClickOutside);
         return () => document.removeEventListener('click', handleClickOutside);
@@ -135,6 +141,7 @@ const Navbar = () => {
     const handleLogout = async () => {
         await logout();
         setProfileDropdownOpen(false);
+        setNotificationsOpen(false);
         navigate('/');
     };
 
@@ -172,39 +179,95 @@ const Navbar = () => {
             <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md' : 'bg-white shadow-sm'}`}>
                 <div className="max-w-7xl mx-auto px-4 lg:px-6">
                     <div className="flex items-center justify-between h-16">
-                        {/* Left: Logo + Nav */}
-                        <div className="flex items-center gap-8">
-                            <Link to="/" className="flex items-center gap-2 group">
+                        {/* Navigation Structure: Logo | Home | Products | [Search] | My Orders */}
+                        <div className="flex items-center gap-4 lg:gap-8 flex-1">
+                            <Link to="/" className="flex items-center gap-2 group shrink-0">
                                 <img src="/logo.png" alt="SJG" className="h-10 w-10 object-contain transition-transform duration-500 group-hover:scale-110 group-hover:rotate-[360deg]" />
                                 <span className="text-xl font-bold tracking-tight text-primary hidden sm:block">SJG<span className="text-secondary">.</span></span>
                             </Link>
 
-                            <div className="hidden lg:flex items-center gap-6">
-                                <Link to="/" className="text-gray-600 hover:text-secondary transition-colors font-medium text-sm flex items-center gap-1.5">
-                                    <Home size={16} /> Home
+                            <div className="hidden lg:flex items-center gap-6 flex-1">
+                                <Link to="/" className="text-gray-600 hover:text-secondary transition-colors font-medium text-sm flex items-center gap-1.5 shrink-0">
+                                    <Home size={16} /> {t('home')}
                                 </Link>
-                                <Link to="/products" className="text-gray-600 hover:text-secondary transition-colors font-medium text-sm flex items-center gap-1.5">
-                                    <Grid size={16} /> Shop
+                                <Link to="/products" className="text-gray-600 hover:text-secondary transition-colors font-medium text-sm flex items-center gap-1.5 shrink-0">
+                                    <Grid size={16} /> {t('products')}
                                 </Link>
+
+                                {/* Center: Search Bar Integrated */}
+                                <div className="flex-1 max-w-md mx-4">
+                                    <form onSubmit={handleSearch} className="relative">
+                                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            placeholder={t('searchplaceholder')}
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="w-full pl-11 pr-4 py-2 bg-gray-100 rounded-full text-sm outline-none focus:ring-2 ring-secondary/30 transition-all border-0 shadow-sm"
+                                        />
+                                    </form>
+                                </div>
+
+                                {user && (
+                                    <Link to="/orders" className="text-gray-600 hover:text-secondary transition-colors font-medium text-sm flex items-center gap-1.5 shrink-0">
+                                        <Package size={16} /> {t('orders')}
+                                    </Link>
+                                )}
                             </div>
                         </div>
 
-                        {/* Center: Search */}
-                        <div className="hidden md:block flex-1 max-w-xl px-8">
-                            <form onSubmit={handleSearch} className="relative">
-                                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Search products..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-11 pr-4 py-2.5 bg-gray-100 rounded-full text-sm outline-none focus:ring-2 ring-secondary/30 transition-all"
-                                />
-                            </form>
-                        </div>
-
                         {/* Right: Actions */}
-                        <div className="flex items-center gap-1 lg:gap-2">
+                        <div className="flex items-center gap-2 lg:gap-4">
+                            {/* Notifications */}
+                            {user && (
+                                <div className="relative notifications-dropdown flex items-center">
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); setNotificationsOpen(!notificationsOpen); setProfileDropdownOpen(false); }}
+                                        className={`relative p-2.5 hover:bg-gray-100 rounded-full transition-all group`}
+                                        title="Notifications"
+                                    >
+                                        <Bell size={20} className="text-gray-500 group-hover:text-primary transition-colors" />
+                                        <span className="absolute -top-0.5 -right-0.5 bg-[#f04f47] text-white text-[10px] min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-bold">
+                                            1
+                                        </span>
+                                    </button>
+
+                                    {notificationsOpen && (
+                                        <div className="absolute right-0 top-full mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in cursor-default" onClick={e => e.stopPropagation()}>
+                                            <div className="flex justify-between items-center p-4 border-b border-gray-100">
+                                                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                                                    <Bell size={18} className="text-primary"/> Notifications
+                                                    <span className="bg-[#f04f47] text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">1 new</span>
+                                                </h3>
+                                                <button className="text-primary text-xs font-bold hover:underline bg-blue-50 px-2 py-1 rounded" onClick={() => setNotificationsOpen(false)}>Mark all read</button>
+                                            </div>
+                                            <div className="max-h-[60vh] overflow-y-auto">
+                                                <div className="p-4 border-b border-gray-50 hover:bg-gray-50 flex gap-4 transition-colors">
+                                                    <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
+                                                        <Package size={18} className="text-orange-600"/>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-gray-800">Order Processing</p>
+                                                        <p className="text-xs text-gray-600 mt-1">Order #BDEE1A is being prepared for dispatch.</p>
+                                                        <p className="text-[10px] text-gray-400 mt-2 font-medium">Just now</p>
+                                                    </div>
+                                                </div>
+                                                <div className="p-4 border-b border-gray-50 hover:bg-gray-50 flex gap-4 transition-colors">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#8a5cf6]/20 flex items-center justify-center shrink-0">
+                                                        <CheckCircle size={18} className="text-[#8a5cf6]"/>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-gray-800">Order Placed</p>
+                                                        <p className="text-xs text-gray-600 mt-1">Order #BDEE1A confirmed — ₹1436</p>
+                                                        <p className="text-[10px] text-gray-400 mt-2 font-medium">1 day ago</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             {/* Wishlist */}
                             <Link to="/wishlist" className={`relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale ${isWishlistBumping ? 'animate-wishlist-pulse' : ''}`}>
                                 <Heart size={20} className={`text-gray-500 group-hover:text-red-500 transition-colors ${isWishlistBumping ? 'text-red-500 fill-red-500' : ''}`} />
@@ -234,7 +297,7 @@ const Navbar = () => {
                                 <div className="relative profile-dropdown flex items-center gap-2">
                                     {/* Avatar Button */}
                                     <button
-                                        onClick={(e) => { e.stopPropagation(); setProfileDropdownOpen(!profileDropdownOpen); }}
+                                        onClick={(e) => { e.stopPropagation(); setProfileDropdownOpen(!profileDropdownOpen); setNotificationsOpen(false); }}
                                         className="flex items-center gap-1 group"
                                     >
                                         <div className="relative">
@@ -304,20 +367,20 @@ const Navbar = () => {
                                             <div className="py-2">
                                                 <Link to="/profile" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
                                                     <User size={18} className="text-gray-400" />
-                                                    <span className="font-medium">My Profile</span>
+                                                    <span className="font-medium">{t('profile')}</span>
                                                 </Link>
-                                                <Link to="/profile" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
+                                                <Link to="/orders" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
                                                     <Package size={18} className="text-gray-400" />
-                                                    <span className="font-medium">My Orders</span>
+                                                    <span className="font-medium">{t('orders')}</span>
                                                 </Link>
                                                 <Link to="/wishlist" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
                                                     <Heart size={18} className="text-gray-400" />
                                                     <span className="font-medium">Wishlist</span>
                                                     {wishlistCount > 0 && <span className="ml-auto bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-bold">{wishlistCount}</span>}
                                                 </Link>
-                                                <Link to="/profile?tab=settings" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
+                                                <Link to="/settings" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
                                                     <Settings size={18} className="text-gray-400" />
-                                                    <span className="font-medium">Settings</span>
+                                                    <span className="font-medium">{t('settings')}</span>
                                                 </Link>
 
                                                 {user.role === 'admin' && (
@@ -333,7 +396,7 @@ const Navbar = () => {
                                                 <div className="border-t border-gray-100 my-1"></div>
                                                 <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 text-red-500 hover:bg-red-50 transition-colors">
                                                     <LogOut size={18} />
-                                                    <span className="font-medium">Sign Out</span>
+                                                    <span className="font-medium">{t('logout')}</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -345,7 +408,7 @@ const Navbar = () => {
                                     className="flex items-center gap-2 bg-primary hover:bg-slate-800 text-white px-4 py-2 rounded-full text-sm font-bold transition-all shadow-md hover:shadow-lg ml-2"
                                 >
                                     <LogIn size={16} />
-                                    <span className="hidden sm:inline">Login</span>
+                                    <span className="hidden sm:inline">{t('login')}</span>
                                 </button>
                             )}
 
@@ -361,7 +424,7 @@ const Navbar = () => {
                             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search..."
+                                placeholder={t('searchplaceholder')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-9 pr-4 py-2 bg-gray-100 rounded-full text-sm outline-none"
@@ -398,26 +461,26 @@ const Navbar = () => {
 
                         <div className="p-3 space-y-1">
                             <Link to="/" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-700 text-sm" onClick={() => setMobileMenuOpen(false)}>
-                                <Home size={18} className="text-gray-400" /> Home
+                                <Home size={18} className="text-gray-400" /> {t('home')}
                             </Link>
                             <Link to="/products" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-700 text-sm" onClick={() => setMobileMenuOpen(false)}>
-                                <Grid size={18} className="text-gray-400" /> Shop
+                                <Grid size={18} className="text-gray-400" /> {t('products')}
                             </Link>
                             <Link to="/wishlist" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-700 text-sm" onClick={() => setMobileMenuOpen(false)}>
-                                <Heart size={18} className="text-gray-400" /> Wishlist
+                                <Heart size={18} className="text-gray-400" /> {t('wishlist')}
                             </Link>
                             <Link to="/cart" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-700 text-sm" onClick={() => setMobileMenuOpen(false)}>
-                                <ShoppingBag size={18} className="text-gray-400" /> Cart ({cart.length})
+                                <ShoppingBag size={18} className="text-gray-400" /> {t('cart')} ({cart.length})
                             </Link>
 
                             {user && (
                                 <>
                                     <div className="border-t my-2"></div>
-                                    <Link to="/profile" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-700 text-sm" onClick={() => setMobileMenuOpen(false)}>
-                                        <Package size={18} className="text-gray-400" /> My Orders
+                                    <Link to="/orders" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-700 text-sm" onClick={() => setMobileMenuOpen(false)}>
+                                        <Package size={18} className="text-gray-400" /> {t('orders')}
                                     </Link>
-                                    <Link to="/profile?tab=settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-700 text-sm" onClick={() => setMobileMenuOpen(false)}>
-                                        <Settings size={18} className="text-gray-400" /> Settings
+                                    <Link to="/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-700 text-sm" onClick={() => setMobileMenuOpen(false)}>
+                                        <Settings size={18} className="text-gray-400" /> {t('settings')}
                                     </Link>
                                     {user.role === 'admin' && (
                                         <Link to="/admin" className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary/10 text-secondary text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
@@ -429,7 +492,7 @@ const Navbar = () => {
 
                             {!user && (
                                 <button onClick={() => { setIsAuthModalOpen(true); setMobileMenuOpen(false); }} className="w-full mt-3 bg-primary text-white py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 text-sm">
-                                    <LogIn size={16} /> Login / Register
+                                    <LogIn size={16} /> {t('login')} / {t('signup')}
                                 </button>
                             )}
                         </div>

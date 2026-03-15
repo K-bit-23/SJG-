@@ -17,13 +17,16 @@ from .views import (
     OrderDetailView,
     DashboardStatsView,
     ContactMessageView,
+    ChatMessageView,
     UserListCreateView,
     UserDetailView,
     HomePageContentView,
     ChatBotConfigView,
-    UserProfileView
+    UserProfileView,
+    UserSettingsView,
+    AdminDataView
 )
-from .payment_views import CreatePaymentIntentView, ConfirmPaymentView
+from .payment_views import CreatePaymentIntentView, ConfirmPaymentView, CreateCheckoutSessionView
 
 urlpatterns = [
     # Product endpoints
@@ -46,13 +49,21 @@ urlpatterns = [
     
     # Profile endpoints (for User Profile page)
     path('profile/<str:email>/', UserProfileView.as_view(), name='user-profile'),
+    path('settings/<str:email>/', UserSettingsView.as_view(), name='user-settings'),
 
     # Content endpoints
     path('content/home/', HomePageContentView.as_view(), name='home-page-content'),
     path('content/chatbot/', ChatBotConfigView.as_view(), name='chatbot-config'),
     
+    # Chat messages (for bot logs / admin review)
+    path('messages/', ChatMessageView.as_view(), name='chat-messages'),
+
+    # Admin Data endpoints
+    path('admin/data/', AdminDataView.as_view(), name='admin-data'),
+    
     # Payment endpoints
     path('create-payment-intent/', CreatePaymentIntentView.as_view(), name='create-payment-intent'),
+    path('create-checkout-session/', CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
     path('confirm-payment/', ConfirmPaymentView.as_view(), name='confirm-payment'),
 ]
 

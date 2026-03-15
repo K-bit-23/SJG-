@@ -53,6 +53,14 @@ class ContactMessageSerializer(serializers.Serializer):
     message = serializers.CharField()
     created_at = serializers.DateTimeField(read_only=True)
 
+class ChatMessageSerializer(serializers.Serializer):
+    id = ObjectIdField(read_only=True, source='_id')
+    session_id = serializers.CharField(max_length=200)
+    sender = serializers.ChoiceField(choices=['user', 'bot'])
+    text = serializers.CharField()
+    user_email = serializers.EmailField(required=False, allow_blank=True)
+    created_at = serializers.DateTimeField(read_only=True)
+
 class UserSerializer(serializers.Serializer):
     uid = serializers.CharField()
     email = serializers.EmailField()
@@ -85,9 +93,15 @@ class TrustStripSerializer(serializers.Serializer):
     title = serializers.CharField(allow_blank=True)
     desc = serializers.CharField(allow_blank=True)
 
+class CategoryItemSerializer(serializers.Serializer):
+    name = serializers.CharField(allow_blank=True)
+    img = serializers.CharField(allow_blank=True)
+    count = serializers.CharField(allow_blank=True, required=False)
+
 class HomePageContentSerializer(serializers.Serializer):
     banners = BannerSerializer(many=True)
     services = ServiceSerializer(many=True)
+    categories = CategoryItemSerializer(many=True, required=False)
     trust_strip = TrustStripSerializer(many=True)
 
 class ChatBotConfigSerializer(serializers.Serializer):
@@ -97,3 +111,10 @@ class ChatBotConfigSerializer(serializers.Serializer):
         default=[],
         allow_empty=True
     )
+
+class AdminDataSerializer(serializers.Serializer):
+    id = ObjectIdField(read_only=True, source='_id')
+    type = serializers.CharField(max_length=100)
+    # Use a method field or just a dict field without source='*' to avoid confusion
+    content = serializers.DictField(required=False, source='*')
+    updated_at = serializers.DateTimeField(read_only=True)

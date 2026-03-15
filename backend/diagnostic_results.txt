@@ -1,0 +1,4 @@
+FAILED: karthikeyankarthikeyan0414@gmail.com - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-82a0725e05esm13223062b3a.18 - gsmtp')
+FAILED: karthikeykarthikeyan64182@gmail.com - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-35b95822ca2sm843083a91.4 - gsmtp')
+FAILED: karthikeyankarthikeyan0414@gmail.co - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2aece7ee3ecsm102288305ad.42 - gsmtp')
+FAILED: karthikeyan0414@gmail.com - (535, b'5.7.8 Username and Password not accepted. For more information, go to\n5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-35a24552624sm2778982a91.7 - gsmtp')
