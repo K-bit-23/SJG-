@@ -44,7 +44,7 @@ const Profile = () => {
         location_access: false,
         notifications: true,
         email_updates: true,
-        sms_alerts: false,
+        camera_access: true,
         dark_mode: false,
         floating_shortcut: false,
         overlay_mode: false,
@@ -598,6 +598,32 @@ const Profile = () => {
                                             className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${appSettings.location_access ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
                                         >
                                             {appSettings.location_access ? 'Active' : 'Enable'}
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-violet-50 dark:bg-violet-900/30 text-violet-600 rounded-2xl">
+                                                <Camera size={20} />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-gray-800 dark:text-gray-100">Camera Permission</p>
+                                                <p className="text-xs text-gray-400">Used for QR scanning</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                                                    navigator.mediaDevices.getUserMedia({ video: true })
+                                                        .then(() => {
+                                                            setAppSettings(prev => ({ ...prev, camera_access: true }));
+                                                            alert("Camera access granted!");
+                                                        })
+                                                        .catch(() => alert("Camera access denied."));
+                                                }
+                                            }}
+                                            className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${appSettings.camera_access ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+                                        >
+                                            {appSettings.camera_access ? 'Active' : 'Enable'}
                                         </button>
                                     </div>
                                     <div className="flex items-center justify-between">

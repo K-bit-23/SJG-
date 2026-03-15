@@ -203,7 +203,7 @@ def get_logo_base64():
 
 
 def generate_invoice_pdf(order_data):
-    """Generate a PDF invoice bytes for the order."""
+    \"\"\"Generate a premium PDF invoice bytes for the order.\"\"\"
     if not REPORTLAB_AVAILABLE:
         return None
 
@@ -211,151 +211,183 @@ def generate_invoice_pdf(order_data):
         buffer = io.BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
         width, height = A4
-        margin = 40
-        primary_color = colors.HexColor('#EB4034') # Coral/Red
-
-        # 1. Top Decoration Bar
-        c.setFillColor(primary_color)
-        c.rect(0, height - 12, width, 12, fill=1, stroke=0)
-
-        # 2. INVOICE Title
-        c.setFont('Helvetica-Bold', 32)
-        c.setFillColor(colors.HexColor('#1E293B')) # Slate-800
-        c.drawString(margin, height - 60, 'INVOICE')
-
-        # 3. Date and Order No (Right Aligned)
-        order_id = order_data.get('order_id', '')
-        created_at = order_data.get('created_at')
-        date_display = created_at.strftime('%d/%m/%Y') if hasattr(created_at, 'strftime') else str(created_at or '')
+        margin = 50
         
-        c.setFont('Helvetica', 10)
-        c.setFillColor(colors.gray)
-        c.drawRightString(width - margin, height - 55, f'DATE: {date_display}')
-        c.drawRightString(width - margin, height - 70, f'INVOICE NO: {order_id.split("-")[-1] or order_id}')
+        # Colors
+        primary_color = colors.HexColor('#0f172a') # Slate-900 (Deep/Premium)
+        accent_color = colors.HexColor('#4f46e5')  # Indio-600
+        text_main = colors.HexColor('#1e293b')     # Slate-800
+        text_muted = colors.HexColor('#64748b')    # Slate-500
+        bg_light = colors.HexColor('#f8fafc')      # Slate-50
 
-        # 4. Logo and Company Info
+        # Pre-fetch Global Settings
+        store_name = \"SJG STATIONERY\"
+        store_address = \"Sakthi Nagar, Thindal, Erode - 638012.\"
+        store_phone = \"+91 93600 24821\"
+        store_email = \"sjgvxerox@gmail.com\"
+        currency_sym = \"₹\"
+        gst_rate = 18
+
+        try:
+            collection = mongo_client.get_collection('admin_data')
+            settings_data = collection.find_one({'type': 'settings'})
+            if settings_data:
+                store_name = settings_data.get('store_name', store_name).upper()
+                store_address = settings_data.get('address', store_address)
+                store_phone = settings_data.get('whatsapp', store_phone)
+                store_email = settings_data.get('email', store_email)
+                currency_sym = settings_data.get('currency', 'INR (₹)').split(' ')[-1].replace('(', '').replace(')', '')
+                gst_rate = float(settings_data.get('gst_percentage', 18))
+        except: pass
+
+        # 1. Header & Logo
+        # Header strip
+        c.setFillColor(primary_color)
+        c.rect(0, height - 120, width, 120, fill=1, stroke=0)
+        
+        # Logo
         logo_path = os.path.join(settings.BASE_DIR, '..', 'frontend', 'public', 'logo.png')
         if os.path.exists(logo_path):
-            c.drawImage(logo_path, margin, height - 150, width=45*mm, preserveAspectRatio=True, mask='auto')
-        
-        c.setFont('Helvetica-Bold', 12)
-        c.setFillColor(colors.black)
-        c.drawString(width - margin - 200, height - 100, 'SJG STATIONERY')
-        
-        c.setFont('Helvetica', 9)
-        c.setFillColor(colors.HexColor('#4B5563'))
-        c.drawString(width - margin - 200, height - 115, 'Sakthi Nagar, Thindal,')
-        c.drawString(width - margin - 200, height - 127, 'Erode - 638012.')
-        c.drawString(width - margin - 200, height - 139, 'Phone: +91 93600 24821')
-        c.drawString(width - margin - 200, height - 151, 'Email: sjgvxerox@gmail.com')
+            c.drawImage(logo_path, margin, height - 90, width=32*mm, preserveAspectRatio=True, mask='auto')
+        else:
+            c.setFont('Helvetica-Bold', 28)
+            c.setFillColor(colors.white)
+            c.drawString(margin, height - 75, \"SJG.\")
 
-        # 5. BILL TO / SHIP TO
-        c.setFont('Helvetica-Bold', 11)
+        # Invoice Text
+        c.setFillColor(colors.white)
+        c.setFont('Helvetica-Bold', 32)
+        c.drawRightString(width - margin, height - 65, \"INVOICE\")
+        c.setFont('Helvetica', 9)
+        c.drawRightString(width - margin, height - 85, \"REGULAR TAX INVOICE\")
+
+        # 2. Information Block
+        info_y = height - 170
         c.setFillColor(primary_color)
-        c.drawString(margin, height - 180, 'BILL TO')
-        c.drawString(width / 2 + 20, height - 180, 'SHIP TO')
-
-        c.setFont('Helvetica', 9)
-        c.setFillColor(colors.black)
-        user_name = order_data.get('user_name', '')
-        shipping_address = order_data.get('shipping_address', '')
-        
-        c.drawString(margin, height - 195, user_name)
-        c.drawString(width / 2 + 20, height - 195, user_name)
-        
-        y_addr = height - 207
-        addr_lines = (shipping_address.split(',') if ',' in shipping_address else shipping_address.split('\n')) if shipping_address else []
-        for line in addr_lines:
-            if y_addr < height - 280: break
-            line = line.strip()
-            if not line: continue
-            c.drawString(margin, y_addr, line)
-            c.drawString(width / 2 + 20, y_addr, line)
-            y_addr -= 12
-
-        # 6. Items Table
-        table_top = y_addr - 30
-        table_data = [['DESCRIPTION', 'QTY', 'UNIT PRICE', 'TOTAL']]
-        items = order_data.get('items', [])
-        for item in items:
-            name = item.get('product_name') or item.get('name') or 'Stationery Item'
-            qty = item.get('quantity', 0)
-            price = float(item.get('price', 0))
-            table_data.append([name, str(qty), f'{price:.2f}', f'{qty*price:.2f}'])
-
-        table = Table(table_data, colWidths=[240, 50, 80, 80])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), primary_color),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
-            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
-            ('TEXTCOLOR', (0, 1), (-1, -1), colors.HexColor('#4B5563')),
-            ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-            ('TOPPADDING', (0, 0), (-1, -1), 8),
-            ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor('#F3F4F6')),
-        ]))
-
-        table.wrapOn(c, width - margin * 2, height)
-        table_height = len(table_data) * 25
-        table.drawOn(c, margin, table_top - table_height)
-        
-        # 7. Summary Totals (Right Aligned)
-        y_totals = table_top - table_height - 30
-        c.setFont('Helvetica', 9)
-        c.setFillColor(colors.HexColor('#4B5563'))
-        
-        total_amount = float(order_data.get('total_amount', 0))
-        shipping = 0 if total_amount > 999 else 5.0
-        tax_rate = 0 # 2026 Govt Data for Stationery
-        balance_due = total_amount + shipping
-        
-        label_x = width - margin - 150
-        val_x = width - margin
-        
-        c.drawRightString(label_x, y_totals, 'SUBTOTAL')
-        c.drawRightString(val_x, y_totals, f'{total_amount:.2f}')
-        
-        c.drawRightString(label_x, y_totals - 15, 'DISCOUNT')
-        c.drawRightString(val_x, y_totals - 15, '0.00')
-        
-        c.drawRightString(label_x, y_totals - 30, f'TAX RATE ({tax_rate}%)')
-        c.drawRightString(val_x, y_totals - 30, '0.00')
-        
-        c.drawRightString(label_x, y_totals - 45, 'SHIPPING/HANDLING')
-        c.drawRightString(val_x, y_totals - 45, f'{shipping:.2f}')
-
-        # 8. BALANCE DUE Highlight (Green)
-        c.setFillColor(colors.HexColor('#E0F2E9'))
-        c.rect(width - margin - 180, y_totals - 75, 180, 25, fill=1, stroke=0)
-        
         c.setFont('Helvetica-Bold', 11)
-        c.setFillColor(colors.HexColor('#166534'))
-        c.drawString(width - margin - 172, y_totals - 62, 'BALANCE DUE')
-        c.drawRightString(width - margin - 8, y_totals - 62, f'₹{balance_due:.2f}')
+        c.drawString(margin, info_y, \"CUSTOMER DETAILS\")
+        c.drawString(width/2 + 20, info_y, \"INVOICE DETAILS\")
+        
+        c.setStrokeColor(bg_light)
+        c.setLineWidth(1)
+        c.line(margin, info_y - 5, width - margin, info_y - 5)
+
+        # Customer Info
+        c.setFillColor(text_main)
+        c.setFont('Helvetica-Bold', 13)
+        cust_name = str(order_data.get('user_name', 'Walk-in Customer'))
+        c.drawString(margin, info_y - 25, cust_name)
+        
+        c.setFont('Helvetica', 10)
+        c.setFillColor(text_muted)
+        c.drawString(margin, info_y - 42, str(order_data.get('user_phone', '')))
+        c.drawString(margin, info_y - 57, str(order_data.get('user_email', '')))
+
+        # Invoice Info
+        c.setFillColor(text_main)
+        c.setFont('Helvetica', 10)
+        order_id = order_data.get('order_id', 'N/A')
+        created_at = order_data.get('created_at')
+        if not created_at: created_at = datetime.now()
+        date_str = created_at.strftime('%d %B %Y') if hasattr(created_at, 'strftime') else str(created_at)
+        
+        c.drawString(width/2 + 20, info_y - 25, f\"Invoice No: {order_id}\")
+        c.drawString(width/2 + 20, info_y - 42, f\"Issue Date: {date_str}\")
+        c.drawString(width/2 + 20, info_y - 57, f\"Payment: {str(order_data.get('payment_method', 'Offline')).capitalize()}\")
+
+        # 3. Items Table
+        table_y = info_y - 120
+        # Header BG
+        c.setFillColor(bg_light)
+        c.rect(margin, table_y, width - (margin * 2), 25, fill=1, stroke=0)
+        
+        c.setFillColor(primary_color)
+        c.setFont('Helvetica-Bold', 9)
+        c.drawString(margin + 10, table_y + 8, \"ITEM DESCRIPTION\")
+        c.drawCentredString(width - margin - 140, table_y + 8, \"QTY\")
+        c.drawRightString(width - margin - 80, table_y + 8, \"UNIT PRICE\")
+        c.drawRightString(width - margin - 10, table_y + 8, \"AMOUNT\")
+
+        # Rows
+        items = order_data.get('items', [])
+        row_y = table_y - 25
+        c.setFont('Helvetica', 10)
+        c.setFillColor(text_main)
+        
+        subtotal = 0
+        for item in items:
+            name = item.get('name', item.get('product_name', 'Item'))
+            qty = item.get('quantity', item.get('qty', 1))
+            price = float(item.get('price', 0))
+            line_total = qty * price
+            subtotal += line_total
+            
+            c.drawString(margin + 10, row_y, name[:50])
+            c.drawCentredString(width - margin - 140, row_y, str(qty))
+            c.drawRightString(width - margin - 80, row_y, f\"{currency_sym}{price:,.2f}\")
+            c.drawRightString(width - margin - 10, row_y, f\"{currency_sym}{line_total:,.2f}\")
+            
+            c.setStrokeColor(bg_light)
+            c.line(margin, row_y - 8, width - margin, row_y - 8)
+            row_y -= 25
+            
+            # Simple page break
+            if row_y < 150:
+                c.showPage()
+                row_y = height - 100
+
+        # 4. Calculation Summary
+        summary_y = row_y - 30
+        c.setFont('Helvetica-Bold', 10)
+        
+        total_amt = float(order_data.get('total_amount', subtotal))
+        # If order_data total doesn't match sum of items, use the higher one or trust provided total
+        # We'll assume the provided total includes everything
+        actual_subtotal = total_amt / (1 + (gst_rate/100))
+        gst_amt = total_amt - actual_subtotal
+
+        c.drawRightString(width - margin - 100, summary_y, \"Subtotal\")
+        c.drawRightString(width - margin - 10, summary_y, f\"{currency_sym}{actual_subtotal:,.2f}\")
+        
+        c.setFont('Helvetica', 10)
+        c.setFillColor(text_muted)
+        c.drawRightString(width - margin - 100, summary_y - 20, f\"Tax (GST {gst_rate}%)\")
+        c.drawRightString(width - margin - 10, summary_y - 20, f\"{currency_sym}{gst_amt:,.2f}\")
+        
+        c.setFillColor(primary_color)
+        c.setFont('Helvetica-Bold', 16)
+        c.drawRightString(width - margin - 100, summary_y - 50, \"GRAND TOTAL\")
+        c.drawRightString(width - margin - 10, summary_y - 50, f\"{currency_sym}{total_amt:,.2f}\")
+
+        # 5. Footer & Terms
+        c.setStrokeColor(primary_color)
+        c.setLineWidth(1.5)
+        c.line(margin, 120, width - margin, 120)
+        
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(margin, 100, store_name)
+        c.setFont('Helvetica', 8)
+        c.setFillColor(text_muted)
+        c.drawString(margin, 88, store_address)
+        c.drawString(margin, 78, f\"WhatsApp: {store_phone}  |  Email: {store_email}\")
+        
+        c.setFont('Helvetica-Bold', 10)
+        c.setFillColor(primary_color)
+        c.drawRightString(width - margin, 100, \"Store Manager\")
+        c.setFont('Helvetica', 8)
+        c.drawRightString(width - margin, 88, \"(Authorized Signatory)\")
+        
+        c.setFont('Helvetica-Oblique', 8)
+        c.drawCentredString(width/2, 40, \"Thank you for your business! Please visit again.\")
 
         c.showPage()
         c.save()
         buffer.seek(0)
-        return buffer.read()
+        return buffer.getvalue()
     except Exception as e:
-        print(f"PDF Generation Error: {e}")
+        print(f"PDF Error: {e}")
         return None
 
-        # Footer
-        c.setFont('Helvetica', 9)
-        c.setFillColor(colors.gray)
-        c.drawCentredString(width / 2, 30, 'Thank you for your business!')
-
-        c.showPage()
-        c.save()
-
-        buffer.seek(0)
-        return buffer.read()
-    except Exception:
-        return None
 
 
 def send_order_email(order_data):
@@ -703,18 +735,55 @@ class DashboardStatsView(APIView):
             revenue_result = list(orders_collection.aggregate(pipeline))
             total_revenue = float(revenue_result[0]['total']) if revenue_result else 0
             
-            # Monthly Revenue Trend
+            # Monthly Revenue Trend (Last 6 months)
+            now = datetime.now()
+            six_months_ago = now - timedelta(days=180)
             monthly_pipeline = [
+                {'$match': {'created_at': {'$gte': six_months_ago}}},
                 {
                     '$group': {
-                        '_id': {'$month': '$created_at'},
+                        '_id': {
+                            'year': {'$year': '$created_at'},
+                            'month': {'$month': '$created_at'}
+                        },
                         'total': {'$sum': '$total_amount'},
                         'count': {'$sum': 1}
                     }
                 },
-                {'$sort': {'_id': 1}}
+                {'$sort': {'_id.year': 1, '_id.month': 1}}
             ]
             monthly_revenue = list(orders_collection.aggregate(monthly_pipeline))
+
+            # Category Breakdown
+            category_pipeline = [
+                {'$unwind': '$items'},
+                {'$group': {
+                    '_id': '$items.category',
+                    'count': {'$sum': '$items.quantity'},
+                    'revenue': {'$sum': {'$multiply': ['$items.price', '$items.quantity']}}
+                }},
+                {'$sort': {'revenue': -1}},
+                {'$limit': 5}
+            ]
+            category_breakdown = list(orders_collection.aggregate(category_pipeline))
+            
+            # Format results for frontend
+            months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            formatted_monthly = [
+                {
+                    'month': months[item['_id']['month'] - 1],
+                    'amount': item['total'],
+                    'count': item['count']
+                } for item in monthly_revenue
+            ]
+
+            formatted_categories = [
+                {
+                    'name': item['_id'] or 'General',
+                    'revenue': item['revenue'],
+                    'count': item['count']
+                } for item in category_breakdown
+            ]
             
             return Response({
                 'total_revenue': total_revenue,
@@ -723,7 +792,8 @@ class DashboardStatsView(APIView):
                 'products_count': total_products,
                 'delivered_orders': delivered_orders,
                 'non_delivered_orders': non_delivered_orders,
-                'monthly_revenue': monthly_revenue,
+                'monthly_revenue': formatted_monthly,
+                'category_breakdown': formatted_categories,
                 'total_messages': total_messages
             })
         except Exception as e:
@@ -1052,7 +1122,7 @@ class UserProfileView(APIView):
                         'locationAccess': False,
                         'notifications': True,
                         'emailUpdates': True,
-                        'smsAlerts': False,
+                        'cameraAccess': True,
                         'darkMode': False
                     }
                 })
@@ -1107,7 +1177,7 @@ class UserSettingsView(APIView):
                     'location_access': False,
                     'notifications': True,
                     'overlay_mode': False,
-                    'sms_alerts': True
+                    'camera_access': True
                 })
             
             # Convert ObjectId to string

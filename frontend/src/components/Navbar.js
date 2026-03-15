@@ -299,7 +299,7 @@ const Navbar = () => {
                             </Link>
 
                             {/* Cart */}
-                            <Link to="/cart" className={`relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale ${isCartBumping ? 'animate-cart-bump' : ''}`}>
+                            <Link to={user?.role === 'admin' ? "/admin/billing" : "/cart"} className={`relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale ${isCartBumping ? 'animate-cart-bump' : ''}`}>
                                 {isCartBumping ? (
                                     <ShoppingCart size={20} className="text-secondary transition-colors" />
                                 ) : (

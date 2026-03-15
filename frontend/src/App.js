@@ -14,7 +14,7 @@ import Products from '../client/pages/Products';
 import Cart from '../client/pages/Cart';
 import Checkout from '../client/pages/Checkout';
 import api from './utils/api';
-import Profile from '../client/pages/Profile';
+import Profile from './pages/Profile';
 import Wishlist from '../client/pages/Wishlist';
 import Orders from '../client/pages/Orders';
 import PaymentSuccess from '../client/pages/PaymentSuccess';
@@ -127,10 +127,7 @@ function App() {
   const [pageLoading, setPageLoading] = React.useState(true);
 
   useEffect(() => {
-    // Hide loader when page has fully loaded (including assets)
     const hide = () => setTimeout(() => setPageLoading(false), 500);
-    
-    // Safety timeout: don't show loader for more than 1.5 seconds
     const safetyTimeout = setTimeout(hide, 1500);
 
     if (document.readyState === 'complete') {
@@ -157,29 +154,29 @@ function App() {
           <NotificationProvider>
             <CartProvider>
               <WishlistProvider>
-              <SettingsManager>
-                <AdminRedirect>
-                  <Layout>
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/admin/*" element={<AdminPanel />} />
-                      <Route path="/contact" element={<Contact />} />
-                      <Route path="/products" element={<Products />} />
-                      <Route path="/cart" element={<Cart />} />
-                      <Route path="/checkout" element={<Checkout />} />
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/wishlist" element={<Wishlist />} />
-                      <Route path="/orders" element={<Orders />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="/payment-success" element={<PaymentSuccess />} />
-                      <Route path="/track-order/:orderId" element={<OrderTracking />} />
-                    </Routes>
-                  </Layout>
-                </AdminRedirect>
-              </SettingsManager>
-            </WishlistProvider>
-          </CartProvider>
-        </NotificationProvider>
+                <SettingsManager>
+                  <AdminRedirect>
+                    <Layout>
+                      <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route path="/admin/*" element={<AdminPanel />} />
+                        <Route path="/contact" element={<Contact />} />
+                        <Route path="/products" element={<Products />} />
+                        <Route path="/cart" element={<Cart />} />
+                        <Route path="/checkout" element={<Checkout />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/wishlist" element={<Wishlist />} />
+                        <Route path="/orders" element={<Orders />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/payment-success" element={<PaymentSuccess />} />
+                        <Route path="/track-order/:orderId" element={<OrderTracking />} />
+                      </Routes>
+                    </Layout>
+                  </AdminRedirect>
+                </SettingsManager>
+              </WishlistProvider>
+            </CartProvider>
+          </NotificationProvider>
         </LanguageProvider>
       </AuthProvider>
     </Router>
