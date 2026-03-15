@@ -6,6 +6,8 @@ import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 import ChatBot from './components/ChatBot';
 import FloatingShortcut from './components/FloatingShortcut';
+import NotificationBar from './components/NotificationBar';
+import PageLoader from './components/PageLoader';
 import Home from '../client/pages/Home';
 import AdminPanel from '../admin/pages/AdminPanel';
 import Contact from '../client/pages/Contact';
@@ -18,9 +20,11 @@ import Wishlist from '../client/pages/Wishlist';
 import Orders from '../client/pages/Orders';
 import PaymentSuccess from '../client/pages/PaymentSuccess';
 import OrderTracking from '../client/pages/OrderTracking';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext';
 import { LanguageProvider } from './context/LanguageContext';
+import Settings from '../client/pages/Settings';
 
 import ScrollToTop from './components/ScrollToTop';
 
@@ -48,6 +52,7 @@ const Layout = ({ children }) => {
   return (
     <div className="flex flex-col min-h-screen bg-[var(--background)] transition-colors duration-300">
       {!isAdminPage && <Navbar />}
+      {!isAdminPage && <NotificationBar />}
       {!isAdminPage && <WhatsAppButton />}
       {!isAdminPage && <ChatBot />}
       {!isAdminPage && <FloatingShortcut />}
@@ -63,11 +68,11 @@ const Layout = ({ children }) => {
 const SettingsManager = ({ children }) => {
   const { user } = useAuth();
   
-  React.useEffect(() => {
+  useEffect(() => {
     // 1. Fetch Global App Settings
     const fetchGlobalSettings = async () => {
       try {
-        const { data } = await axios.get('/api/settings/');
+        const { data } = await api.get('/settings/');
         localStorage.setItem('appSettings', JSON.stringify(data));
       } catch (err) {
         console.warn("Using default settings. API unreachable.");
@@ -78,12 +83,16 @@ const SettingsManager = ({ children }) => {
     // Apply cached theme immediately
     const cachedSettings = localStorage.getItem('userSettings');
     if (cachedSettings) {
-      const { dark_mode } = JSON.parse(cachedSettings);
-      if (dark_mode) document.documentElement.classList.add('dark');
+      try {
+        const { dark_mode } = JSON.parse(cachedSettings);
+        if (dark_mode) document.documentElement.classList.add('dark');
+      } catch (e) {
+        console.error("Failed to parse settings", e);
+      }
     }
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!user) {
       document.documentElement.classList.remove('dark');
       return;
@@ -92,7 +101,8 @@ const SettingsManager = ({ children }) => {
     // 2. Fetch User Specific Settings
     const fetchUserSettings = async () => {
       try {
-        const { data } = await axios.get(`/api/user-settings/${encodeURIComponent(user.email)}/`);
+        const userEmail = user.emailAddresses ? user.emailAddresses[0].emailAddress : user.email;
+        const { data } = await api.get(`/user-settings/${encodeURIComponent(userEmail)}/`);
         
         // Apply Dark Mode
         if (data.dark_mode) {
@@ -101,7 +111,7 @@ const SettingsManager = ({ children }) => {
           document.documentElement.classList.remove('dark');
         }
 
-        // Apply Language (could be more complex, but let's store it)
+        // Apply Language
         localStorage.setItem('userSettings', JSON.stringify(data));
       } catch (err) {
         console.error("Failed to sync user settings:", err);
@@ -115,44 +125,47 @@ const SettingsManager = ({ children }) => {
 
 function App() {
   const { user, isLoaded } = useUser();
+  const [pageLoading, setPageLoading] = React.useState(true);
 
   useEffect(() => {
-    if (isLoaded && user) {
-      api.get(`/settings/${encodeURIComponent(user.emailAddresses[0].emailAddress)}/`)
-        .then(res => {
-          if (res.data.dark_mode) {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
-        })
-        .catch(err => console.log("No settings found yet"));
+    // Hide loader when page has fully loaded (including assets)
+    const hide = () => setTimeout(() => setPageLoading(false), 500);
+    if (document.readyState === 'complete') {
+      hide();
+    } else {
+      window.addEventListener('load', hide);
+      return () => window.removeEventListener('load', hide);
     }
-  }, [user, isLoaded]);
+  }, []);
 
   return (
     <Router>
       <AuthProvider>
         <LanguageProvider>
           <CartProvider>
-            <AdminRedirect>
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/admin/*" element={<AdminPanel />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/wishlist" element={<Wishlist />} />
-                  <Route path="/orders" element={<Orders />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/payment-success" element={<PaymentSuccess />} />
-                  <Route path="/track-order/:orderId" element={<OrderTracking />} />
-                </Routes>
-              </Layout>
-            </AdminRedirect>
+            <WishlistProvider>
+              <SettingsManager>
+                <PageLoader open={pageLoading} />
+                <AdminRedirect>
+                  <Layout>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/admin/*" element={<AdminPanel />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/products" element={<Products />} />
+                      <Route path="/cart" element={<Cart />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="/wishlist" element={<Wishlist />} />
+                      <Route path="/orders" element={<Orders />} />
+                      <Route path="/settings" element={<Settings />} />
+                      <Route path="/payment-success" element={<PaymentSuccess />} />
+                      <Route path="/track-order/:orderId" element={<OrderTracking />} />
+                    </Routes>
+                  </Layout>
+                </AdminRedirect>
+              </SettingsManager>
+            </WishlistProvider>
           </CartProvider>
         </LanguageProvider>
       </AuthProvider>

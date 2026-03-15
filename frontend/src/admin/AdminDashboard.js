@@ -1,12 +1,13 @@
 import React from 'react';
 import { Package, Users, DollarSign, Box, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = ({ stats, orders, getStatusBadge }) => {
     const statCards = [
-        { title: "Total Revenue", value: `₹${stats.total_revenue}`, icon: DollarSign, color: "bg-blue-500" },
-        { title: "Active Orders", value: stats.active_orders, icon: Package, color: "bg-orange-500" },
-        { title: "Customers", value: stats.customers_count, icon: Users, color: "bg-green-500" },
-        { title: "Products", value: stats.products_count, icon: Box, color: "bg-purple-500" }
+        { title: "Total Revenue", value: `₹${stats.total_revenue}`, icon: DollarSign, color: "bg-blue-500", target: "/admin/business" },
+        { title: "Active Orders", value: stats.active_orders, icon: Package, color: "bg-orange-500", target: "/admin/orders" },
+        { title: "Customers", value: stats.customers_count, icon: Users, color: "bg-green-500", target: "/admin/users" },
+        { title: "Products", value: stats.products_count, icon: Box, color: "bg-purple-500", target: "/admin/inventory" }
     ];
 
     return (
@@ -14,15 +15,15 @@ const AdminDashboard = ({ stats, orders, getStatusBadge }) => {
             {/* Stat Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {statCards.map((stat, idx) => (
-                    <div key={idx} className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all">
+                    <Link key={idx} to={stat.target} className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer block border border-transparent hover:border-indigo-100">
                         <div className="flex items-center justify-between mb-4">
-                            <div className={`p-3 rounded-xl ${stat.color} text-white`}>
+                            <div className={`p-3 rounded-xl ${stat.color} text-white shadow-lg shadow-${stat.color.split('-')[1]}-500/20`}>
                                 <stat.icon size={24} />
                             </div>
                             <span className="text-2xl font-bold text-gray-800">{stat.value}</span>
                         </div>
                         <h3 className="text-gray-500 font-medium">{stat.title}</h3>
-                    </div>
+                    </Link>
                 ))}
             </div>
 
@@ -44,7 +45,11 @@ const AdminDashboard = ({ stats, orders, getStatusBadge }) => {
                         <tbody className="divide-y">
                             {Array.isArray(orders) && orders.slice(0, 5).map(order => (
                                 <tr key={order.order_id} className="hover:bg-gray-50">
-                                    <td className="p-3 font-medium text-secondary">{order.order_id}</td>
+                                    <td className="p-3 font-medium text-secondary">
+                                        <Link to="/admin/orders" className="hover:underline">
+                                            {order.order_id}
+                                        </Link>
+                                    </td>
                                     <td className="p-3">{order.user_name}</td>
                                     <td className="p-3">
                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusBadge(order.status)}`}>

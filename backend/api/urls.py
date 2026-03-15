@@ -25,9 +25,17 @@ from .views import (
     UserProfileView,
     UserSettingsView,
     AdminDataView,
-    NotificationView
+    NotificationView,
+    HealthCheckView,
+    AppSettingsView,
+    UserOrdersView
 )
-from .payment_views import CreatePaymentIntentView, ConfirmPaymentView, CreateCheckoutSessionView
+from .payment_views import (
+    CreatePaymentIntentView, 
+    ConfirmPaymentView, 
+    CreateCheckoutSessionView,
+    ConfirmStripeSessionView
+)
 
 urlpatterns = [
     # ── Health check (always try first: http://localhost:8000/api/health/) ──

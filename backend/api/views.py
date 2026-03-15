@@ -5,13 +5,16 @@ from bson import ObjectId
 from datetime import datetime
 import random
 import string
+import os
+import base64
+from pathlib import Path
 from .mongodb import mongo_client
 from .serializers import (
     ProductSerializer, OrderSerializer, ContactMessageSerializer, UserSerializer,
     HomePageContentSerializer, ChatBotConfigSerializer, AdminDataSerializer,
     NotificationSerializer
 )
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.utils.html import strip_tags
 from django.conf import settings
 import threading
@@ -125,80 +128,167 @@ def generate_order_id():
     random_str = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
     return f'ORD-{timestamp}-{random_str}'
 
+def _load_logo_base64():
+    """Load the project logo as a base64 string for email embedding."""
+    try:
+        logo_path = Path(settings.BASE_DIR) / '..' / 'frontend' / 'public' / 'logo.png'
+        logo_path = logo_path.resolve()
+        if not logo_path.exists():
+            return None
+        with open(logo_path, 'rb') as f:
+            return base64.b64encode(f.read()).decode('utf-8')
+    except Exception:
+        return None
+
+
 def send_order_email(order_data):
-    """Send order confirmation email with invoice simulation"""
+    """Send order confirmation email with invoice-style layout."""
     try:
         user_email = order_data.get('user_email')
+        if not user_email:
+            print("Order email not sent: no user email provided.")
+            return
+
         user_name = order_data.get('user_name')
         order_id = order_data.get('order_id')
         items = order_data.get('items', [])
         total = order_data.get('total_amount')
-        
+        status_text = order_data.get('status', 'pending').capitalize()
+        shipping_address = order_data.get('shipping_address', '')
+        payment_method = order_data.get('payment_method', 'Unknown')
+
+        logo_base64 = _load_logo_base64()
+        logo_img = ''
+        if logo_base64:
+            logo_img = f'<img src="data:image/png;base64,{logo_base64}" alt="Logo" style="height: 52px; display: block; margin: 0 auto;" />'
+
         subject = f'Order Confirmed! - {order_id} - SJG Stationery'
-        
+
         # Build Item rows
         item_rows = ""
         for item in items:
             item_rows += f"""
             <tr>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('product_name')}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">{item.get('quantity')}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">₹{item.get('price')}</td>
+                <td style=\"padding: 12px 10px; border-bottom: 1px solid #e5e7eb;\">{item.get('product_name')}</td>
+                <td style=\"padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: center;\">{item.get('quantity')}</td>
+                <td style=\"padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: right;\">₹{item.get('price')}</td>
             </tr>
             """
 
         html_content = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
-            <div style="background: #111827; color: white; padding: 20px; text-align: center;">
-                <h1 style="margin: 0;">SJG Stationery</h1>
-                <p style="margin: 5px 0 0 0; opacity: 0.8;">Premium Stationery & Beyond</p>
+        <div style=\"font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #ffffff;\">
+            <div style=\"background: #1f2937; color: #ffffff; padding: 24px; text-align: center;\">
+                {logo_img}
+                <h1 style=\"margin: 16px 0 6px 0; font-size: 24px; letter-spacing: 0.02em;\">Order Confirmed</h1>
+                <p style=\"margin: 0; opacity: 0.75; font-size: 14px;\">Thank you for your purchase! Your order is now being processed.</p>
             </div>
-            <div style="padding: 30px;">
-                <h2>Order Confirmation</h2>
-                <p>Hello <strong>{user_name}</strong>,</p>
-                <p>Thank you for your order! We've received it and are currently processing it.</p>
-                
-                <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                    <p style="margin: 0; color: #6b7280; font-size: 12px; text-transform: uppercase; font-weight: bold;">Order ID</p>
-                    <p style="margin: 5px 0 0 0; font-size: 18px; font-weight: bold; color: #111827;">{order_id}</p>
+
+            <div style=\"padding: 24px;\">
+                <div style=\"display: flex; gap: 16px; flex-wrap: wrap;\">
+                    <div style=\"flex: 1 1 220px; background: #f9fafb; padding: 16px; border-radius: 10px;\">
+                        <p style=\"margin: 0; font-size: 11px; letter-spacing: 0.08em; color: #6b7280; text-transform: uppercase;\">Order ID</p>
+                        <p style=\"margin: 6px 0 0 0; font-size: 18px; font-weight: 700; color: #111827;\">{order_id}</p>
+                    </div>
+
+                    <div style=\"flex: 1 1 220px; background: #f9fafb; padding: 16px; border-radius: 10px;\">
+                        <p style=\"margin: 0; font-size: 11px; letter-spacing: 0.08em; color: #6b7280; text-transform: uppercase;\">Status</p>
+                        <p style=\"margin: 6px 0 0 0; font-size: 18px; font-weight: 700; color: #111827;\">{status_text}</p>
+                    </div>
+
+                    <div style=\"flex: 1 1 220px; background: #f9fafb; padding: 16px; border-radius: 10px;\">
+                        <p style=\"margin: 0; font-size: 11px; letter-spacing: 0.08em; color: #6b7280; text-transform: uppercase;\">Payment</p>
+                        <p style=\"margin: 6px 0 0 0; font-size: 18px; font-weight: 700; color: #111827;\">{payment_method}</p>
+                    </div>
                 </div>
 
-                <h3>Invoice Summary</h3>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background: #f3f4f6;">
-                            <th style="padding: 10px; text-align: left;">Item</th>
-                            <th style="padding: 10px; text-align: center;">Qty</th>
-                            <th style="padding: 10px; text-align: right;">Price</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {item_rows}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="2" style="padding: 20px 10px 10px 10px; text-align: right; font-weight: bold;">Total Amount:</td>
-                            <td style="padding: 20px 10px 10px 10px; text-align: right; font-weight: bold; font-size: 18px; color: #3b82f6;">₹{total}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-
-                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #9ca3af; text-align: center;">
-                    <p>If you have any questions, please contact us at support@sjg.com</p>
-                    <p>&copy; 2026 SJG Stationery. All rights reserved.</p>
+                <div style=\"margin-top: 22px; padding: 18px; background: #fef3c7; border-radius: 10px; border: 1px solid #fde68a;\">
+                    <p style=\"margin: 0; font-size: 13px; color: #92400e;\"><strong>Invoice:</strong> Your order details are below. Thank you for shopping with SJG Stationery.</p>
                 </div>
+
+                <div style=\"display: flex; gap: 16px; flex-wrap: wrap; margin-top: 24px;\">
+                    <div style=\"flex: 1 1 260px;\">
+                        <p style=\"margin: 0 0 8px 0; font-size: 12px; letter-spacing: 0.07em; color: #6b7280; text-transform: uppercase;\">Billing / Shipping Address</p>
+                        <div style=\"background: #f9fafb; padding: 16px; border-radius: 10px; border: 1px solid #e5e7eb;\">
+                            <p style=\"margin: 0 0 6px 0; font-weight: 600; color: #111827;\">{user_name}</p>
+                            <p style=\"margin: 0; white-space: pre-line; color: #374151; font-size: 13px;\">{shipping_address or 'Not provided'}</p>
+                        </div>
+                    </div>
+
+                    <div style=\"flex: 1 1 260px;\">
+                        <p style=\"margin: 0 0 8px 0; font-size: 12px; letter-spacing: 0.07em; color: #6b7280; text-transform: uppercase;\">Order Summary</p>
+                        <table style=\"width: 100%; border-collapse: collapse; background: #f9fafb; border-radius: 10px; overflow: hidden;\">
+                            <thead>
+                                <tr style=\"background: #e5e7eb;\">
+                                    <th style=\"padding: 12px 10px; text-align: left; font-size: 12px; color: #374151;\">Item</th>
+                                    <th style=\"padding: 12px 10px; text-align: center; font-size: 12px; color: #374151;\">Qty</th>
+                                    <th style=\"padding: 12px 10px; text-align: right; font-size: 12px; color: #374151;\">Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {item_rows}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan=\"2\" style=\"padding: 14px 10px 14px 10px; text-align: right; font-weight: 700; font-size: 14px; color: #111827;\">Total</td>
+                                    <td style=\"padding: 14px 10px; text-align: right; font-weight: 700; font-size: 14px; color: #111827;\">₹{total}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div style=\"margin-top: 28px; padding: 18px; background: #f3f4f6; border-radius: 10px; border: 1px solid #e5e7eb;\">
+                    <p style=\"margin: 0; font-size: 12px; color: #6b7280;\">Need help? Contact us at <a href=\"mailto:support@sjg.com\" style=\"color: #2563eb; text-decoration: none;\">support@sjg.com</a>.</p>
+                </div>
+
+                <p style=\"margin: 22px 0 0 0; font-size: 12px; color: #9ca3af; text-align: center;\">&copy; {datetime.now().year} SJG Stationery. All rights reserved.</p>
             </div>
         </div>
         """
-        
+
         text_content = strip_tags(html_content)
         msg = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [user_email])
         msg.attach_alternative(html_content, "text/html")
         msg.send()
         print(f"Order email sent to {user_email}")
-        
+
     except Exception as e:
         print(f"Failed to send email: {str(e)}")
+
+
+def send_low_stock_alert(low_stock_items):
+    """Send an alert email to admin when products reach low stock.
+
+    low_stock_items should be a list of dicts with keys: name, stock, threshold.
+    """
+    try:
+        admin_email = getattr(settings, 'ORDER_NOTIFY_EMAIL', None) or getattr(settings, 'DEFAULT_FROM_EMAIL', None)
+        if not admin_email:
+            print("Low stock alert not sent: no admin email configured.")
+            return
+
+        subject = "Low stock alert: products need restocking"
+        item_lines = []
+        for item in low_stock_items:
+            name = item.get('name') or 'Unknown product'
+            stock = item.get('stock')
+            threshold = item.get('threshold')
+            item_lines.append(f"- {name}: {stock} left (threshold: {threshold})")
+
+        body = "The following products have reached low stock levels:\n\n" + "\n".join(item_lines)
+        body += "\n\nPlease restock them soon to avoid order fulfillment issues."
+
+        send_mail(
+            subject,
+            body,
+            settings.DEFAULT_FROM_EMAIL,
+            [admin_email],
+            fail_silently=True,
+        )
+        print(f"Low stock alert sent to {admin_email}")
+    except Exception as e:
+        print(f"Failed to send low stock alert: {e}")
+
 
 class OrderListCreateView(APIView):
     """List all orders or create a new order"""
@@ -241,9 +331,55 @@ class OrderListCreateView(APIView):
                 result = collection.insert_one(order_data)
                 order_data['_id'] = result.inserted_id
                 
-                # Send email asynchronously
+                # Decrement stock for each product in the order, and warn admin if stock gets low
+                low_stock_items = []
+                try:
+                    product_collection = mongo_client.get_collection('products')
+                    LOW_STOCK_THRESHOLD = 10  # customize as needed
+
+                    for item in order_data.get('items', []):
+                        pid = item.get('product_id')
+                        qty = int(item.get('quantity', 1))
+                        if not pid or qty <= 0:
+                            continue
+
+                        # Resolve product record (ObjectId first, then fallback to string)
+                        query = None
+                        try:
+                            query = {'_id': ObjectId(pid)}
+                        except Exception:
+                            query = {'id': pid}
+
+                        product = product_collection.find_one(query)
+                        if not product:
+                            continue
+
+                        current_stock = int(product.get('stock', 0))
+                        if current_stock < qty:
+                            return Response(
+                                {'error': f"Insufficient stock for '{product.get('name', 'item')}'. Available: {current_stock}, requested: {qty}."},
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
+
+                        new_stock = max(current_stock - qty, 0)
+                        product_collection.update_one(query, {'$set': {'stock': new_stock}})
+
+                        if new_stock <= LOW_STOCK_THRESHOLD:
+                            low_stock_items.append({
+                                'name': product.get('name'),
+                                'stock': new_stock,
+                                'threshold': LOW_STOCK_THRESHOLD
+                            })
+                except Exception as stock_err:
+                    print(f"Failed to update stock: {str(stock_err)}")
+
+                # Send order confirmation email asynchronously
                 threading.Thread(target=send_order_email, args=(order_data,)).start()
-                
+
+                # If any items are in low stock, notify the admin
+                if low_stock_items:
+                    threading.Thread(target=send_low_stock_alert, args=(low_stock_items,)).start()
+
                 return Response(
                     OrderSerializer(order_data).data,
                     status=status.HTTP_201_CREATED
@@ -835,5 +971,45 @@ class NotificationView(APIView):
                 {'$set': {'is_read': True, 'updated_at': datetime.now()}}
             )
             return Response({'message': 'All notifications marked as read'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class HealthCheckView(APIView):
+    """Simple health check endpoint"""
+    def get(self, request):
+        try:
+            # Check MongoDB connection
+            mongo_client.get_collection('health').find_one()
+            return Response({"status": "healthy", "mongodb": "connected", "timestamp": datetime.now()})
+        except Exception as e:
+            return Response({"status": "degraded", "error": str(e)}, status=status.HTTP_200_OK)
+
+class AppSettingsView(APIView):
+    """Get global application settings"""
+    def get(self, request):
+        try:
+            collection = mongo_client.get_collection('admin_data')
+            settings = collection.find_one({'type': 'settings'})
+            if not settings:
+                # Fallback defaults
+                return Response({
+                    'store_name': 'SJG Stationery',
+                    'currency': 'INR (₹)',
+                    'whatsapp': '+91 93600 24821',
+                    'address': '123, Main Street, Tech Park, Chennai - 600001'
+                })
+            settings['id'] = str(settings.pop('_id'))
+            return Response(settings)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UserOrdersView(APIView):
+    """Retrieve all orders for a specific user email"""
+    def get(self, request, user_email):
+        try:
+            collection = mongo_client.get_collection('orders')
+            orders = list(collection.find({'user_email': user_email}).sort('created_at', -1))
+            serializer = OrderSerializer(orders, many=True)
+            return Response(serializer.data)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

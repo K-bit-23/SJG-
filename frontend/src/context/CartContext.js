@@ -20,11 +20,19 @@ export const CartProvider = ({ children }) => {
 
     const addToCart = (product) => {
         setCart(prev => {
-            const existing = prev.find(item => item.id === product.id);
-            if (existing) {
-                return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+            const existing = prev.find(item => item.id === product.id || item.id === product._id);
+            const currentQty = existing ? existing.quantity : 0;
+            const stockLimit = product.stock !== undefined ? product.stock : 999;
+
+            if (currentQty >= stockLimit) {
+                alert(`Cannot add more. Only ${stockLimit} units available in stock.`);
+                return prev;
             }
-            return [...prev, { ...product, quantity: 1 }];
+
+            if (existing) {
+                return prev.map(item => (item.id === product.id || item.id === product._id) ? { ...item, quantity: item.quantity + 1 } : item);
+            }
+            return [...prev, { ...product, id: product.id || product._id, quantity: 1 }];
         });
         // Dispatch event for UI animations
         window.dispatchEvent(new Event('cartUpdate'));

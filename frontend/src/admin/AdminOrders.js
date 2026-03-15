@@ -10,6 +10,7 @@ const AdminOrders = ({ orders, getStatusBadge, updateOrderStatus }) => {
                     <thead className="bg-gray-50 text-gray-600 text-sm">
                         <tr>
                             <th className="p-3 text-left">Order ID</th>
+                            <th className="p-3 text-left">Date/Time</th>
                             <th className="p-3 text-left">Customer</th>
                             <th className="p-3 text-left">Items</th>
                             <th className="p-3 text-left">Status</th>
@@ -21,6 +22,15 @@ const AdminOrders = ({ orders, getStatusBadge, updateOrderStatus }) => {
                         {orders.map(order => (
                             <tr key={order.order_id} className="hover:bg-gray-50">
                                 <td className="p-3 font-medium text-secondary">{order.order_id}</td>
+                                <td className="p-3 text-xs text-gray-500">
+                                    {order.created_at ? new Date(order.created_at).toLocaleString('en-IN', {
+                                        day: '2-digit',
+                                        month: 'short',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    }) : 'N/A'}
+                                </td>
                                 <td className="p-3">
                                     <div>{order.user_name}</div>
                                     <div className="text-xs text-gray-500">{order.user_email}</div>
@@ -34,6 +44,7 @@ const AdminOrders = ({ orders, getStatusBadge, updateOrderStatus }) => {
                                     >
                                         <option value="pending">Pending</option>
                                         <option value="processing">Processing</option>
+                                        <option value="shipped">Shipped</option>
                                         <option value="completed">Completed</option>
                                         <option value="cancelled">Cancelled</option>
                                     </select>
@@ -45,7 +56,7 @@ const AdminOrders = ({ orders, getStatusBadge, updateOrderStatus }) => {
                             </tr>
                         ))}
                         {orders.length === 0 && (
-                            <tr><td colSpan="6" className="p-8 text-center text-gray-400">No orders found</td></tr>
+                            <tr><td colSpan="7" className="p-8 text-center text-gray-400">No orders found</td></tr>
                         )}
                     </tbody>
                 </table>

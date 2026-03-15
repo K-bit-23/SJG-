@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../src/context/AuthContext';
+import { useNotifications } from '../../src/context/NotificationContext';
 import { Settings as SettingsIcon, MapPinned, Bell, Mail, MessageSquare, Shield, LogOut, Save } from 'lucide-react';
 import api from '../../src/utils/api';
 import AccountLayout from '../../src/components/AccountLayout';
 
 const Settings = () => {
     const { user, logout } = useAuth();
+    const { showToast } = useNotifications();
     const [saving, setSaving] = useState(false);
     
     // App Settings
@@ -42,10 +44,10 @@ const Settings = () => {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     setAppSettings(prev => ({ ...prev, locationAccess: true }));
-                    alert(`Location access granted! Lat: ${position.coords.latitude.toFixed(4)}, Long: ${position.coords.longitude.toFixed(4)}`);
+                    showToast(`Location access granted! Lat: ${position.coords.latitude.toFixed(4)}, Long: ${position.coords.longitude.toFixed(4)}`, 'success');
                 },
                 (error) => {
-                    alert("Location access denied. Please enable it in your browser settings.");
+                    showToast("Location access denied. Please enable it in your browser settings.", 'error');
                 }
             );
         } else {
@@ -60,10 +62,10 @@ const Settings = () => {
             await api.post(`/profile/${encodeURIComponent(userEmail)}/`, {
                 appSettings: appSettings
             });
-            alert('Settings Saved Successfully!');
+            showToast('Settings saved successfully!', 'success');
         } catch (error) {
             console.error("Error saving settings:", error);
-            alert("Failed to save settings. Please try again.");
+            showToast('Failed to save settings. Please try again.', 'error');
         } finally {
             setSaving(false);
         }

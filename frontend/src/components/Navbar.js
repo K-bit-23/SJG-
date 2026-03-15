@@ -1,55 +1,14 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, Bell, CheckCircle } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, BellRing, Smile, CheckCircle, Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useLanguage } from '../context/LanguageContext';
 import api from '../utils/api';
+import AuthModal from './AuthModal';
 
 
-// Wishlist Context
-const WishlistContext = createContext();
-
-export const useWishlist = () => {
-    const context = useContext(WishlistContext);
-    if (!context) {
-        // Return default values if not wrapped in provider
-        return { wishlist: [], addToWishlist: () => { }, removeFromWishlist: () => { }, isInWishlist: () => false };
-    }
-    return context;
-};
-
-export const WishlistProvider = ({ children }) => {
-    const [wishlist, setWishlist] = useState(() => {
-        const saved = localStorage.getItem('wishlist');
-        return saved ? JSON.parse(saved) : [];
-    });
-
-    useEffect(() => {
-        localStorage.setItem('wishlist', JSON.stringify(wishlist));
-    }, [wishlist]);
-
-    const addToWishlist = (product) => {
-        setWishlist(prev => {
-            if (prev.find(p => p.id === product.id)) return prev;
-            return [...prev, product];
-        });
-    };
-
-    const removeFromWishlist = (productId) => {
-        setWishlist(prev => prev.filter(p => p.id !== productId));
-    };
-
-    const isInWishlist = (productId) => {
-        return wishlist.some(p => p.id === productId);
-    };
-
-    return (
-        <WishlistContext.Provider value={{ wishlist, addToWishlist, removeFromWishlist, isInWishlist }}>
-            {children}
-        </WishlistContext.Provider>
-    );
-};
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -64,40 +23,28 @@ const Navbar = () => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
-    const [wishlistCount, setWishlistCount] = useState(0);
+    const { wishlist } = useWishlist();
     const [isCartBumping, setIsCartBumping] = useState(false);
     const [isWishlistBumping, setIsWishlistBumping] = useState(false);
-
-    const updateWishlistCount = () => {
-        try {
-            const saved = localStorage.getItem('wishlist');
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                setWishlistCount(Array.isArray(parsed) ? parsed.length : 0);
-            } else {
-                setWishlistCount(0);
-            }
-        } catch (e) {
-            console.error("Error parsing wishlist:", e);
-            setWishlistCount(0);
-        }
+    
+    // Auth and Admin states
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [adminModalOpen, setAdminModalOpen] = useState(false);
+    const [adminError, setAdminError] = useState('');
+    const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' });
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
+    
+    // Helper to show toast (mocking if not available)
+    const showToast = (message, type) => {
+        console.log(`[${type}] ${message}`);
+        // You can implement a real toast here or use an existing one
     };
 
     useEffect(() => {
-        const handleWishlistUpdate = () => {
-            updateWishlistCount();
-            setIsWishlistBumping(true);
-            setTimeout(() => setIsWishlistBumping(false), 400);
-        };
-
-        handleWishlistUpdate();
-        window.addEventListener('storage', updateWishlistCount);
-        window.addEventListener('wishlistUpdate', handleWishlistUpdate);
-        return () => {
-            window.removeEventListener('storage', updateWishlistCount);
-            window.removeEventListener('wishlistUpdate', handleWishlistUpdate);
-        };
-    }, []);
+        setIsWishlistBumping(true);
+        const timer = setTimeout(() => setIsWishlistBumping(false), 400);
+        return () => clearTimeout(timer);
+    }, [wishlist.length]);
 
     useEffect(() => {
         const handleCartUpdate = () => {
@@ -259,15 +206,15 @@ const Navbar = () => {
                                 </div>
 
                                 {user && (
-                                    <Link to="/orders" className="text-gray-600 hover:text-secondary transition-colors font-medium text-sm flex items-center gap-1.5 shrink-0">
-                                        <Package size={16} /> {t('orders')}
+                                    <Link to="/orders" className="text-gray-600 hover:text-secondary transition-colors font-medium text-sm flex items-center gap-1.5 shrink-0 mr-6 group">
+                                        <Package size={16} className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:rotate-6" /> {t('orders')}
                                     </Link>
                                 )}
                             </div>
                         </div>
 
                         {/* Right: Actions */}
-                        <div className="flex items-center gap-2 lg:gap-4">
+                        <div className="flex items-center gap-4 lg:gap-6">
                             {/* Notifications */}
                             {user && (
                                 <div className="relative notifications-dropdown flex items-center">
@@ -280,7 +227,7 @@ const Navbar = () => {
                                         className={`relative p-2.5 hover:bg-gray-100 rounded-full transition-all group`}
                                         title="Notifications"
                                     >
-                                        <Bell size={20} className="text-gray-500 group-hover:text-primary transition-colors" />
+                                        <BellRing size={20} className="text-gray-500 group-hover:text-primary transition-colors group-hover:rotate-12 group-hover:-translate-y-0.5 hover-wiggle" />
                                         {unreadCount > 0 && (
                                             <span className="absolute -top-0.5 -right-0.5 bg-[#f04f47] text-white text-[10px] min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-bold">
                                                 {unreadCount}
@@ -292,7 +239,7 @@ const Navbar = () => {
                                         <div className="absolute right-0 top-full mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in cursor-default" onClick={e => e.stopPropagation()}>
                                             <div className="flex justify-between items-center p-4 border-b border-gray-100">
                                                 <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                                                    <Bell size={18} className="text-primary"/> Notifications
+                                                        <Smile size={18} className="text-primary"/> Notifications
                                                     {unreadCount > 0 && <span className="bg-[#f04f47] text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{unreadCount} new</span>}
                                                 </h3>
                                                 <button 
@@ -343,10 +290,10 @@ const Navbar = () => {
 
                             {/* Wishlist */}
                             <Link to="/wishlist" className={`relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale ${isWishlistBumping ? 'animate-wishlist-pulse' : ''}`}>
-                                <Heart size={20} className={`text-gray-500 group-hover:text-red-500 transition-colors ${isWishlistBumping ? 'text-red-500 fill-red-500' : ''}`} />
-                                {wishlistCount > 0 && (
+                                <Heart size={20} className={`text-gray-500 group-hover:text-red-500 transition-colors ${isWishlistBumping ? 'text-red-500 fill-red-500' : ''} group-hover:animate-bounce`} />
+                                {wishlist.length > 0 && (
                                     <span className={`absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-bold transition-transform duration-200 ${isWishlistBumping ? 'scale-125' : 'scale-100'}`}>
-                                        {wishlistCount}
+                                        {wishlist.length}
                                     </span>
                                 )}
                             </Link>
@@ -365,54 +312,7 @@ const Navbar = () => {
                                 )}
                             </Link>
 
-                            {/* Notifications Bell */}
-                            <div className="relative notifications-dropdown">
-                                <button 
-                                    onClick={() => setNotificationsDropdownOpen(!notificationsDropdownOpen)}
-                                    className="relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale"
-                                >
-                                    <Bell size={20} className={`text-gray-500 group-hover:text-primary transition-colors ${notifications.length > 0 ? 'animate-swing' : ''}`} />
-                                    {notifications.length > 0 && (
-                                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-                                    )}
-                                </button>
-
-                                {notificationsDropdownOpen && (
-                                    <div className="absolute right-0 top-full mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in">
-                                        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                                            <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Alert Center</h3>
-                                            <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-full">{notifications.length} New</span>
-                                        </div>
-                                        <div className="max-h-96 overflow-y-auto">
-                                            {notifications.length === 0 ? (
-                                                <div className="p-8 text-center">
-                                                    <Bell size={32} className="mx-auto text-gray-200 mb-2" />
-                                                    <p className="text-xs text-gray-400 font-bold uppercase">All caught up!</p>
-                                                </div>
-                                            ) : (
-                                                notifications.map(n => (
-                                                    <div key={n.id} className="p-4 border-b border-gray-50 hover:bg-gray-50/80 transition-colors flex gap-3">
-                                                        <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-xs font-bold text-gray-800 leading-tight">{n.message}</p>
-                                                            <p className="text-[10px] text-gray-400 mt-1 font-medium italic">{new Date(n.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                                        </div>
-                                                    </div>
-                                                ))
-                                            )}
-                                        </div>
-                                        <div className="p-3 bg-gray-50 text-center border-t border-gray-100">
-                                            <button className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-primary transition-colors">Clear All History</button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {user && (
-                                <Link to="/orders" className="relative p-2.5 hover:bg-gray-100 rounded-full transition-all group hover-scale" title="My Orders">
-                                    <Package size={20} className="text-gray-500 group-hover:text-secondary transition-colors" />
-                                </Link>
-                            )}
+                            {/* Second Notification bell removed as it was redundant and causing ReferenceErrors */}
 
                             {/* User Profile */}
                             {user ? (
@@ -498,7 +398,7 @@ const Navbar = () => {
                                                 <Link to="/wishlist" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
                                                     <Heart size={18} className="text-gray-400" />
                                                     <span className="font-medium">Wishlist</span>
-                                                    {wishlistCount > 0 && <span className="ml-auto bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-bold">{wishlistCount}</span>}
+                                                    {wishlist.length > 0 && <span className="ml-auto bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded-full font-bold">{wishlist.length}</span>}
                                                 </Link>
                                                 <Link to="/settings" onClick={() => setProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors">
                                                     <Settings size={18} className="text-gray-400" />
@@ -555,6 +455,17 @@ const Navbar = () => {
                     </div>
                 </div>
             </nav>
+            <style>
+                {`@keyframes wiggle {
+                    0%, 100% { transform: rotate(0deg); }
+                    25% { transform: rotate(14deg); }
+                    75% { transform: rotate(-10deg); }
+                }
+
+                .hover-wiggle:hover {
+                    animation: wiggle 0.6s ease-in-out;
+                }`}
+            </style>
 
             {/* Mobile Menu */}
             {mobileMenuOpen && (
@@ -713,6 +624,12 @@ const Navbar = () => {
                     to { opacity: 1; transform: translateY(0) scale(1); }
                 }
             `}</style>
+
+            {/* ── Auth Modal ── */}
+            <AuthModal 
+                isOpen={isAuthModalOpen} 
+                onClose={() => setIsAuthModalOpen(false)} 
+            />
 
         </>
     );

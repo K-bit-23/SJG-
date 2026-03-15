@@ -2,46 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Heart, ShoppingBag, Trash2, ArrowLeft, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../src/context/CartContext';
+import { useWishlist } from '../../src/context/WishlistContext';
 
 const Wishlist = () => {
-    const [wishlist, setWishlist] = useState([]);
+    const { wishlist, removeFromWishlist, clearWishlist, getProductId } = useWishlist();
     const { addToCart } = useCart();
-
-    // Load wishlist from localStorage
-    useEffect(() => {
-        const loadWishlist = () => {
-            const saved = localStorage.getItem('wishlist');
-            if (saved) {
-                setWishlist(JSON.parse(saved));
-            }
-        };
-
-        loadWishlist();
-
-        // Listen for storage changes (for real-time sync)
-        window.addEventListener('storage', loadWishlist);
-        return () => window.removeEventListener('storage', loadWishlist);
-    }, []);
-
-    const getProductId = (product) => product.id || product._id;
-
-    const removeFromWishlist = (product) => {
-        const productId = getProductId(product);
-        const updated = wishlist.filter(p => getProductId(p) !== productId);
-        setWishlist(updated);
-        localStorage.setItem('wishlist', JSON.stringify(updated));
-        window.dispatchEvent(new Event('storage'));
-    };
 
     const moveToCart = (product) => {
         addToCart(product);
-        removeFromWishlist(product);
-    };
-
-    const clearWishlist = () => {
-        setWishlist([]);
-        localStorage.setItem('wishlist', JSON.stringify([]));
-        window.dispatchEvent(new Event('storage'));
+        removeFromWishlist(getProductId(product));
     };
 
     return (
@@ -97,7 +66,7 @@ const Wishlist = () => {
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     />
                                     <button
-                                        onClick={() => removeFromWishlist(product)}
+                                        onClick={() => removeFromWishlist(getProductId(product))}
                                         className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-red-50 transition-colors"
                                     >
                                         <Trash2 size={16} className="text-red-500" />

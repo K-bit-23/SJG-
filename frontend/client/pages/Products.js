@@ -5,41 +5,23 @@ import {
     SlidersHorizontal, Heart, Filter, Sparkles
 } from 'lucide-react';
 import { useCart } from '../../src/context/CartContext';
+import { useWishlist } from '../../src/context/WishlistContext';
 import api from '../../src/utils/api';
 
 const Products = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
+    const { wishlist, addToWishlist, removeFromWishlist, isInWishlist, getProductId } = useWishlist();
     const { addToCart } = useCart();
-
-    // Helper to get product ID (handles both id and _id from MongoDB)
-    const getProductId = (product) => product.id || product._id;
-
-    // Wishlist State
-    const [wishlist, setWishlist] = useState(() => {
-        const saved = localStorage.getItem('wishlist');
-        return saved ? JSON.parse(saved) : [];
-    });
 
     const toggleWishlist = (product) => {
         const productId = getProductId(product);
-        const isInList = wishlist.some(p => getProductId(p) === productId);
-        let updated;
-        if (isInList) {
-            updated = wishlist.filter(p => getProductId(p) !== productId);
+        if (isInWishlist(productId)) {
+            removeFromWishlist(productId);
         } else {
-            updated = [...wishlist, { ...product, id: productId }];
+            addToWishlist(product);
         }
-        setWishlist(updated);
-        localStorage.setItem('wishlist', JSON.stringify(updated));
-        window.dispatchEvent(new Event('storage'));
-        window.dispatchEvent(new Event('wishlistUpdate'));
-    };
-
-    const isInWishlist = (product) => {
-        const productId = getProductId(product);
-        return wishlist.some(p => getProductId(p) === productId);
     };
 
     // Filter & Sort States
@@ -274,12 +256,12 @@ const Products = () => {
                                         {/* Wishlist */}
                                         <button
                                             onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
-                                            className={`absolute top-3 right-3 p-2 rounded-full shadow-lg transition-all ${isInWishlist(product)
+                                            className={`absolute top-3 right-3 p-2 rounded-full shadow-lg transition-all ${isInWishlist(getProductId(product))
                                                 ? 'bg-red-500 text-white'
                                                 : 'bg-white/90 text-gray-500 hover:text-red-500'
                                                 }`}
                                         >
-                                            <Heart size={16} fill={isInWishlist(product) ? 'currentColor' : 'none'} />
+                                            <Heart size={16} fill={isInWishlist(getProductId(product)) ? 'currentColor' : 'none'} />
                                         </button>
                                         {/* Category Badge */}
                                         <span className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 backdrop-blur-sm rounded-lg text-[10px] font-bold uppercase tracking-wide">
@@ -287,17 +269,30 @@ const Products = () => {
                                         </span>
                                     </div>
                                     <div className="p-4">
-                                        <h3 className="font-semibold text-gray-800 text-sm line-clamp-2 mb-2 min-h-[40px]">
+                                        <h3 className="font-semibold text-gray-800 text-sm line-clamp-2 mb-1 min-h-[40px]">
                                             {product.name}
                                         </h3>
+                                        
+                                        {/* Stock Indicator */}
+                                        <div className="mb-3">
+                                            {product.stock <= 0 ? (
+                                                <span className="text-[10px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Out of Stock</span>
+                                            ) : product.stock < 10 ? (
+                                                <span className="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Only {product.stock} Left</span>
+                                            ) : (
+                                                <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-wider">{product.stock} Units In Stock</span>
+                                            )}
+                                        </div>
+
                                         <div className="flex items-center justify-between">
                                             <div>
                                                 <span className="text-lg font-bold text-primary">₹{product.price}</span>
                                             </div>
                                             <button
                                                 onClick={(e) => handleAddToCart(product, e)}
-                                                className="p-2 bg-secondary text-white rounded-full hover:bg-indigo-600 transition-all hover-scale shadow-lg shadow-secondary/20"
-                                                title="Add to Cart"
+                                                disabled={product.stock <= 0}
+                                                className={`p-2 rounded-full transition-all hover-scale shadow-lg ${product.stock <= 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-secondary text-white hover:bg-indigo-600 shadow-secondary/20'}`}
+                                                title={product.stock <= 0 ? "Out of Stock" : "Add to Cart"}
                                             >
                                                 <ShoppingBag size={18} />
                                             </button>
@@ -315,28 +310,41 @@ const Products = () => {
                                         />
                                     </div>
                                     <div className="flex-1 flex flex-col justify-between">
-                                        <div>
-                                            <span className="text-xs text-secondary font-medium">{product.category}</span>
-                                            <h3 className="font-semibold text-gray-800">{product.name}</h3>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xl font-bold text-primary">₹{product.price}</span>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
-                                                    className={`p-2 rounded-lg transition-all ${isInWishlist(product) ? 'bg-red-100 text-red-500' : 'bg-gray-100 text-gray-500'}`}
-                                                >
-                                                    <Heart size={18} fill={isInWishlist(product) ? 'currentColor' : 'none'} />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => handleAddToCart(product, e)}
-                                                    className="px-4 py-2 bg-secondary text-white rounded-lg text-sm font-medium hover:bg-indigo-600 flex items-center gap-2"
-                                                >
-                                                    <ShoppingBag size={16} /> Add
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                         <div>
+                                             <div className="flex items-center justify-between">
+                                                 <span className="text-xs text-secondary font-medium">{product.category}</span>
+                                                 {/* Stock Indicator */}
+                                                 <div className="text-right">
+                                                     {product.stock <= 0 ? (
+                                                         <span className="text-[10px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Out of Stock</span>
+                                                     ) : product.stock < 10 ? (
+                                                         <span className="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Only {product.stock} Left</span>
+                                                     ) : (
+                                                         <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-wider">{product.stock} Units</span>
+                                                     )}
+                                                 </div>
+                                             </div>
+                                             <h3 className="font-semibold text-gray-800">{product.name}</h3>
+                                         </div>
+                                         <div className="flex items-center justify-between">
+                                             <span className="text-xl font-bold text-primary">₹{product.price}</span>
+                                             <div className="flex gap-2">
+                                                 <button
+                                                     onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
+                                                     className={`p-2 rounded-lg transition-all ${isInWishlist(getProductId(product)) ? 'bg-red-100 text-red-500' : 'bg-gray-100 text-gray-500'}`}
+                                                 >
+                                                     <Heart size={18} fill={isInWishlist(getProductId(product)) ? 'currentColor' : 'none'} fillOpacity={isInWishlist(getProductId(product)) ? 1 : 0} />
+                                                 </button>
+                                                 <button
+                                                     onClick={(e) => handleAddToCart(product, e)}
+                                                     disabled={product.stock <= 0}
+                                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${product.stock <= 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-secondary text-white hover:bg-indigo-600'}`}
+                                                 >
+                                                     <ShoppingBag size={16} /> {product.stock <= 0 ? 'Sold Out' : 'Add'}
+                                                 </button>
+                                             </div>
+                                         </div>
+                                     </div>
                                 </div>
                             )
                         ))}
