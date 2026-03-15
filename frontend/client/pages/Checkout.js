@@ -4,6 +4,7 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, CreditCard, Truck, CheckCircle, Smartphone, ExternalLink } from 'lucide-react';
 import api from '../../src/utils/api';
+import SuccessModal from '../../src/components/SuccessModal';
 
 const Checkout = () => {
     const { cart } = useCart();
@@ -31,6 +32,9 @@ const Checkout = () => {
         phone: '',
         utr: ''
     });
+
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successOrderInfo, setSuccessOrderInfo] = useState({ id: '', total: 0 });
 
     // Load saved addresses from profile (for quick checkout)
     React.useEffect(() => {
@@ -168,8 +172,9 @@ const Checkout = () => {
                     // Redirect to Stripe Checkout
                     window.location.href = url;
                 } else {
-                    // Redirect to Success page for COD/UPI
-                    navigate(`/payment-success?order_id=${orderId}&amount=${total}`);
+                    // Show Success Modal for COD/UPI
+                    setSuccessOrderInfo({ id: orderId, total: total });
+                    setShowSuccessModal(true);
                 }
             }
         } catch (error) {
@@ -432,6 +437,12 @@ const Checkout = () => {
                     </div>
                 </div>
             </div>
+            <SuccessModal 
+                isOpen={showSuccessModal} 
+                onClose={() => setShowSuccessModal(false)}
+                orderId={successOrderInfo.id}
+                total={successOrderInfo.total}
+            />
         </div>
     );
 };

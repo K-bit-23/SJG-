@@ -47,68 +47,109 @@ const Orders = () => {
 
     const downloadInvoice = (order) => {
         const doc = new jsPDF();
+        const primaryColor = [235, 64, 52]; // #EB4034 - Red/Coral
         
-        // Add Company Header
-        doc.setFillColor(79, 70, 229); // Indigo theme
-        doc.rect(0, 0, 210, 20, 'F');
+        // 1. Top Decoration Bar
+        doc.setFillColor(...primaryColor);
+        doc.rect(0, 0, 210, 8, 'F');
         
-        doc.setFontSize(24);
-        doc.setTextColor(255);
-        doc.text('SJG STATIONERY', 14, 14);
+        // 2. INVOICE Title
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(30);
+        doc.setTextColor(30, 41, 59);
+        doc.text('INVOICE', 14, 25);
         
-        doc.setTextColor(79, 70, 229);
-        doc.text('INVOICE', 140, 40);
-        
-        // Company Info
+        // 3. Date and Order No (Right Aligned)
+        doc.setFont('Helvetica', 'normal');
         doc.setFontSize(10);
         doc.setTextColor(100);
-        doc.text('Support: support@sjg.com', 14, 30);
-        doc.text('Phone: +91 93600 24821', 14, 35);
-        
-        // Order Info
         const orderIdDisplay = order.order_id || order.id || 'ORDER';
-        doc.text(`Order ID: #${orderIdDisplay}`, 14, 50);
-        doc.text(`Date: ${new Date(order.created_at || Date.now()).toLocaleDateString()}`, 14, 55);
-        doc.text(`Payment: ${order.payment_method || 'N/A'}`, 14, 60);
+        doc.text(`DATE: ${new Date(order.created_at || Date.now()).toLocaleDateString()}`, 196, 20, { align: 'right' });
+        doc.text(`INVOICE NO: ${orderIdDisplay.split('-').pop() || orderIdDisplay}`, 196, 26, { align: 'right' });
         
-        // Billing info
-        doc.setFontSize(11);
-        doc.setTextColor(79, 70, 229);
-        doc.text('DELIVERY ADDRESS', 14, 75);
-        
+        // 4. Company Info
         doc.setFontSize(10);
         doc.setTextColor(100);
-        doc.text(order.user_name || user?.fullName || 'Customer', 14, 82);
-        const addrLines = doc.splitTextToSize(order.shipping_address || 'Address not provided', 120);
-        doc.text(addrLines, 14, 88);
+        doc.setFont('Helvetica', 'normal');
+        doc.text('SJG Stationery', 14, 35);
+        doc.text('123 Station Road, SJG Campus', 14, 40);
+        doc.text('Chennai, Tamilnadu - 600001', 14, 45);
+        doc.text('Phone: +91 93600 24821', 14, 50);
+        doc.text('Email: support@sjg.com', 14, 55);
         
-        // Items Table
+        // 5. BILL TO / SHIP TO Headers (Coral)
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(...primaryColor);
+        doc.text('BILL TO', 14, 70);
+        doc.text('SHIP TO', 110, 70);
+        
+        // Address Details
+        doc.setFont('Helvetica', 'normal');
+        doc.setTextColor(60);
+        doc.setFontSize(9);
+        const userName = order.user_name || user?.name || user?.fullName || 'Customer';
+        doc.text(userName, 14, 76);
+        doc.text(userName, 110, 76);
+        
+        const address = order.shipping_address || 'Address not provided';
+        const addrLines = doc.splitTextToSize(address, 80);
+        doc.text(addrLines, 14, 82);
+        doc.text(addrLines, 110, 82);
+        
+        // 6. Items Table
         const tableBody = order.items?.map(item => [
-            item.product_name || 'Product',
+            item.product_name || 'Stationery Item',
             item.quantity,
-            `Rs. ${item.price}`,
-            `Rs. ${item.price * item.quantity}`
+            `${item.price}`,
+            `${(item.price * item.quantity).toFixed(0)}`
         ]) || [];
 
         doc.autoTable({
-            startY: 110,
-            head: [['ITEM DESCRIPTION', 'QTY', 'UNIT PRICE', 'TOTAL']],
+            startY: 105,
+            head: [['DESCRIPTION', 'QTY', 'UNIT PRICE', 'TOTAL']],
             body: tableBody,
-            headStyles: { fillColor: [79, 70, 229] },
-            alternateRowStyles: { fillColor: [249, 250, 251] },
-            margin: { top: 10 },
+            headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontStyle: 'bold' },
+            bodyStyles: { textColor: [80, 80, 80], fontSize: 9 },
+            alternateRowStyles: { fillColor: [254, 254, 254] },
+            margin: { left: 14, right: 14 },
+            theme: 'striped'
         });
         
-        // Totals
-        const finalY = doc.lastAutoTable.finalY + 15;
-        doc.setFontSize(12);
-        doc.setTextColor(0);
-        doc.text('GRAND TOTAL:', 140, finalY);
-        doc.text(`Rs. ${order.total_amount}.00`, 190, finalY, { align: 'right' });
+        // 7. Summary Totals (Right Aligned)
+        const finalY = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(9);
+        doc.setTextColor(80);
         
-        doc.setFontSize(10);
-        doc.setTextColor(150);
-        doc.text('Thank you for choosing SJG Stationery!', 105, 270, { align: 'center' });
+        const subtotal = order.total_amount;
+        // Search 2026 data: Stationery GST is 0% since Sept 2025
+        const taxRate = 0; 
+        const shipping = subtotal > 999 ? 0 : 5; // Using 5.00 from image
+        const total = subtotal + shipping;
+        
+        const summaryX = 140;
+        const valueX = 196;
+        
+        doc.text('SUBTOTAL', summaryX, finalY);
+        doc.text(`${subtotal.toFixed(0)}`, valueX, finalY, { align: 'right' });
+        
+        doc.text('DISCOUNT', summaryX, finalY + 6);
+        doc.text('0.00', valueX, finalY + 6, { align: 'right' });
+        
+        doc.text(`TAX RATE (${taxRate}%)`, summaryX, finalY + 12);
+        doc.text('0.00', valueX, finalY + 12, { align: 'right' });
+        
+        doc.text('SHIPPING/HANDLING', summaryX, finalY + 18);
+        doc.text(`${shipping.toFixed(2)}`, valueX, finalY + 18, { align: 'right' });
+        
+        // 8. Balance Due (Green Box)
+        doc.setFillColor(224, 242, 233); // Light Green
+        doc.rect(120, finalY + 24, 76, 10, 'F');
+        
+        doc.setFont('Helvetica', 'bold');
+        doc.setTextColor(22, 101, 52); // Dark Green
+        doc.text('BALANCE DUE', 125, finalY + 31);
+        doc.text(`${total.toFixed(2)}`, 191, finalY + 31, { align: 'right' });
         
         doc.save(`Invoice_${orderIdDisplay}.pdf`);
     };

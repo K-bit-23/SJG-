@@ -38,6 +38,7 @@ const AdminDashboard = ({ stats, orders, getStatusBadge }) => {
                             <tr>
                                 <th className="p-3 text-left">Order ID</th>
                                 <th className="p-3 text-left">Customer</th>
+                                <th className="p-3 text-left">Delivery</th>
                                 <th className="p-3 text-left">Status</th>
                                 <th className="p-3 text-right">Amount</th>
                             </tr>
@@ -51,6 +52,7 @@ const AdminDashboard = ({ stats, orders, getStatusBadge }) => {
                                         </Link>
                                     </td>
                                     <td className="p-3">{order.user_name}</td>
+                                    <td className="p-3 text-xs font-bold text-indigo-600">{order.delivery_date || 'N/A'}</td>
                                     <td className="p-3">
                                         <span className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusBadge(order.status)}`}>
                                             {order.status}

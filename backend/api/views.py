@@ -163,81 +163,130 @@ def generate_invoice_pdf(order_data):
         c = canvas.Canvas(buffer, pagesize=A4)
         width, height = A4
         margin = 40
+        primary_color = colors.HexColor('#EB4034') # Coral/Red
 
-        # Header
-        c.setFont('Helvetica-Bold', 26)
-        c.setFillColor(colors.HexColor('#EB4034'))
+        # 1. Top Decoration Bar
+        c.setFillColor(primary_color)
+        c.rect(0, height - 12, width, 12, fill=1, stroke=0)
+
+        # 2. INVOICE Title
+        c.setFont('Helvetica-Bold', 32)
+        c.setFillColor(colors.HexColor('#1E293B')) # Slate-800
         c.drawString(margin, height - 60, 'INVOICE')
 
-        c.setFont('Helvetica', 10)
-        c.setFillColor(colors.black)
-        c.drawString(margin, height - 85, 'SJG Stationery')
-        c.drawString(margin, height - 100, '123 Station Road, Chennai - 600001')
-        c.drawString(margin, height - 115, 'Phone: +91 98765 43210')
-        c.drawString(margin, height - 130, 'Email: support@sjg.com')
-
-        # Order details box
+        # 3. Date and Order No (Right Aligned)
         order_id = order_data.get('order_id', '')
         created_at = order_data.get('created_at')
-        date_display = created_at.strftime('%d-%m-%Y') if hasattr(created_at, 'strftime') else str(created_at or '')
-        status = order_data.get('status', 'Pending').title()
-
-        x = width - margin - 200
-        c.setFont('Helvetica-Bold', 10)
-        c.drawString(x, height - 85, 'Order #:')
-        c.drawString(x, height - 100, 'Date:')
-        c.drawString(x, height - 115, 'Status:')
-
+        date_display = created_at.strftime('%d/%m/%Y') if hasattr(created_at, 'strftime') else str(created_at or '')
+        
         c.setFont('Helvetica', 10)
-        c.drawString(x + 60, height - 85, order_id)
-        c.drawString(x + 60, height - 100, date_display)
-        c.drawString(x + 60, height - 115, status)
+        c.setFillColor(colors.gray)
+        c.drawRightString(width - margin, height - 55, f'DATE: {date_display}')
+        c.drawRightString(width - margin, height - 70, f'INVOICE NO: {order_id.split("-")[-1] or order_id}')
 
-        # Billing / Shipping
-        c.setFont('Helvetica-Bold', 10)
-        c.drawString(margin, height - 160, 'BILL TO')
-        c.drawString(width / 2 + 20, height - 160, 'SHIP TO')
-
+        # 4. Company Info
         c.setFont('Helvetica', 10)
+        c.setFillColor(colors.black)
+        c.drawString(margin, height - 90, 'SJG Stationery')
+        c.drawString(margin, height - 105, '123 Station Road, SJG Campus')
+        c.drawString(margin, height - 117, 'Chennai, Tamilnadu - 600001')
+        c.drawString(margin, height - 129, 'Phone: +91 93600 24821')
+        c.drawString(margin, height - 141, 'Email: support@sjg.com')
+
+        # 5. BILL TO / SHIP TO
+        c.setFont('Helvetica-Bold', 11)
+        c.setFillColor(primary_color)
+        c.drawString(margin, height - 180, 'BILL TO')
+        c.drawString(width / 2 + 20, height - 180, 'SHIP TO')
+
+        c.setFont('Helvetica', 9)
+        c.setFillColor(colors.black)
         user_name = order_data.get('user_name', '')
         shipping_address = order_data.get('shipping_address', '')
-        lines = [user_name] + (shipping_address.split('\n') if shipping_address else [])
-        y_line = height - 175
-        for line in lines:
-            c.drawString(margin, y_line, line)
-            c.drawString(width / 2 + 20, y_line, line)
-            y_line -= 12
+        
+        c.drawString(margin, height - 195, user_name)
+        c.drawString(width / 2 + 20, height - 195, user_name)
+        
+        y_addr = height - 207
+        addr_lines = (shipping_address.split(',') if ',' in shipping_address else shipping_address.split('\n')) if shipping_address else []
+        for line in addr_lines:
+            if y_addr < height - 280: break
+            line = line.strip()
+            if not line: continue
+            c.drawString(margin, y_addr, line)
+            c.drawString(width / 2 + 20, y_addr, line)
+            y_addr -= 12
 
-        # Items Table
-        table_data = [['Description', 'Qty', 'Unit Price', 'Total']]
+        # 6. Items Table
+        table_top = y_addr - 30
+        table_data = [['DESCRIPTION', 'QTY', 'UNIT PRICE', 'TOTAL']]
         items = order_data.get('items', [])
         for item in items:
-            name = item.get('product_name') or item.get('name') or ''
+            name = item.get('product_name') or item.get('name') or 'Stationery Item'
             qty = item.get('quantity', 0)
             price = float(item.get('price', 0))
-            total = qty * price
-            table_data.append([name, str(qty), f'₹{price:.2f}', f'₹{total:.2f}'])
+            table_data.append([name, str(qty), f'{price:.2f}', f'{qty*price:.2f}'])
 
-        # Totals
-        total_amount = float(order_data.get('total_amount', 0))
-        shipping = 0 if total_amount > 999 else 50
-        balance_due = total_amount + shipping
-
-        table_data.append(['', '', 'Subtotal', f'₹{total_amount:.2f}'])
-        table_data.append(['', '', 'Shipping', f'₹{shipping:.2f}'])
-        table_data.append(['', '', 'Balance Due', f'₹{balance_due:.2f}'])
-
-        table = Table(table_data, colWidths=[200, 60, 80, 80])
+        table = Table(table_data, colWidths=[240, 50, 80, 80])
         table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#EB4034')),
+            ('BACKGROUND', (0, 0), (-1, 0), primary_color),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
             ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
-            ('GRID', (0, 0), (-1, -1), 0.25, colors.gray),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
+            ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.HexColor('#4B5563')),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor('#F3F4F6')),
         ]))
 
         table.wrapOn(c, width - margin * 2, height)
-        table.drawOn(c, margin, y_line - 140)
+        table_height = len(table_data) * 25
+        table.drawOn(c, margin, table_top - table_height)
+        
+        # 7. Summary Totals (Right Aligned)
+        y_totals = table_top - table_height - 30
+        c.setFont('Helvetica', 9)
+        c.setFillColor(colors.HexColor('#4B5563'))
+        
+        total_amount = float(order_data.get('total_amount', 0))
+        shipping = 0 if total_amount > 999 else 5.0
+        tax_rate = 0 # 2026 Govt Data for Stationery
+        balance_due = total_amount + shipping
+        
+        label_x = width - margin - 150
+        val_x = width - margin
+        
+        c.drawRightString(label_x, y_totals, 'SUBTOTAL')
+        c.drawRightString(val_x, y_totals, f'{total_amount:.2f}')
+        
+        c.drawRightString(label_x, y_totals - 15, 'DISCOUNT')
+        c.drawRightString(val_x, y_totals - 15, '0.00')
+        
+        c.drawRightString(label_x, y_totals - 30, f'TAX RATE ({tax_rate}%)')
+        c.drawRightString(val_x, y_totals - 30, '0.00')
+        
+        c.drawRightString(label_x, y_totals - 45, 'SHIPPING/HANDLING')
+        c.drawRightString(val_x, y_totals - 45, f'{shipping:.2f}')
+
+        # 8. BALANCE DUE Highlight (Green)
+        c.setFillColor(colors.HexColor('#E0F2E9'))
+        c.rect(width - margin - 180, y_totals - 75, 180, 25, fill=1, stroke=0)
+        
+        c.setFont('Helvetica-Bold', 11)
+        c.setFillColor(colors.HexColor('#166534'))
+        c.drawString(width - margin - 172, y_totals - 62, 'BALANCE DUE')
+        c.drawRightString(width - margin - 8, y_totals - 62, f'₹{balance_due:.2f}')
+
+        c.showPage()
+        c.save()
+        buffer.seek(0)
+        return buffer.read()
+    except Exception as e:
+        print(f"PDF Generation Error: {e}")
+        return None
 
         # Footer
         c.setFont('Helvetica', 9)
@@ -254,124 +303,100 @@ def generate_invoice_pdf(order_data):
 
 
 def send_order_email(order_data):
-    """Send order confirmation email with invoice-style layout."""
+    """Send order confirmation email with premium coral layout."""
     try:
         user_email = order_data.get('user_email')
         if not user_email:
-            print("Order email not sent: no user email provided.")
             return
 
         user_name = order_data.get('user_name')
         order_id = order_data.get('order_id')
         items = order_data.get('items', [])
-        total = order_data.get('total_amount')
+        total = float(order_data.get('total_amount', 0))
+        shipping = 0 if total > 999 else 5.0
+        balance_due = total + shipping
         status_text = order_data.get('status', 'pending').capitalize()
         shipping_address = order_data.get('shipping_address', '')
         payment_method = order_data.get('payment_method', 'Unknown')
+        primary_color = '#EB4034' # Coral
 
-        logo_base64 = _load_logo_base64()
-        logo_img = ''
-        if logo_base64:
-            logo_img = f'<img src="data:image/png;base64,{logo_base64}" alt="Logo" style="height: 52px; display: block; margin: 0 auto;" />'
+        subject = f'SJG Order Confirmed: {order_id.split("-")[-1] or order_id}'
 
-        subject = f'Order Confirmed! - {order_id} - SJG Stationery'
-
-        # Build Item rows
         item_rows = ""
         for item in items:
             item_rows += f"""
-            <tr>
-                <td style=\"padding: 12px 10px; border-bottom: 1px solid #e5e7eb;\">{item.get('product_name')}</td>
-                <td style=\"padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: center;\">{item.get('quantity')}</td>
-                <td style=\"padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: right;\">₹{item.get('price')}</td>
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 12px 0; font-size: 14px; font-weight: 500; color: #334155;">{item.get('product_name')}</td>
+                <td style="padding: 12px 0; font-size: 14px; text-align: center; color: #64748b;">{item.get('quantity')}</td>
+                <td style="padding: 12px 0; font-size: 14px; text-align: right; font-weight: 600; color: #1e293b;">₹{item.get('price')}</td>
             </tr>
             """
 
         html_content = f"""
-        <div style=\"font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #ffffff;\">
-            <div style=\"background: #1f2937; color: #ffffff; padding: 24px; text-align: center;\">
-                {logo_img}
-                <h1 style=\"margin: 16px 0 6px 0; font-size: 24px; letter-spacing: 0.02em;\">Order Confirmed</h1>
-                <p style=\"margin: 0; opacity: 0.75; font-size: 14px;\">Thank you for your purchase! Your order is now being processed.</p>
-            </div>
-
-            <div style=\"padding: 24px;\">
-                <div style=\"display: flex; gap: 16px; flex-wrap: wrap;\">
-                    <div style=\"flex: 1 1 220px; background: #f9fafb; padding: 16px; border-radius: 10px;\">
-                        <p style=\"margin: 0; font-size: 11px; letter-spacing: 0.08em; color: #6b7280; text-transform: uppercase;\">Order ID</p>
-                        <p style=\"margin: 6px 0 0 0; font-size: 18px; font-weight: 700; color: #111827;\">{order_id}</p>
-                    </div>
-
-                    <div style=\"flex: 1 1 220px; background: #f9fafb; padding: 16px; border-radius: 10px;\">
-                        <p style=\"margin: 0; font-size: 11px; letter-spacing: 0.08em; color: #6b7280; text-transform: uppercase;\">Status</p>
-                        <p style=\"margin: 6px 0 0 0; font-size: 18px; font-weight: 700; color: #111827;\">{status_text}</p>
-                    </div>
-
-                    <div style=\"flex: 1 1 220px; background: #f9fafb; padding: 16px; border-radius: 10px;\">
-                        <p style=\"margin: 0; font-size: 11px; letter-spacing: 0.08em; color: #6b7280; text-transform: uppercase;\">Payment</p>
-                        <p style=\"margin: 6px 0 0 0; font-size: 18px; font-weight: 700; color: #111827;\">{payment_method}</p>
-                    </div>
-                </div>
-
-                <div style=\"margin-top: 22px; padding: 18px; background: #fef3c7; border-radius: 10px; border: 1px solid #fde68a;\">
-                    <p style=\"margin: 0; font-size: 13px; color: #92400e;\"><strong>Invoice:</strong> Your order details are below. Thank you for shopping with SJG Stationery.</p>
-                </div>
-
-                <div style=\"display: flex; gap: 16px; flex-wrap: wrap; margin-top: 24px;\">
-                    <div style=\"flex: 1 1 260px;\">
-                        <p style=\"margin: 0 0 8px 0; font-size: 12px; letter-spacing: 0.07em; color: #6b7280; text-transform: uppercase;\">Billing / Shipping Address</p>
-                        <div style=\"background: #f9fafb; padding: 16px; border-radius: 10px; border: 1px solid #e5e7eb;\">
-                            <p style=\"margin: 0 0 6px 0; font-weight: 600; color: #111827;\">{user_name}</p>
-                            <p style=\"margin: 0; white-space: pre-line; color: #374151; font-size: 13px;\">{shipping_address or 'Not provided'}</p>
+        <div style="background-color: #f8fafc; padding: 40px 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+                <div style="background-color: {primary_color}; height: 8px;"></div>
+                
+                <div style="padding: 30px 40px;">
+                    <h1 style="color: #1e293b; font-size: 28px; font-weight: 800; margin: 0 0 10px 0; letter-spacing: -0.025em;">Order Confirmed!</h1>
+                    <p style="color: #64748b; font-size: 14px; margin: 0 0 30px 0; font-weight: 500;">Hello {user_name}, your stationery adventure starts here.</p>
+                    
+                    <div style="display: grid; grid-template-cols: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;">
+                        <div style="background-color: #f1f5f9; padding: 15px; border-radius: 12px;">
+                            <span style="display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Reference ID</span>
+                            <span style="font-size: 15px; font-weight: 700; color: #1e293b;">#{order_id}</span>
+                        </div>
+                        <div style="background-color: #f1f5f9; padding: 15px; border-radius: 12px;">
+                            <span style="display: block; font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">Current Status</span>
+                            <span style="font-size: 15px; font-weight: 700; color: #1e293b;">{status_text}</span>
                         </div>
                     </div>
 
-                    <div style=\"flex: 1 1 260px;\">
-                        <p style=\"margin: 0 0 8px 0; font-size: 12px; letter-spacing: 0.07em; color: #6b7280; text-transform: uppercase;\">Order Summary</p>
-                        <table style=\"width: 100%; border-collapse: collapse; background: #f9fafb; border-radius: 10px; overflow: hidden;\">
-                            <thead>
-                                <tr style=\"background: #e5e7eb;\">
-                                    <th style=\"padding: 12px 10px; text-align: left; font-size: 12px; color: #374151;\">Item</th>
-                                    <th style=\"padding: 12px 10px; text-align: center; font-size: 12px; color: #374151;\">Qty</th>
-                                    <th style=\"padding: 12px 10px; text-align: right; font-size: 12px; color: #374151;\">Price</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {item_rows}
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan=\"2\" style=\"padding: 14px 10px 14px 10px; text-align: right; font-weight: 700; font-size: 14px; color: #111827;\">Total</td>
-                                    <td style=\"padding: 14px 10px; text-align: right; font-weight: 700; font-size: 14px; color: #111827;\">₹{total}</td>
-                                </tr>
-                            </tfoot>
+                    <div style="margin-bottom: 40px;">
+                        <h3 style="color: {primary_color}; font-size: 12px; font-weight: 800; text-transform: uppercase; border-bottom: 2px solid #fee2e2; padding-bottom: 6px; margin-bottom: 12px;">Items in your Registry</h3>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            {item_rows}
                         </table>
                     </div>
-                </div>
 
-                <div style=\"margin-top: 28px; padding: 18px; background: #f3f4f6; border-radius: 10px; border: 1px solid #e5e7eb;\">
-                    <p style=\"margin: 0; font-size: 12px; color: #6b7280;\">Need help? Contact us at <a href=\"mailto:support@sjg.com\" style=\"color: #2563eb; text-decoration: none;\">support@sjg.com</a>.</p>
-                </div>
+                    <div style="background-color: #f8fafc; padding: 20px; border-radius: 16px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="color: #64748b; font-size: 13px; padding-bottom: 6px;">Subtotal</td>
+                                <td style="text-align: right; color: #1e293b; font-size: 13px; font-weight: 600; padding-bottom: 6px;">₹{total:.2f}</td>
+                            </tr>
+                            <tr>
+                                <td style="color: #64748b; font-size: 13px; padding-bottom: 15px;">Shipping & Handling</td>
+                                <td style="text-align: right; color: #1e293b; font-size: 13px; font-weight: 600; padding-bottom: 15px;">₹{shipping:.2f}</td>
+                            </tr>
+                            <tr style="background-color: #dcfce7; border-radius: 8px;">
+                                <td style="padding: 12px; color: #166534; font-size: 14px; font-weight: 800; border-radius: 8px 0 0 8px;">BALANCE DUE</td>
+                                <td style="padding: 12px; text-align: right; color: #166534; font-size: 18px; font-weight: 800; border-radius: 0 8px 8px 0;">₹{balance_due:.2f}</td>
+                            </tr>
+                        </table>
+                    </div>
 
-                <p style=\"margin: 22px 0 0 0; font-size: 12px; color: #9ca3af; text-align: center;\">&copy; {datetime.now().year} SJG Stationery. All rights reserved.</p>
+                    <div style="margin-top: 40px; border-top: 1px solid #f1f5f9; padding-top: 30px;">
+                        <p style="color: #94a3b8; font-size: 12px; text-align: center; margin-bottom: 10px;">Managed by SJG Admin Panel • 2026 Registry</p>
+                        <p style="color: #94a3b8; font-size: 11px; text-align: center;">You are receiving this because an order was placed on sjg.com using this email.</p>
+                    </div>
+                </div>
             </div>
         </div>
         """
 
         text_content = strip_tags(html_content)
-        msg = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [user_email])
-        msg.attach_alternative(html_content, "text/html")
+        email = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [user_email])
+        email.attach_alternative(html_content, "text/html")
 
-        # Attach PDF invoice if available
-        pdf_invoice = generate_invoice_pdf(order_data)
-        if pdf_invoice:
-            msg.attach(f"Invoice_{order_id}.pdf", pdf_invoice, "application/pdf")
-
-        msg.send()
-        print(f"Order email sent to {user_email}")
-
+        # Attach PDF Invoice
+        invoice_pdf = generate_invoice_pdf(order_data)
+        if invoice_pdf:
+            email.attach(f'Invoice_{order_id}.pdf', invoice_pdf, 'application/pdf')
+        email.send(fail_silently=False)
+        print(f"Coral Order Confirmation Email (with PDF) sent to {user_email}")
     except Exception as e:
-        print(f"Failed to send email: {str(e)}")
+        print(f"Email failure: {e}")
 
 
 def send_low_stock_alert(low_stock_items):

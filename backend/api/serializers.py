@@ -52,6 +52,9 @@ class OrderSerializer(serializers.Serializer):
     shipping_address = serializers.CharField()
     payment_method = serializers.CharField(max_length=50)
     transaction_id = serializers.CharField(required=False, allow_blank=True)
+    delivery_date = serializers.CharField(required=False, allow_blank=True)
+    delivery_partner = serializers.CharField(required=False, allow_blank=True)
+    tracking_id = serializers.CharField(required=False, allow_blank=True)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 

@@ -6,7 +6,6 @@ import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
 import ChatBot from './components/ChatBot';
 import FloatingShortcut from './components/FloatingShortcut';
-import NotificationBar from './components/NotificationBar';
 import PageLoader from './components/PageLoader';
 import Home from '../client/pages/Home';
 import AdminPanel from '../admin/pages/AdminPanel';
@@ -53,7 +52,6 @@ const Layout = ({ children }) => {
   return (
     <div className="flex flex-col min-h-screen bg-[var(--background)] transition-colors duration-300">
       {!isAdminPage && <Navbar />}
-      {!isAdminPage && <NotificationBar />}
       {!isAdminPage && <WhatsAppButton />}
       {!isAdminPage && <ChatBot />}
       {!isAdminPage && <FloatingShortcut />}

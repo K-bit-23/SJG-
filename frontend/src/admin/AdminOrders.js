@@ -11,6 +11,7 @@ const AdminOrders = ({ orders, getStatusBadge, updateOrderStatus }) => {
                         <tr>
                             <th className="p-3 text-left">Order ID</th>
                             <th className="p-3 text-left">Date/Time</th>
+                            <th className="p-3 text-left">Delivery Date</th>
                             <th className="p-3 text-left">Customer</th>
                             <th className="p-3 text-left">Items</th>
                             <th className="p-3 text-left">Status</th>
@@ -30,6 +31,9 @@ const AdminOrders = ({ orders, getStatusBadge, updateOrderStatus }) => {
                                         hour: '2-digit',
                                         minute: '2-digit'
                                     }) : 'N/A'}
+                                </td>
+                                <td className="p-3">
+                                    <div className="text-xs font-bold text-indigo-600">{order.delivery_date ? new Date(order.delivery_date).toLocaleDateString() : 'Not Set'}</div>
                                 </td>
                                 <td className="p-3">
                                     <div>{order.user_name}</div>

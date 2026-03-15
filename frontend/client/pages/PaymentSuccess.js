@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, Home, Receipt, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useCart } from '../../src/context/CartContext';
@@ -11,6 +11,7 @@ const PaymentSuccess = () => {
 
     const orderId = searchParams.get('order_id');
     const amount = searchParams.get('amount');
+    const [countdown, setCountdown] = useState(5);
 
     useEffect(() => {
         // Clear the cart after successful payment
@@ -36,8 +37,23 @@ const PaymentSuccess = () => {
             confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
         }, 250);
 
-        return () => clearInterval(interval);
-    }, [clearCart]);
+        // Auto-redirect timer
+        const timer = setInterval(() => {
+            setCountdown(prev => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    navigate('/');
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => {
+            clearInterval(interval);
+            clearInterval(timer);
+        };
+    }, [clearCart, navigate]);
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 pt-20 pb-12">
@@ -79,9 +95,14 @@ const PaymentSuccess = () => {
                                 </div>
                             </div>
                             
-                            <div className="mt-6 pt-6 border-t border-slate-200/60 flex items-center justify-center md:justify-start gap-3">
-                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                                <p className="text-sm font-semibold text-slate-600">Confirmation email sent to your inbox</p>
+                            <div className="mt-6 pt-6 border-t border-slate-200/60 flex flex-col items-center justify-center gap-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                    <p className="text-sm font-semibold text-slate-600">Confirmation email sent to your inbox</p>
+                                </div>
+                                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-4 py-1.5 rounded-full">
+                                    Redirecting to home in {countdown}s
+                                </p>
                             </div>
                         </div>
 

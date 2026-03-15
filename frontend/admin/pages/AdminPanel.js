@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
     Activity, Box, ShoppingCart, Users, MessageCircle, Edit, Settings, Menu, X, LogOut, 
-    BarChart2, Receipt, Wifi, WifiOff, UserCircle, RefreshCw
+    BarChart2, Receipt, Wifi, WifiOff, UserCircle, RefreshCw, Truck
 } from 'lucide-react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import api from '../../src/utils/api';
@@ -13,6 +13,7 @@ import AdminBusiness from '../../src/admin/AdminBusiness';
 import AdminBilling from '../../src/admin/AdminBilling';
 import AdminInventory from '../../src/admin/AdminInventory';
 import AdminOrders from '../../src/admin/AdminOrders';
+import AdminDelivery from '../../src/admin/AdminDelivery';
 import AdminUsers from '../../src/admin/AdminUsers';
 import AdminContent from '../../src/admin/AdminContent';
 import AdminSettings from '../../src/admin/AdminSettings';
@@ -24,7 +25,7 @@ const AdminPanel = () => {
 
     // Derive active tab from URL: /admin/orders → 'orders'
     const pathSegment = location.pathname.split('/').filter(Boolean)[1];
-    const validTabs = ['dashboard', 'business', 'billing', 'inventory', 'orders', 'users', 'chat', 'content', 'settings'];
+    const validTabs = ['dashboard', 'business', 'billing', 'inventory', 'orders', 'delivery', 'users', 'chat', 'content', 'settings'];
     const activeTab = validTabs.includes(pathSegment) ? pathSegment : 'dashboard';
 
     const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -84,7 +85,7 @@ const AdminPanel = () => {
                 setStats(statsRes.data);
                 setProducts(Array.isArray(productsRes.data) ? productsRes.data : []);
             }
-            if (activeTab === 'orders' || activeTab === 'dashboard') {
+            if (activeTab === 'orders' || activeTab === 'dashboard' || activeTab === 'delivery') {
                 const ordersRes = await api.get('orders/').catch(() => ({ data: [] }));
                 setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
             }
@@ -214,6 +215,7 @@ const AdminPanel = () => {
         { id: 'billing', label: 'Billing', icon: Receipt },
         { id: 'inventory', label: 'Inventory', icon: Box },
         { id: 'orders', label: 'Orders', icon: ShoppingCart },
+        { id: 'delivery', label: 'Delivery', icon: Truck },
         { id: 'users', label: 'Users', icon: Users },
         { id: 'chat', label: 'Chat', icon: MessageCircle },
         { id: 'content', label: 'Content', icon: Edit },
@@ -282,6 +284,7 @@ const AdminPanel = () => {
                     />
                 )}
                 {activeTab === 'orders' && <AdminOrders orders={orders} getStatusBadge={getStatusBadge} updateOrderStatus={updateOrderStatus} />}
+                {activeTab === 'delivery' && <AdminDelivery orders={orders} fetchData={fetchData} />}
                 {activeTab === 'users' && <AdminUsers users={users} />}
                 {activeTab === 'content' && (
                     <AdminContent
