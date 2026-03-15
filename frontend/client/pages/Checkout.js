@@ -149,6 +149,14 @@ const Checkout = () => {
             if (res.status === 201) {
                 const orderId = res.data.order_id || res.data._id; // Fallback to raw _id if order_id custom field missing
 
+                // Trigger Notification
+                await api.post('/notifications/', {
+                    user_email: formData.email,
+                    title: 'Order Placed',
+                    message: `Order #${orderId.split('-').pop() || orderId} confirmed — ₹${total}`,
+                    type: 'placed'
+                }).catch(err => console.error("Notification creation failed:", err));
+
                 if (paymentMethod === 'STRIPE') {
                     // Create checkout session
                     const intentRes = await api.post('/create-checkout-session/', { order_id: orderId });

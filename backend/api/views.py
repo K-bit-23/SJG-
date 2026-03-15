@@ -8,7 +8,8 @@ import string
 from .mongodb import mongo_client
 from .serializers import (
     ProductSerializer, OrderSerializer, ContactMessageSerializer, UserSerializer,
-    HomePageContentSerializer, ChatBotConfigSerializer, AdminDataSerializer
+    HomePageContentSerializer, ChatBotConfigSerializer, AdminDataSerializer,
+    NotificationSerializer
 )
 from django.core.mail import EmailMultiAlternatives
 from django.utils.html import strip_tags
@@ -366,10 +367,13 @@ class DashboardStatsView(APIView):
             recent_orders = list(orders_collection.find().sort('created_at', -1).limit(5))
             
             return Response({
-                'total_products': total_products,
-                'total_orders': total_orders,
+                'total_products': total_products,      # Also keep original just in case
+                'products_count': total_products,       # Used by AdminPanel
+                'total_orders': total_orders,           # Also keep original
+                'active_orders': total_orders,          # Used by AdminPanel
                 'total_messages': total_messages,
                 'total_users': total_users,
+                'customers_count': total_users,         # Used by AdminPanel
                 'total_revenue': total_revenue,
                 'monthly_revenue': monthly_revenue,
                 'category_stats': category_stats,
@@ -783,5 +787,53 @@ class UserSettingsView(APIView):
             updated_settings['id'] = str(updated_settings.pop('_id', ''))
             
             return Response(updated_settings, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class NotificationView(APIView):
+    """Get or Create notifications for a user"""
+    
+    def get(self, request):
+        try:
+            collection = mongo_client.get_collection('notifications')
+            user_email = request.query_params.get('user_email')
+            if not user_email:
+                return Response({'error': 'user_email is required'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            notifications = list(collection.find({'user_email': user_email}).sort('created_at', -1).limit(20))
+            return Response(NotificationSerializer(notifications, many=True).data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        try:
+            serializer = NotificationSerializer(data=request.data)
+            if serializer.is_valid():
+                collection = mongo_client.get_collection('notifications')
+                notif_data = serializer.validated_data
+                notif_data['created_at'] = datetime.now()
+                notif_data['is_read'] = False
+                
+                result = collection.insert_one(notif_data)
+                notif_data['_id'] = result.inserted_id
+                
+                return Response(NotificationSerializer(notif_data).data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def patch(self, request):
+        """Mark all as read"""
+        try:
+            user_email = request.data.get('user_email')
+            if not user_email:
+                return Response({'error': 'user_email is required'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            collection = mongo_client.get_collection('notifications')
+            collection.update_many(
+                {'user_email': user_email, 'is_read': False},
+                {'$set': {'is_read': True, 'updated_at': datetime.now()}}
+            )
+            return Response({'message': 'All notifications marked as read'})
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

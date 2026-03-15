@@ -91,7 +91,7 @@ class CreateCheckoutSessionView(APIView):
                     'quantity': 1,
                 }],
                 mode='payment',
-                success_url=f'{frontend_url}/?success=true&order_id={order_id_str}',
+                success_url=f'{frontend_url}/payment-success?order_id={order_id_str}&amount={order.get("total_amount")}',
                 cancel_url=f'{frontend_url}/checkout',
                 metadata={'order_id': str(order.get('_id')), 'custom_order_id': order.get('order_id')}
             )

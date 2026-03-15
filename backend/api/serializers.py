@@ -112,6 +112,15 @@ class ChatBotConfigSerializer(serializers.Serializer):
         allow_empty=True
     )
 
+class NotificationSerializer(serializers.Serializer):
+    id = ObjectIdField(read_only=True, source='_id')
+    user_email = serializers.EmailField()
+    title = serializers.CharField(max_length=200)
+    message = serializers.CharField()
+    type = serializers.CharField(max_length=50) # e.g., 'processing', 'placed', 'completed', 'cancelled'
+    is_read = serializers.BooleanField(default=False)
+    created_at = serializers.DateTimeField(read_only=True)
+
 class AdminDataSerializer(serializers.Serializer):
     id = ObjectIdField(read_only=True, source='_id')
     type = serializers.CharField(max_length=100)

@@ -16,8 +16,8 @@ import api from './utils/api';
 import Profile from '../client/pages/Profile';
 import Wishlist from '../client/pages/Wishlist';
 import Orders from '../client/pages/Orders';
-import Settings from '../client/pages/Settings';
 import PaymentSuccess from '../client/pages/PaymentSuccess';
+import OrderTracking from '../client/pages/OrderTracking';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { LanguageProvider } from './context/LanguageContext';
@@ -96,6 +96,7 @@ function App() {
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/payment-success" element={<PaymentSuccess />} />
+                  <Route path="/track-order/:orderId" element={<OrderTracking />} />
                 </Routes>
               </Layout>
             </AdminRedirect>

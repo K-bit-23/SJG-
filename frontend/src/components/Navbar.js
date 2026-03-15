@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
+import api from '../utils/api';
 
 import AuthModal from './AuthModal';
 
@@ -60,6 +61,9 @@ const Navbar = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [wishlistCount, setWishlistCount] = useState(0);
@@ -129,6 +133,37 @@ const Navbar = () => {
         document.addEventListener('click', handleClickOutside);
         return () => document.removeEventListener('click', handleClickOutside);
     }, []);
+
+    const fetchNotifications = async () => {
+        if (!user?.email) return;
+        try {
+            const res = await api.get(`notifications/?user_email=${user.email}`);
+            setNotifications(res.data);
+            setUnreadCount(res.data.filter(n => !n.is_read).length);
+        } catch (err) {
+            console.error("Failed to fetch notifications:", err);
+        }
+    };
+
+    const markAllAsRead = async () => {
+        if (!user?.email) return;
+        try {
+            await api.patch('notifications/', { user_email: user.email });
+            setNotifications(notifications.map(n => ({ ...n, is_read: true })));
+            setUnreadCount(0);
+        } catch (err) {
+            console.error("Failed to mark read:", err);
+        }
+    };
+
+    useEffect(() => {
+        if (user) {
+            fetchNotifications();
+            // Poll for notifications every 30 seconds
+            const interval = setInterval(fetchNotifications, 30000);
+            return () => clearInterval(interval);
+        }
+    }, [user]);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -222,14 +257,20 @@ const Navbar = () => {
                             {user && (
                                 <div className="relative notifications-dropdown flex items-center">
                                     <button 
-                                        onClick={(e) => { e.stopPropagation(); setNotificationsOpen(!notificationsOpen); setProfileDropdownOpen(false); }}
+                                        onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            setNotificationsOpen(!notificationsOpen); 
+                                            setProfileDropdownOpen(false); 
+                                        }}
                                         className={`relative p-2.5 hover:bg-gray-100 rounded-full transition-all group`}
                                         title="Notifications"
                                     >
                                         <Bell size={20} className="text-gray-500 group-hover:text-primary transition-colors" />
-                                        <span className="absolute -top-0.5 -right-0.5 bg-[#f04f47] text-white text-[10px] min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-bold">
-                                            1
-                                        </span>
+                                        {unreadCount > 0 && (
+                                            <span className="absolute -top-0.5 -right-0.5 bg-[#f04f47] text-white text-[10px] min-w-[16px] h-[16px] rounded-full flex items-center justify-center font-bold">
+                                                {unreadCount}
+                                            </span>
+                                        )}
                                     </button>
 
                                     {notificationsOpen && (
@@ -237,31 +278,48 @@ const Navbar = () => {
                                             <div className="flex justify-between items-center p-4 border-b border-gray-100">
                                                 <h3 className="font-bold text-gray-800 flex items-center gap-2">
                                                     <Bell size={18} className="text-primary"/> Notifications
-                                                    <span className="bg-[#f04f47] text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">1 new</span>
+                                                    {unreadCount > 0 && <span className="bg-[#f04f47] text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{unreadCount} new</span>}
                                                 </h3>
-                                                <button className="text-primary text-xs font-bold hover:underline bg-blue-50 px-2 py-1 rounded" onClick={() => setNotificationsOpen(false)}>Mark all read</button>
+                                                <button 
+                                                    className={`text-xs font-bold px-2 py-1 rounded transition-colors ${unreadCount > 0 ? 'text-primary hover:underline bg-blue-50' : 'text-gray-400 bg-gray-50 cursor-not-allowed'}`}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (unreadCount > 0) markAllAsRead();
+                                                    }}
+                                                    disabled={unreadCount === 0}
+                                                >
+                                                    Mark all read
+                                                </button>
                                             </div>
                                             <div className="max-h-[60vh] overflow-y-auto">
-                                                <div className="p-4 border-b border-gray-50 hover:bg-gray-50 flex gap-4 transition-colors">
-                                                    <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
-                                                        <Package size={18} className="text-orange-600"/>
+                                                {notifications.length > 0 ? (
+                                                    notifications.map((notif, index) => (
+                                                        <div key={notif.id || index} className={`p-4 border-b border-gray-50 hover:bg-gray-50 flex gap-4 transition-colors ${!notif.is_read ? 'bg-blue-50/30' : ''}`}>
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                                                                notif.type === 'completed' ? 'bg-green-100' : 
+                                                                notif.type === 'processing' ? 'bg-orange-100' : 
+                                                                notif.type === 'cancelled' ? 'bg-red-100' : 
+                                                                notif.type === 'placed' ? 'bg-purple-100' : 'bg-blue-100'
+                                                            }`}>
+                                                                {notif.type === 'completed' ? <CheckCircle size={18} className="text-green-600"/> : 
+                                                                 notif.type === 'processing' ? <Package size={18} className="text-orange-600"/> : 
+                                                                 notif.type === 'placed' ? <CheckCircle size={18} className="text-purple-600"/> : 
+                                                                 <Package size={18} className="text-blue-600"/>}
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-bold text-gray-800">{notif.title}</p>
+                                                                <p className="text-xs text-gray-600 mt-1">{notif.message}</p>
+                                                                <p className="text-[10px] text-gray-400 mt-2 font-medium">
+                                                                    {new Date(notif.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="p-8 text-center text-gray-400">
+                                                        <p className="text-sm">No notifications yet</p>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-sm font-bold text-gray-800">Order Processing</p>
-                                                        <p className="text-xs text-gray-600 mt-1">Order #BDEE1A is being prepared for dispatch.</p>
-                                                        <p className="text-[10px] text-gray-400 mt-2 font-medium">Just now</p>
-                                                    </div>
-                                                </div>
-                                                <div className="p-4 border-b border-gray-50 hover:bg-gray-50 flex gap-4 transition-colors">
-                                                    <div className="w-10 h-10 rounded-xl bg-[#8a5cf6]/20 flex items-center justify-center shrink-0">
-                                                        <CheckCircle size={18} className="text-[#8a5cf6]"/>
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-sm font-bold text-gray-800">Order Placed</p>
-                                                        <p className="text-xs text-gray-600 mt-1">Order #BDEE1A confirmed — ₹1436</p>
-                                                        <p className="text-[10px] text-gray-400 mt-2 font-medium">1 day ago</p>
-                                                    </div>
-                                                </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}

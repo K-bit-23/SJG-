@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../src/context/AuthContext';
 import { Package, Clock, Download, FileText } from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -8,6 +9,7 @@ import AccountLayout from '../../src/components/AccountLayout';
 
 const Orders = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -184,11 +186,19 @@ const Orders = () => {
                                             <Clock size={12} /> {new Date(order.created_at).toLocaleDateString()}
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-right">
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-right mr-2">
                                             <span className="block text-lg font-bold text-primary">₹{order.total_amount}</span>
                                             <span className="text-xs text-gray-500">{order.items?.length || 0} Items</span>
                                         </div>
+                                        <button 
+                                            onClick={() => navigate(`/track-order/${order.order_id || order.id}`)}
+                                            className="px-3 py-2 bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white rounded-lg flex items-center justify-center gap-2 transition-colors border border-blue-100 shadow-sm group"
+                                            title="Track Order Status"
+                                        >
+                                            <Truck size={16} className="group-hover:translate-x-1 transition-transform" />
+                                            <span className="text-sm font-bold hidden sm:inline">Track</span>
+                                        </button>
                                         <button 
                                             onClick={() => downloadInvoice(order)}
                                             className="px-3 py-2 bg-red-50 text-red-600 hover:bg-red-500 hover:text-white rounded-lg flex items-center justify-center gap-2 transition-colors border border-red-100 shadow-sm group"

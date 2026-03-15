@@ -136,6 +136,25 @@ const AdminPanel = () => {
     const updateOrderStatus = async (orderId, newStatus) => {
         try {
             await api.patch(`orders/${orderId}/`, { status: newStatus });
+            
+            // Find the order to get customer email for notification
+            const order = orders.find(o => o.order_id === orderId);
+            if (order && order.user_email) {
+                const statusMessages = {
+                    processing: 'is being prepared for dispatch.',
+                    completed: 'has been delivered successfully!',
+                    cancelled: 'has been cancelled.',
+                    pending: 'is now in pending status.'
+                };
+                
+                await api.post('notifications/', {
+                    user_email: order.user_email,
+                    title: `Order ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`,
+                    message: `Order #${orderId.split('-').pop() || orderId} ${statusMessages[newStatus] || 'status updated.'}`,
+                    type: newStatus
+                }).catch(err => console.error("Notification trigger failed", err));
+            }
+
             setOrders(orders.map(o => o.order_id === orderId ? { ...o, status: newStatus } : o));
         } catch (err) {
             alert('Failed to update order status');
@@ -256,6 +275,22 @@ const AdminPanel = () => {
 
     const removeFromBill = (productId) => {
         setBillingItems(billingItems.filter(item => item.id !== productId));
+    };
+
+    const addServiceItem = (serviceName) => {
+        const id = `srv-${Date.now()}`;
+        setBillingItems([...billingItems, {
+            id,
+            name: serviceName,
+            price: 10, // Default price, can be edited
+            quantity: 1
+        }]);
+    };
+
+    const updateItemPrice = (productId, newPrice) => {
+        setBillingItems(billingItems.map(item =>
+            item.id === productId ? { ...item, price: parseFloat(newPrice) || 0 } : item
+        ));
     };
 
     const updateBillQuantity = (productId, newQty) => {
@@ -903,6 +938,7 @@ const AdminPanel = () => {
                                                     >
                                                         <option value="pending">Pending</option>
                                                         <option value="processing">Processing</option>
+                                                        <option value="shipped">Shipped</option>
                                                         <option value="completed">Completed</option>
                                                         <option value="cancelled">Cancelled</option>
                                                     </select>

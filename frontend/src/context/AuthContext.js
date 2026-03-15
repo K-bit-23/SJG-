@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
     // Sync user with backend
     const syncUserWithBackend = async (userData) => {
         try {
-            await axios.post('/api/users/', {
+            await api.post('users/', {
                 uid: userData.uid,
                 email: userData.email,
                 display_name: userData.name,

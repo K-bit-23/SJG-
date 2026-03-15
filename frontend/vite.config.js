@@ -6,6 +6,15 @@ export default defineConfig({
     define: {
         'process.env': {} 
     },
+    server: {
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8000',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api/, '/api') // Django expects /api/
+            }
+        }
+    },
     build: {
         outDir: 'build'
     },

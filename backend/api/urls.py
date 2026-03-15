@@ -24,7 +24,8 @@ from .views import (
     ChatBotConfigView,
     UserProfileView,
     UserSettingsView,
-    AdminDataView
+    AdminDataView,
+    NotificationView
 )
 from .payment_views import CreatePaymentIntentView, ConfirmPaymentView, CreateCheckoutSessionView
 
@@ -60,6 +61,9 @@ urlpatterns = [
 
     # Admin Data endpoints
     path('admin/data/', AdminDataView.as_view(), name='admin-data'),
+    
+    # Notification endpoints
+    path('notifications/', NotificationView.as_view(), name='notifications'),
     
     # Payment endpoints
     path('create-payment-intent/', CreatePaymentIntentView.as_view(), name='create-payment-intent'),
