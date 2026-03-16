@@ -5,16 +5,19 @@
   "private": true,
   "workspaces": [
     "frontend",
-    "mobile"
+    "mobile",
+    "desktop"
   ],
   "scripts": {
-    "install:all": "npm run install:frontend && npm run install:mobile && npm run install:backend",
+    "install:all": "npm run install:frontend && npm run install:mobile && npm run install:desktop && npm run install:backend",
     "install:frontend": "cd frontend && npm install",
     "install:mobile": "cd mobile && npm install",
+    "install:desktop": "cd desktop && npm install",
     "install:backend": "cd backend && pip install -r requirements.txt",
-    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:mobile\" \"npm run dev:backend\"",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:mobile\" \"npm run dev:backend\" \"npm run dev:desktop\"",
     "dev:frontend": "cd frontend && npm run dev",
     "dev:mobile": "cd mobile && npx expo start",
+    "dev:desktop": "cd desktop && npm start",
     "dev:backend": "cd backend && python manage.py runserver",
     "build": "npm run build:frontend && npm run build:mobile",
     "build:frontend": "cd frontend && npm run build",

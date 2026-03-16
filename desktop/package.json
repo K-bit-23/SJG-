@@ -1,0 +1,14 @@
+{
+  "name": "sjg-desktop",
+  "version": "1.0.0",
+  "description": "Desktop application for SJG",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}

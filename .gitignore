@@ -89,3 +89,4 @@ ios/build/
 # Deployment
 .vercel
 .netlify
+render_env.txt

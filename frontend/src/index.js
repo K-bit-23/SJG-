@@ -33,10 +33,17 @@ if (!STRIPE_PUBLISHABLE_KEY) {
 
 const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const isElectron = /electron/i.test(navigator.userAgent);
+
 root.render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider 
+      publishableKey={CLERK_PUBLISHABLE_KEY}
+      afterSignInUrl={isElectron ? "sjg-app://profile" : "/"}
+      afterSignUpUrl={isElectron ? "sjg-app://profile" : "/"}
+      signInForceRedirectUrl={isElectron ? "sjg-app://profile" : "/"}
+      signUpForceRedirectUrl={isElectron ? "sjg-app://profile" : "/"}
+    >
       <NotificationProvider>
         <ErrorBoundary>
           <App />

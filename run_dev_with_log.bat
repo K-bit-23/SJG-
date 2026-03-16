@@ -1,8 +1,10 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM Define absolute path to project
-set PROJECT_DIR=C:\Users\KARTHIKEYAN\OneDrive\Desktop\final\SJG-
+REM Define absolute path to project based on script location
+set PROJECT_DIR=%~dp0
+REM Remove trailing backslash if present
+if "%PROJECT_DIR:~-1%"=="\" set PROJECT_DIR=%PROJECT_DIR:~0,-1%
 set LOG_DIR=%PROJECT_DIR%\logs
 
 REM Create logs directory if it doesn't exist

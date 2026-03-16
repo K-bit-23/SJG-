@@ -8,6 +8,9 @@ import ChatBot from './components/ChatBot';
 import FloatingShortcut from './components/FloatingShortcut';
 import PageLoader from './components/PageLoader';
 import Home from '../client/pages/Home';
+
+// Check if running in Electron
+const isElectron = /electron/i.test(navigator.userAgent);
 import AdminPanel from '../admin/pages/AdminPanel';
 import Contact from '../client/pages/Contact';
 import Products from '../client/pages/Products';
@@ -122,6 +125,28 @@ const SettingsManager = ({ children }) => {
   return children;
 };
 
+const DeepLinkHandler = ({ children }) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (window.electronAPI && window.electronAPI.onDeepLink) {
+      window.electronAPI.onDeepLink((url) => {
+        console.log("Deep link received:", url);
+        // Protocol format: sjg-app://path?query
+        const pathWithQuery = url.replace('sjg-app://', '');
+        if (pathWithQuery) {
+          // Navigate to the extracted path
+          // Clean up the URL format if needed (sometimes it comes in as sjg-app:///path)
+          const cleanPath = pathWithQuery.startsWith('/') ? pathWithQuery : '/' + pathWithQuery;
+          navigate(cleanPath);
+        }
+      });
+    }
+  }, [navigate]);
+
+  return children;
+};
+
 function App() {
   const { user, isLoaded } = useUser();
   const [pageLoading, setPageLoading] = React.useState(true);
@@ -156,22 +181,24 @@ function App() {
               <WishlistProvider>
                 <SettingsManager>
                   <AdminRedirect>
-                    <Layout>
-                      <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/admin/*" element={<AdminPanel />} />
-                        <Route path="/contact" element={<Contact />} />
-                        <Route path="/products" element={<Products />} />
-                        <Route path="/cart" element={<Cart />} />
-                        <Route path="/checkout" element={<Checkout />} />
-                        <Route path="/profile" element={<Profile />} />
-                        <Route path="/wishlist" element={<Wishlist />} />
-                        <Route path="/orders" element={<Orders />} />
-                        <Route path="/settings" element={<Settings />} />
-                        <Route path="/payment-success" element={<PaymentSuccess />} />
-                        <Route path="/track-order/:orderId" element={<OrderTracking />} />
-                      </Routes>
-                    </Layout>
+                    <DeepLinkHandler>
+                      <Layout>
+                        <Routes>
+                          <Route path="/" element={<Home />} />
+                          <Route path="/admin/*" element={<AdminPanel />} />
+                          <Route path="/contact" element={<Contact />} />
+                          <Route path="/products" element={<Products />} />
+                          <Route path="/cart" element={<Cart />} />
+                          <Route path="/checkout" element={<Checkout />} />
+                          <Route path="/profile" element={<Profile />} />
+                          <Route path="/wishlist" element={<Wishlist />} />
+                          <Route path="/orders" element={<Orders />} />
+                          <Route path="/settings" element={<Settings />} />
+                          <Route path="/payment-success" element={<PaymentSuccess />} />
+                          <Route path="/track-order/:orderId" element={<OrderTracking />} />
+                        </Routes>
+                      </Layout>
+                    </DeepLinkHandler>
                   </AdminRedirect>
                 </SettingsManager>
               </WishlistProvider>

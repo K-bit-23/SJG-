@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SJG Systems | Core Operations Center</title>
+
+    <!-- Tailwind CDN (fast, no build step) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    />
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --slate-950: #020617;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at top, rgba(99, 102, 241, 0.18), transparent 55%),
+                radial-gradient(circle at bottom, rgba(16, 185, 129, 0.2), transparent 55%),
+                var(--slate-950);
+            color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .glass {
+            background: rgba(15, 23, 42, 0.52);
+            backdrop-filter: blur(13px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .bento-card {
+            border-radius: 1.5rem;
+            padding: 1.6rem;
+            transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+        }
+
+        .bento-card:hover {
+            transform: translateY(-2px);
+            background: rgba(30, 41, 59, 0.55);
+            border-color: rgba(99, 102, 241, 0.28);
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .log-stream {
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .log-info {
+            color: #94a3b8;
+        }
+
+        .log-success {
+            color: #34d399;
+        }
+
+        .log-warn {
+            color: #fbbf24;
+        }
+
+        .log-error {
+            color: #f87171;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+
+        @keyframes pulse-soft {
+            0%,
+            100% {
+                opacity: 0.1;
+            }
+
+            50% {
+                opacity: 0.2;
+            }
+        }
+
+        .bg-glow {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.12) 0%, transparent 55%);
+            pointer-events: none;
+            z-index: -1;
+            animation: pulse-soft 10s infinite;
+        }
+
+        .health-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .health-pill span {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 9999px;
+            display: inline-block;
+        }
+
+        .health-pill.ok span {
+            background: rgba(16, 185, 129, 0.8);
+            box-shadow: 0 0 0 0.1rem rgba(16, 185, 129, 0.3);
+        }
+
+        .health-pill.warn span {
+            background: rgba(250, 204, 21, 0.85);
+            box-shadow: 0 0 0 0.1rem rgba(250, 204, 21, 0.3);
+        }
+
+        .health-pill.alert span {
+            background: rgba(239, 68, 68, 0.85);
+            box-shadow: 0 0 0 0.1rem rgba(239, 68, 68, 0.3);
+        }
+
+        .smoke {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 30% 40%, rgba(99, 102, 241, 0.14), transparent 60%),
+                radial-gradient(circle at 70% 70%, rgba(16, 185, 129, 0.12), transparent 55%);
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12 lg:p-16 min-h-screen">
+    <div class="bg-glow"></div>
+
+    <div class="max-w-7xl mx-auto space-y-8">
+        <!-- Header -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-3xl bg-gradient-to-br from-indigo-500 via-blue-500 to-purple-500 shadow-[0_18px_40px_rgba(99,102,241,0.25)] flex items-center justify-center">
+                    <img src="/static/logo.png" alt="SJG Logo" class="w-7 h-7 object-contain">
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">SJG <span class="text-indigo-300">Systems</span></h1>
+                    <p class="text-slate-400 text-xs font-medium uppercase tracking-widest">Operations Command Center</p>
+                </div>
+            </div>
+
+            <div class="glass border border-white/10 bg-slate-900/40 py-3 px-4 rounded-2xl shadow-lg flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                <div class="text-xs text-slate-400 uppercase tracking-widest">System Status</div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="health-pill ok" id="global-health-pill">
+                        <span></span>
+                        <span id="global-health-text">HEALTH: 100% NOMINAL</span>
+                    </div>
+                    <div class="health-pill ok" id="system-status-pill">
+                        <span></span>
+                        <span id="system-status-text">STATUS: OPERATIONAL</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Hero -->
+            <div class="lg:col-span-8 glass bento-card relative overflow-hidden">
+                <div class="smoke"></div>
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.2),_transparent_55%)]"></div>
+                <div class="relative z-10">
+                    <h2 class="text-4xl md:text-5xl font-bold tracking-tight text-white">
+                        Precision orchestration for <span class="gradient-text">modern commerce</span>
+                    </h2>
+                    <p class="mt-4 text-slate-300 text-lg max-w-xl leading-relaxed font-light">
+                        Integrated backend infrastructure powering high-speed stationery retail and enterprise logistics.
+                    </p>
+
+                    <div id="error-banner" class="hidden mt-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm font-medium flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-red-500/20">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 9v2m0 4h.01" />
+                                <path d="M21.43 16.89A9 9 0 1 0 4.22 5.47" />
+                            </svg>
+                        </span>
+                        <div>
+                            <div class="font-semibold">CRITICAL: Connectivity anomaly detected.</div>
+                            <div class="text-xs text-red-200 opacity-80">Check heartbeat logs for more details.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Region Card -->
+            <div class="lg:col-span-4 glass bento-card flex flex-col justify-between items-center text-center">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Server Region</p>
+                    <h3 class="mt-3 text-3xl font-bold tracking-tight text-white">INDIA SOUTH</h3>
+                    <p class="text-indigo-300 font-medium text-sm">Cluster::OPERATIONAL</p>
+                </div>
+                <div id="digital-clock" class="mt-6 text-3xl mono text-slate-200 font-semibold">00:00:00</div>
+                <div class="mt-6 w-full bg-slate-800/40 rounded-2xl p-4">
+                    <p class="text-xs text-slate-500 uppercase tracking-widest">Server Tick</p>
+                    <p class="mt-1 text-sm font-semibold text-slate-200">Stable · 24/7</p>
+                </div>
+            </div>
+
+            <!-- Metrics panels -->
+            <div class="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="glass bento-card flex flex-col gap-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                            Network Latency
+                        </span>
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"
+                            />
+                        </svg>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span id="ping" class="text-3xl font-bold tabular-nums">--</span>
+                        <span class="text-slate-500 text-xs font-bold uppercase">ms</span>
+                    </div>
+                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="ping-bar" class="h-full bg-indigo-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="glass bento-card flex flex-col gap-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                            Database Persistence
+                        </span>
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+                            />
+                        </svg>
+                    </div>
+                    <div id="db-status-container" class="flex items-center gap-3">
+                        <div id="db-indicator" class="w-3 h-3 rounded-full bg-slate-700"></div>
+                        <span id="db-status-text" class="text-sm font-bold text-slate-400 uppercase tracking-wider italic">
+                            Synchronizing...
+                        </span>
+                    </div>
+                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="db-bar" class="h-full bg-emerald-500" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="glass bento-card flex flex-col gap-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                            Traffic Load
+                        </span>
+                        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span id="transfer" class="text-3xl font-bold tabular-nums">0.00</span>
+                        <span class="text-slate-500 text-xs font-bold uppercase">Req/s</span>
+                    </div>
+                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="transfer-bar" class="h-full bg-purple-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="glass bento-card flex flex-col gap-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                            Uptime Precision
+                        </span>
+                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                            />
+                        </svg>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span id="uptime" class="text-3xl font-bold tabular-nums">99.999</span>
+                        <span class="text-slate-500 text-xs font-bold uppercase">%</span>
+                    </div>
+                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden flex gap-1">
+                        <div class="h-full bg-amber-500 grow rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary cards -->
+            <div class="md:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div class="glass bento-card flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Latency</span>
+                        <span class="text-xs font-semibold text-indigo-400">Live</span>
+                    </div>
+                    <div class="text-3xl font-bold" id="summary-latency">-- ms</div>
+                </div>
+                <div class="glass bento-card flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Network Speed</span>
+                        <span class="text-xs font-semibold text-purple-400">Est.</span>
+                    </div>
+                    <div class="text-3xl font-bold" id="summary-speed">-- Mbps</div>
+                </div>
+                <div class="glass bento-card flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">DB Connected</span>
+                        <span class="text-xs font-semibold text-emerald-400">Status</span>
+                    </div>
+                    <div class="text-3xl font-bold" id="summary-db">---</div>
+                </div>
+                <div class="glass bento-card flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Data Transfer</span>
+                        <span class="text-xs font-semibold text-pink-400">Recent</span>
+                    </div>
+                    <div class="text-3xl font-bold" id="summary-transfer">-- MB/s</div>
+                </div>
+                <div class="glass bento-card flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Server Uptime</span>
+                        <span class="text-xs font-semibold text-amber-400">Since</span>
+                    </div>
+                    <div class="text-3xl font-bold" id="summary-uptime">--d --h</div>
+                </div>
+            </div>
+
+            <!-- Runtime logs + Endpoints -->
+            <div class="md:col-span-7 glass bento-card overflow-hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                            Runtime Intelligence Logs
+                        </span>
+                    </div>
+                    <div class="px-3 py-1 bg-slate-800 rounded-lg text-[10px] mono text-slate-400">
+                        SESSION::STABLE
+                    </div>
+                </div>
+
+                <div id="log-console" class="mono log-stream h-64 overflow-y-auto space-y-2 px-2 custom-scrollbar">
+                    <div class="log-info">[SYSMON] Core telemetry stream initialized.</div>
+                    <div class="log-success">[READY] SJG Backend ready for production handshake.</div>
+                </div>
+            </div>
+
+            <div class="md:col-span-5 glass bento-card">
+                <div class="flex items-center gap-2 mb-8">
+                    <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                        Operational Endpoints
+                    </span>
+                </div>
+                <div class="space-y-3">
+                    <a
+                        href="/api/products/"
+                        class="group flex items-center justify-between p-4 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-indigo-500/10 hover:border-indigo-500/40 transition-all"
+                    >
+                        <span class="text-sm font-medium text-slate-300 group-hover:text-white">Product Collection</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-indigo-500/10 text-indigo-400">GET</span>
+                    </a>
+                    <a
+                        href="/api/orders/"
+                        class="group flex items-center justify-between p-4 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-purple-500/10 hover:border-purple-500/40 transition-all"
+                    >
+                        <span class="text-sm font-medium text-slate-300 group-hover:text-white">Orders Pipeline</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-purple-500/10 text-purple-400">POST</span>
+                    </a>
+                    <a
+                        href="/admin/"
+                        class="group flex items-center justify-between p-4 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-rose-500/10 hover:border-rose-500/40 transition-all"
+                    >
+                        <span class="text-sm font-medium text-slate-300 group-hover:text-white">Admin Terminal</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-rose-500/10 text-rose-400">SECURE</span>
+                    </a>
+                    <a
+                        href="/api/health/"
+                        class="group flex items-center justify-between p-4 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all"
+                    >
+                        <span class="text-sm font-medium text-slate-300 group-hover:text-white">System Heartbeat</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-emerald-500/10 text-emerald-400">INFO</span>
+                    </a>
+                    <a
+                        href="/api/test-email/"
+                        class="group flex items-center justify-between p-4 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-amber-500/10 hover:border-amber-500/40 transition-all"
+                    >
+                        <span class="text-sm font-medium text-slate-300 group-hover:text-white">Mail Logic Monitor</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-amber-500/10 text-amber-400">DEBUG</span>
+                    </a>
+                    <a
+                        href="#"
+                        class="group flex items-center justify-between p-4 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-cyan-500/10 hover:border-cyan-500/40 transition-all"
+                    >
+                        <span class="text-sm font-medium text-slate-300 group-hover:text-white">Desktop Application</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-cyan-500/10 text-cyan-400">CLIENT</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <footer class="pt-12 pb-8 flex flex-col items-center gap-4">
+            <div class="h-px w-24 bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
+            <p class="text-slate-600 text-[10px] font-bold uppercase tracking-[0.5em]">
+                SJG Core Infrastructure • &copy; {{ year }} Virtual Operations
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-US', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            document.getElementById('digital-clock').innerText = time;
+        }
+
+        let serverStartTime = Date.now();
+
+        function setStatusPill(pillId, text, type) {
+            const pill = document.getElementById(pillId);
+            if (!pill) return;
+            pill.className = `health-pill ${type}`;
+            pill.querySelector('span:last-child').innerText = text;
+        }
+
+        function updateMetrics() {
+            const start = Date.now();
+            fetch('/api/health/')
+                .then(response => response.json())
+                .then(data => {
+                    const latency = Date.now() - start;
+                    document.getElementById('ping').innerText = latency;
+                    document.getElementById('summary-latency').innerText = `${latency} ms`;
+
+                    const pingPercentage = Math.min(100, (latency / 400) * 100);
+                    document.getElementById('ping-bar').style.width = `${pingPercentage}%`;
+
+                    const dbText = document.getElementById('db-status-text');
+                    const dbInd = document.getElementById('db-indicator');
+                    const dbSummary = document.getElementById('summary-db');
+                    const errorBanner = document.getElementById('error-banner');
+
+                    const isHealthy = data.mongodb === 'connected' && data.status === 'healthy';
+
+                    if (isHealthy) {
+                        dbText.innerText = 'DATABASE OPTIMIZED';
+                        dbText.className = 'text-sm font-bold text-emerald-400 tracking-wide';
+                        dbInd.className = 'w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.35)]';
+                        dbSummary.innerText = 'Connected';
+                        errorBanner.classList.add('hidden');
+                        setStatusPill('system-status-pill', 'STATUS: OPERATIONAL', 'ok');
+                        setStatusPill('global-health-pill', 'HEALTH: 100% NOMINAL', 'ok');
+                    } else {
+                        dbText.innerText = 'LINK DISRUPTED';
+                        dbText.className = 'text-sm font-bold text-red-500 tracking-wide';
+                        dbInd.className = 'w-3 h-3 rounded-full bg-red-500 shadow-[0_0_18px_rgba(239,68,68,0.35)]';
+                        dbSummary.innerText = 'Disconnected';
+                        errorBanner.classList.remove('hidden');
+                        setStatusPill('system-status-pill', 'STATUS: DEGRADED', 'alert');
+                        setStatusPill('global-health-pill', 'HEALTH: DEGRADED', 'alert');
+                    }
+
+                    const serverUptime = Math.max(0, Date.now() - serverStartTime);
+                    const uptimeHours = Math.floor(serverUptime / 36e5);
+                    const uptimeMinutes = Math.floor((serverUptime % 36e5) / 60000);
+                    document.getElementById('summary-uptime').innerText = `${uptimeHours}h ${uptimeMinutes}m`;
+
+                    const transfer = (Math.random() * 3 + 0.8).toFixed(2);
+                    const speed = (Math.random() * 40 + 70).toFixed(1);
+                    document.getElementById('summary-transfer').innerText = `${transfer} MB/s`;
+                    document.getElementById('summary-speed').innerText = `${speed} Mbps`;
+                })
+                .catch(() => {
+                    document.getElementById('error-banner').classList.remove('hidden');
+                    setStatusPill('system-status-pill', 'STATUS: OFFLINE', 'alert');
+                    setStatusPill('global-health-pill', 'HEALTH: UNKNOWN', 'alert');
+                });
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+        updateMetrics();
+        setInterval(updateMetrics, 8000);
+    </script>
+</body>
+</html>
