@@ -109,10 +109,17 @@ const Cart = () => {
                                                             <h3 className="font-semibold text-gray-800 line-clamp-2">{item.name}</h3>
                                                         </div>
                                                         <button
-                                                            onClick={() => removeFromCart(item.id)}
-                                                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                                                            onClick={(e) => { 
+                                                                e.preventDefault();
+                                                                e.stopPropagation(); 
+                                                                const targetId = String(item.id || item._id);
+                                                                console.log('Cart.js: Clicked remove for', item.name, 'with ID:', targetId);
+                                                                removeFromCart(targetId);
+                                                            }}
+                                                            className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-all border border-red-50 hover:border-red-200 shadow-sm"
+                                                            title="Remove item"
                                                         >
-                                                            <Trash2 size={16} />
+                                                            <Trash2 size={20} />
                                                         </button>
                                                     </div>
 
@@ -120,7 +127,7 @@ const Cart = () => {
                                                         {/* Quantity Controls */}
                                                         <div className="flex items-center bg-gray-100 rounded-full">
                                                             <button
-                                                                onClick={() => decrementFromCart(item.id)}
+                                                                onClick={() => decrementFromCart(item.id || item._id)}
                                                                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
                                                             >
                                                                 <Minus size={14} className="text-gray-600" />

@@ -159,7 +159,7 @@ def _build_html(order: dict, status_label: str = "Order Confirmed") -> str:
         <!-- CTA -->
         <tr>
           <td style="padding:0 40px 32px;text-align:center;">
-            <a href="http://localhost:3000/profile"
+            <a href="https://sjg-ecom.web.app/orders"
                style="display:inline-block;background:linear-gradient(135deg,#4f46e5,#7c3aed);
                       color:#fff;font-size:14px;font-weight:700;padding:14px 32px;
                       border-radius:999px;text-decoration:none;">

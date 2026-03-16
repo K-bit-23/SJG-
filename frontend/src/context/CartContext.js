@@ -39,18 +39,28 @@ export const CartProvider = ({ children }) => {
     };
 
     const decrementFromCart = (id) => {
+        const idStr = String(id);
         setCart(prev => {
-            const existing = prev.find(item => item.id === id);
+            const existing = prev.find(item => String(item.id || item._id) === idStr);
             if (existing && existing.quantity > 1) {
-                return prev.map(item => item.id === id ? { ...item, quantity: item.quantity - 1 } : item);
+                return prev.map(item => String(item.id || item._id) === idStr ? { ...item, quantity: item.quantity - 1 } : item);
             }
             // If quantity is 1, remove the item
-            return prev.filter(item => item.id !== id);
+            return prev.filter(item => String(item.id || item._id) !== idStr);
         });
     };
 
     const removeFromCart = (id) => {
-        setCart(prev => prev.filter(item => item.id !== id));
+        const idStr = String(id);
+        console.log('Context: Removing item with ID:', idStr);
+        setCart(prev => {
+            const newCart = prev.filter(item => {
+                const itemId = String(item.id || item._id || '');
+                return itemId !== idStr;
+            });
+            console.log('Context: New cart length:', newCart.length);
+            return newCart;
+        });
     };
 
     const clearCart = () => {

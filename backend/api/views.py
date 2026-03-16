@@ -524,7 +524,9 @@ def send_order_email(order_data):
         email.send(fail_silently=False)
         print(f"Coral Order Confirmation Email (with PDF) sent to {user_email}")
     except Exception as e:
+        import traceback
         print(f"Email failure: {e}")
+        traceback.print_exc()
 
 
 def send_low_stock_alert(low_stock_items):
@@ -657,8 +659,9 @@ class OrderListCreateView(APIView):
                 result = collection.insert_one(order_data)
                 order_data['_id'] = result.inserted_id
 
-                # Send order confirmation email asynchronously
-                threading.Thread(target=send_order_email, args=(order_data,)).start()
+                # Send order confirmation email asynchronously using email_utils
+                from api.email_utils import send_order_confirmation_after_delay
+                send_order_confirmation_after_delay(dict(order_data), delay_seconds=0)
 
                 # If any items are in low stock, notify the admin
                 if low_stock_items:
@@ -1506,10 +1509,8 @@ class OrderInvoiceView(APIView):
             if not pdf_bytes:
                 return Response({'error': 'PDF generation failed or ReportLab not available'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            # Get the raw bytes from the BytesIO buffer
-            pdf_data = pdf_bytes.getvalue()
-            
-            response = HttpResponse(pdf_data, content_type='application/pdf')
+            # The pdf_bytes is already the raw bytes returned from getvalue()
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
             filename = f"Invoice_{order.get('order_id', pk)}.pdf"
             response['Content-Disposition'] = f'attachment; filename="{filename}"'
             return response

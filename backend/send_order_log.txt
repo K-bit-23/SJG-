@@ -1,0 +1,30 @@
+Running send_order_email...
+Initiating order email for TEST-555 to dkarthideepak@gmail.com
+
+-------------------------------------------------------
+[MongoDB] Connecting to Atlas ...
+  DB   : sjg_db
+  Host : cluster0.i6g3upp.mongodb.net
+-------------------------------------------------------
+
+  [OK] MongoDB Connected!
+  DB  : sjg_db
+  Collections (9): users, messages, user_profiles, app_settings, user_settings, orders, notifications, products, admin_data
+-------------------------------------------------------
+
+
+  [OK] MongoDB Connected!
+  DB  : sjg_db
+  Collections (9): users, messages, user_profiles, app_settings, user_settings, orders, notifications, products, admin_data
+-------------------------------------------------------
+
+
+=======================================================
+  [OK] MongoDB Connected Successfully!
+  Database     : sjg_db
+  Collections  : users, messages, user_profiles, app_settings, user_settings, orders, notifications, products, admin_data
+=======================================================
+
+Coral Order Confirmation Email (with PDF) sent to dkarthideepak@gmail.com
+Done calling send_order_email (but it runs in a thread... oh wait, send_order_email here is synchronous).
+Finished script.
