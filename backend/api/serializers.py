@@ -34,11 +34,11 @@ class ProductSerializer(serializers.Serializer):
 
 class OrderItemSerializer(serializers.Serializer):
     product_id = serializers.CharField(required=False, allow_null=True)
-    product_name = serializers.CharField(required=False, allow_null=True, source='name')
-    name = serializers.CharField(required=False, allow_null=True) # Support both
+    product_name = serializers.CharField(required=False, allow_null=True)
+    name = serializers.CharField(required=False, allow_null=True)
     quantity = serializers.IntegerField(default=1)
-    price = serializers.DecimalField(max_digits=10, decimal_places=2)
-    category = serializers.CharField(required=False, allow_blank=True)
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+    category = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
 class OrderSerializer(serializers.Serializer):
     id = ObjectIdField(read_only=True, source='_id')

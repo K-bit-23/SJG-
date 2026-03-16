@@ -563,8 +563,11 @@ class OrderListCreateView(APIView):
             query = {'user_email': user_email} if user_email else {}
             
             orders = list(collection.find(query).sort('created_at', -1))
+            print(f"DEBUG: Found {len(orders)} orders in DB")
             serializer = OrderSerializer(orders, many=True)
-            return Response(serializer.data)
+            data = serializer.data
+            print(f"DEBUG: Serialized {len(data)} orders")
+            return Response(data)
         except Exception as e:
             return Response(
                 {'error': str(e)},
