@@ -956,6 +956,23 @@ class ChatMessageView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class MessageDetailView(APIView):
+    """Delete a single message"""
+    def delete(self, request, pk):
+        try:
+            collection = mongo_client.get_collection('messages')
+            try:
+                query = {'_id': ObjectId(pk)}
+            except:
+                query = {'id': pk}
+                
+            result = collection.delete_one(query)
+            if result.deleted_count == 0:
+                return Response({'error': 'Message not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'success': True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class UserListCreateView(APIView):
     """List all users or create/sync a user"""
     

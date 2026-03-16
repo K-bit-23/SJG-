@@ -67,11 +67,14 @@ class ContactMessageSerializer(serializers.Serializer):
 
 class ChatMessageSerializer(serializers.Serializer):
     id = ObjectIdField(read_only=True, source='_id')
-    session_id = serializers.CharField(max_length=200)
-    sender = serializers.ChoiceField(choices=['user', 'bot'])
-    text = serializers.CharField()
-    user_email = serializers.EmailField(required=False, allow_blank=True)
-    created_at = serializers.DateTimeField(read_only=True)
+    session_id = serializers.CharField(max_length=200, required=False, allow_null=True)
+    sender = serializers.CharField(required=False, allow_null=True)
+    text = serializers.CharField(required=False, allow_null=True)
+    message = serializers.CharField(required=False, allow_null=True)
+    sender_name = serializers.CharField(required=False, allow_null=True)
+    email = serializers.EmailField(required=False, allow_null=True)
+    user_email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
+    created_at = serializers.DateTimeField(read_only=True, required=False)
 
 class UserSerializer(serializers.Serializer):
     id = ObjectIdField(read_only=True, source='_id')

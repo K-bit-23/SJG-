@@ -30,6 +30,7 @@ from .views import (
     HealthCheckView,
     AppSettingsView,
     UserOrdersView,
+    MessageDetailView,
     TestEmailView,
     OrderInvoiceView,
     api_root_view
@@ -75,6 +76,7 @@ urlpatterns = [
     
     # Chat messages (for bot logs / admin review)
     path('messages/', ChatMessageView.as_view(), name='chat-messages'),
+    path('messages/<str:pk>/', MessageDetailView.as_view(), name='message-detail'),
 
     # Admin Data endpoints
     path('admin/data/', AdminDataView.as_view(), name='admin-data'),
