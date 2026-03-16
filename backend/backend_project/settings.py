@@ -77,17 +77,40 @@ STRIPE_SECRET_KEY      = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
 
 # ── Email (Gmail SMTP) ────────────────────────────────────────────────────────
-# ── Email (Gmail SMTP) ────────────────────────────────────────────────────────
-EMAIL_BACKEND         = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST            = os.environ.get('EMAIL_HOST',          'smtp.gmail.com')
-EMAIL_PORT            = int(os.environ.get('EMAIL_PORT',      587))
-EMAIL_USE_TLS         = os.environ.get('EMAIL_USE_TLS',       'True').lower() == 'true'
-EMAIL_USE_SSL         = os.environ.get('EMAIL_USE_SSL',       'False').lower() == 'true'
-EMAIL_HOST_USER       = os.environ.get('EMAIL_HOST_USER',     '')
-EMAIL_HOST_PASSWORD   = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL    = os.environ.get('DEFAULT_FROM_EMAIL',  EMAIL_HOST_USER or 'noreply@sjg.com')
-ORDER_NOTIFY_EMAIL    = os.environ.get('ORDER_NOTIFY_EMAIL',  EMAIL_HOST_USER)
-EMAIL_TIMEOUT         = 15  # Increased timeout for cloud stability
+# This supports switching between two SMTP accounts via an "EMAIL_ACCOUNT" flag.
+EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST          = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT          = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS       = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_USE_SSL       = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
+
+# Primary (default) account
+PRIMARY_EMAIL_HOST_USER     = os.environ.get('PRIMARY_EMAIL_HOST_USER', os.environ.get('EMAIL_HOST_USER', ''))
+PRIMARY_EMAIL_HOST_PASSWORD = os.environ.get('PRIMARY_EMAIL_HOST_PASSWORD', os.environ.get('EMAIL_HOST_PASSWORD', ''))
+
+# Secondary account (switched via EMAIL_ACCOUNT)
+SECONDARY_EMAIL_HOST_USER     = os.environ.get('SECONDARY_EMAIL_HOST_USER', '')
+SECONDARY_EMAIL_HOST_PASSWORD = os.environ.get('SECONDARY_EMAIL_HOST_PASSWORD', '')
+
+EMAIL_ACCOUNT = os.environ.get('EMAIL_ACCOUNT', 'primary').strip().lower()
+if EMAIL_ACCOUNT == 'secondary' and SECONDARY_EMAIL_HOST_USER:
+    EMAIL_HOST_USER     = SECONDARY_EMAIL_HOST_USER
+    EMAIL_HOST_PASSWORD = SECONDARY_EMAIL_HOST_PASSWORD
+else:
+    EMAIL_HOST_USER     = PRIMARY_EMAIL_HOST_USER
+    EMAIL_HOST_PASSWORD = PRIMARY_EMAIL_HOST_PASSWORD
+
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'noreply@sjg.com')
+# Admin notification emails (can be comma-separated in environment variables)
+_admin_emails_str = os.environ.get(
+    'ORDER_NOTIFY_EMAIL',
+    'dkarthideepak@gmail.com,karthikeyankarthikeyan64182@gmail.com,karthikeyankarthikeyan0414@gmail.com'
+)
+ORDER_NOTIFY_EMAIL = [e.strip() for e in _admin_emails_str.split(',') if e.strip()]
+if not ORDER_NOTIFY_EMAIL and EMAIL_HOST_USER:
+    ORDER_NOTIFY_EMAIL = [EMAIL_HOST_USER]
+
+EMAIL_TIMEOUT = 30  # Increased timeout for cloud stability
 
 AUTH_PASSWORD_VALIDATORS = []
 

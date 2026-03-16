@@ -91,10 +91,10 @@ const Checkout = () => {
         try {
             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`);
             const data = await res.json();
-            return data.display_name || '';
+            return data;
         } catch (err) {
             console.warn('Reverse geocode failed:', err);
-            return '';
+            return null;
         }
     };
 
@@ -109,14 +109,33 @@ const Checkout = () => {
                 const { latitude, longitude } = position.coords;
                 const coords = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
 
-                const full = await reverseGeocode(latitude, longitude);
+                const geoData = await reverseGeocode(latitude, longitude);
+                
+                if (geoData && geoData.address) {
+                    const addr = geoData.address;
+                    // Extract components specifically for Indian context
+                    const road = addr.road || addr.pedestrian || addr.path || '';
+                    const area = addr.neighbourhood || addr.suburb || addr.subdistrict || '';
+                    const city = addr.city || addr.town || addr.village || addr.city_district || addr.county || '';
+                    const zip = addr.postcode || '';
 
-                setFormData(prev => ({
-                    ...prev,
-                    address: full || coords,
-                    city: '',
-                    zip: ''
-                }));
+                    // Format address: "Road, Area" or just "Area" if road is missing
+                    const formattedAddress = [road, area].filter(Boolean).join(', ');
+                    
+                    setFormData(prev => ({
+                        ...prev,
+                        address: formattedAddress || geoData.display_name || coords,
+                        city: city,
+                        zip: zip
+                    }));
+                } else {
+                    setFormData(prev => ({
+                        ...prev,
+                        address: coords,
+                        city: '',
+                        zip: ''
+                    }));
+                }
 
                 setMapUrl(`https://www.google.com/maps?q=${latitude},${longitude}&z=16&output=embed`);
             },
@@ -184,7 +203,8 @@ const Checkout = () => {
             }
         } catch (error) {
             console.error("Order Error:", error);
-            alert("Failed to place order. Please try again.");
+            const errorMsg = error.response?.data?.error || error.message || "Failed to place order. Please try again.";
+            alert(errorMsg);
         } finally {
             setLoading(false);
         }

@@ -402,12 +402,20 @@ def generate_invoice_pdf(order_data):
 def send_order_email(order_data):
     """Send order confirmation email with premium modern layout."""
     try:
-        user_email = order_data.get('user_email')
-        if not user_email:
+        # Check SMTP settings first to avoid silent failures in threads
+        if not getattr(settings, 'EMAIL_HOST_USER', None) or not getattr(settings, 'EMAIL_HOST_PASSWORD', None):
+            print("Email skipped: SMTP credentials (EMAIL_HOST_USER/PASSWORD) not found in settings.")
             return
 
+        user_email = order_data.get('user_email')
+        if not user_email:
+            print("Email skipped: No user_email found in order_data.")
+            return
+
+        order_id = str(order_data.get('order_id', 'N/A'))
+        print(f"Initiating order email for {order_id} to {user_email}")
+        
         user_name = order_data.get('user_name', 'Customer')
-        order_id = order_data.get('order_id')
         items = order_data.get('items', [])
         total = float(order_data.get('total_amount', 0))
         shipping = 0 if total > 999 else 0.0 # Standard Free Delivery
@@ -525,8 +533,13 @@ def send_low_stock_alert(low_stock_items):
     low_stock_items should be a list of dicts with keys: name, stock, threshold.
     """
     try:
-        admin_email = getattr(settings, 'ORDER_NOTIFY_EMAIL', None) or getattr(settings, 'DEFAULT_FROM_EMAIL', None)
-        if not admin_email:
+        admin_emails = getattr(settings, 'ORDER_NOTIFY_EMAIL', [])
+        if not admin_emails:
+            # Fallback to single string if list is empty
+            from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
+            admin_emails = [from_email] if from_email else []
+
+        if not admin_emails:
             print("Low stock alert not sent: no admin email configured.")
             return
 
@@ -545,10 +558,10 @@ def send_low_stock_alert(low_stock_items):
             subject,
             body,
             settings.DEFAULT_FROM_EMAIL,
-            [admin_email],
+            admin_emails,
             fail_silently=True,
         )
-        print(f"Low stock alert sent to {admin_email}")
+        print(f"Low stock alert sent to {admin_emails}")
     except Exception as e:
         print(f"Failed to send low stock alert: {e}")
 
@@ -898,7 +911,7 @@ class AdminDataView(APIView):
             )
 
 class ContactMessageView(APIView):
-    """Save a contact message to MongoDB"""
+    """Save a contact message to MongoDB and send email notification"""
     
     def post(self, request):
         try:
@@ -910,6 +923,40 @@ class ContactMessageView(APIView):
                 
                 result = collection.insert_one(message_data)
                 message_data['_id'] = result.inserted_id
+                
+                # Send email notification to admin
+                try:
+                    admin_emails = getattr(settings, 'ORDER_NOTIFY_EMAIL', [])
+                    if not admin_emails:
+                        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None)
+                        admin_emails = [from_email] if from_email else []
+                        
+                    if admin_emails:
+                        subject = f"New Contact Message from {message_data.get('name', 'Customer')}"
+                        body = f"""
+New contact form submission:
+
+Name: {message_data.get('name', 'N/A')}
+Email: {message_data.get('email', 'N/A')}
+Phone: {message_data.get('phone', 'N/A')}
+
+Message:
+{message_data.get('message', 'N/A')}
+
+---
+Received via SJG Website Contact Form
+                        """.strip()
+                        
+                        send_mail(
+                            subject,
+                            body,
+                            settings.DEFAULT_FROM_EMAIL,
+                            admin_emails,
+                            fail_silently=True,
+                        )
+                        print(f"Contact form email sent to {admin_emails}")
+                except Exception as email_error:
+                    print(f"Failed to send contact email notification: {email_error}")
                 
                 return Response(
                     ContactMessageSerializer(message_data).data,

@@ -9,16 +9,37 @@ from pathlib import Path
 env_path = Path(__file__).parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
+
+def _get_smtp_config():
+    """Return SMTP config (host/port/user/password/use_tls) based on env vars."""
+    host = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+    port = int(os.getenv('EMAIL_PORT', 587))
+    use_tls = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+
+    # Primary config (fall back to legacy env vars)
+    primary_user = os.getenv('PRIMARY_EMAIL_HOST_USER') or os.getenv('EMAIL_HOST_USER')
+    primary_password = os.getenv('PRIMARY_EMAIL_HOST_PASSWORD') or os.getenv('EMAIL_HOST_PASSWORD')
+
+    # Secondary config (optional)
+    secondary_user = os.getenv('SECONDARY_EMAIL_HOST_USER')
+    secondary_password = os.getenv('SECONDARY_EMAIL_HOST_PASSWORD')
+
+    account = os.getenv('EMAIL_ACCOUNT', 'primary').strip().lower()
+    if account == 'secondary' and secondary_user:
+        user = secondary_user
+        password = secondary_password
+    else:
+        user = primary_user
+        password = primary_password
+
+    return host, port, user, password, use_tls
+
+
 def test_smtp_connection():
     """Test SMTP connection and authentication"""
     print("🔍 Testing SMTP Connection...")
 
-    # Get email settings
-    host = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-    port = int(os.getenv('EMAIL_PORT', 587))
-    user = os.getenv('EMAIL_HOST_USER')
-    password = os.getenv('EMAIL_HOST_PASSWORD')
-    use_tls = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+    host, port, user, password, use_tls = _get_smtp_config()
 
     print(f"📧 Host: {host}")
     print(f"🔌 Port: {port}")
@@ -70,11 +91,7 @@ def send_test_email():
     """Send a test email to verify everything works"""
     print("\n📤 Sending Test Email...")
 
-    host = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-    port = int(os.getenv('EMAIL_PORT', 587))
-    user = os.getenv('EMAIL_HOST_USER')
-    password = os.getenv('EMAIL_HOST_PASSWORD')
-    use_tls = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+    host, port, user, password, use_tls = _get_smtp_config()
 
     try:
         # Create message
