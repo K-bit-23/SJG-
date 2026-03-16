@@ -223,6 +223,25 @@ const AdminPanel = () => {
     const updateBillQuantity = (id, qty) => { if (qty < 1) return; setBillingItems(billingItems.map(i => i.id === id ? { ...i, quantity: qty } : i)); };
     const updateItemPrice = (id, price) => setBillingItems(billingItems.map(i => i.id === id ? { ...i, price: parseFloat(price) || 0 } : i));
     const calculateBillTotal = () => billingItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+    
+    const handleBillingPhoneChange = async (phone) => {
+        setBillingCustomer(prev => ({ ...prev, phone }));
+        if (phone.length >= 10) {
+            try {
+                const res = await api.get(`users/?phone=${phone}`);
+                if (res.data && res.data.length > 0) {
+                    const user = res.data[0];
+                    setBillingCustomer({
+                        name: user.display_name || user.name || '',
+                        phone: user.phone || phone,
+                        email: user.email || ''
+                    });
+                }
+            } catch (err) {
+                console.error("Phone search failed:", err);
+            }
+        }
+    };
     const generateInvoice = async () => {
         if (!billingItems.length || !billingCustomer.name) return alert('Enter customer details and items');
         
@@ -324,7 +343,8 @@ const AdminPanel = () => {
                 {activeTab === 'business' && <AdminBusiness />}
                 {activeTab === 'billing' && (
                     <AdminBilling
-                        products={products} billingItems={billingItems} billingCustomer={billingCustomer} setBillingCustomer={setBillingCustomer}
+                        products={products} billingItems={billingItems} billingCustomer={billingCustomer} 
+                        setBillingCustomer={setBillingCustomer} handleBillingPhoneChange={handleBillingPhoneChange}
                         billingProductSearch={billingProductSearch} setBillingProductSearch={setBillingProductSearch}
                         addToBill={addToBill} addServiceItem={addServiceItem} removeFromBill={removeFromBill} 
                         updateBillQuantity={updateBillQuantity} updateItemPrice={updateItemPrice} calculateBillTotal={calculateBillTotal}

@@ -964,7 +964,11 @@ class UserListCreateView(APIView):
             collection = mongo_client.get_collection('users')
             # Filter by role if provided
             role = request.query_params.get('role')
-            query = {'role': role} if role else {}
+            phone = request.query_params.get('phone')
+            
+            query = {}
+            if role: query['role'] = role
+            if phone: query['phone'] = phone
             
             users = list(collection.find(query))
             return Response(UserSerializer(users, many=True).data)
