@@ -13,22 +13,55 @@ const AdminBilling = ({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Product Selection */}
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Quick Services */}
+                    {/* Services List (Quick Add) */}
                     <div className="bg-white p-6 rounded-xl shadow-sm">
-                        <h3 className="text-lg font-bold mb-4">Quick Services</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {[
-                                { name: 'Xerox (B/W)', icon: Copy, label: 'Xerox' },
-                                { name: 'B/W Printout', icon: Printer, label: 'B/W Print' },
-                                { name: 'Color Printout', icon: Printer, label: 'Color Print' },
-                                { name: 'A3 Sheet Print', icon: Printer, label: 'A3 Print' },
-                                { name: 'Lamination', icon: Layers, label: 'Lamination' },
-                                { name: 'Online Services', icon: Globe, label: 'Online Help' },
-                            ].map((s, i) => (
-                                <button key={i} onClick={() => addServiceItem(s.name)} className="p-4 border border-dashed border-gray-300 rounded-xl hover:bg-secondary/5 hover:border-secondary hover:text-secondary transition-all font-medium flex flex-col items-center gap-2">
-                                    <s.icon size={24} /> {s.label}
-                                </button>
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <Layers size={20} className="text-secondary" /> Available Services
+                            </h3>
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full border">
+                                {products.filter(p => p.category === 'Services').length} Services Available
+                            </span>
+                        </div>
+                        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+                            {products.filter(p => p.category === 'Services').map((service, i) => (
+                                <div 
+                                    key={i} 
+                                    onClick={() => addToBill(service)}
+                                    className="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:border-secondary hover:bg-secondary/5 transition-all cursor-pointer group"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-secondary group-hover:bg-white shadow-sm transition-colors">
+                                            {service.name.includes('Print') || service.name.includes('Xerox') ? <Printer size={24} /> : 
+                                             service.name.includes('Lamination') ? <Layers size={24} /> : <Globe size={24} />}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-800 group-hover:text-secondary">{service.name}</h4>
+                                            <p className="text-xs text-gray-400 line-clamp-1">{service.description || 'Standard service item'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-6">
+                                        <div className="text-right">
+                                            <span className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Price</span>
+                                            <span className="font-black text-slate-800">₹{service.price}</span>
+                                        </div>
+                                        <div className="hidden md:block">
+                                            <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-black rounded-full uppercase">
+                                                Active
+                                            </span>
+                                        </div>
+                                        <button className="p-2 bg-secondary text-white rounded-lg shadow-lg shadow-secondary/20 hover:scale-110 active:scale-95 transition-all">
+                                            <Box size={16} />
+                                        </button>
+                                    </div>
+                                </div>
                             ))}
+                            {products.filter(p => p.category === 'Services').length === 0 && (
+                                <div className="text-center py-10 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100">
+                                    <p className="text-gray-400 text-sm font-bold">No services found in inventory.</p>
+                                    <p className="text-[10px] text-gray-300 uppercase mt-1">Add them in the Inventory tab under 'Services'</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -42,7 +75,7 @@ const AdminBilling = ({
                             </div>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto p-1">
-                            {products.filter(p => p.name?.toLowerCase().includes(billingProductSearch.toLowerCase())).map(product => (
+                            {products.filter(p => p.category !== 'Services' && p.name?.toLowerCase().includes(billingProductSearch.toLowerCase())).map(product => (
                                 <div key={product.id || product._id} className="border rounded-lg p-3 hover:shadow-md transition-all cursor-pointer bg-gray-50 hover:bg-white" onClick={() => addToBill(product)}>
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="w-12 h-12 bg-gray-200 rounded overflow-hidden"><img src={product.image || '/placeholder.png'} alt="" className="w-full h-full object-cover" /></div>

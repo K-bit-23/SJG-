@@ -694,6 +694,8 @@ class OrderDetailView(APIView):
         try:
             collection = mongo_client.get_collection('orders')
             update_data = dict(request.data)
+            update_data.pop('_id', None)
+            update_data.pop('id', None)
             update_data['updated_at'] = datetime.now()
             
             # Try to find by ObjectID first, then by custom order_id
@@ -837,6 +839,8 @@ class DashboardStatsView(APIView):
                 'total_messages': total_messages
             })
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, Users, DollarSign, Box, TrendingUp, Truck, ShoppingCart } from 'lucide-react';
+import { Package, Users, DollarSign, Box, TrendingUp, Truck, ShoppingCart, Percent } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AdminDashboard = ({ stats, orders, getStatusBadge }) => {
@@ -12,6 +12,18 @@ const AdminDashboard = ({ stats, orders, getStatusBadge }) => {
 
     return (
         <div className="space-y-8">
+            {/* Daily GST & Tasks Reminder */}
+            <div className="bg-indigo-900 text-white p-6 rounded-2xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white/10 rounded-xl"><Percent size={24} /></div>
+                    <div>
+                        <h4 className="font-bold text-lg">Daily GST Update Reminder</h4>
+                        <p className="text-indigo-200 text-sm">Check latest tax segments on <a href="https://www.gst.gov.in/" target="_blank" rel="noreferrer" className="underline font-bold text-white hover:text-indigo-300">gst.gov.in</a> to keep your billing accurate.</p>
+                    </div>
+                </div>
+                <Link to="/admin/settings" className="px-6 py-2 bg-white text-indigo-900 rounded-xl font-bold hover:bg-slate-50 transition-all text-sm whitespace-nowrap">Update GST Now</Link>
+            </div>
+
             {/* Stat Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {statCards.map((stat, idx) => (
