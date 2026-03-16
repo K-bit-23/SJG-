@@ -240,11 +240,20 @@ def _send(order: dict, delay_seconds: int, status_label: str):
     if delay_seconds > 0:
         time.sleep(delay_seconds)
 
-    notify_email = getattr(settings, 'ORDER_NOTIFY_EMAIL', settings.EMAIL_HOST_USER)
+    notify_emails = getattr(settings, 'ORDER_NOTIFY_EMAIL', None)
     customer_email = order.get('user_email', '')
     order_id = order.get('order_id', 'N/A')
 
-    recipients = list({notify_email, customer_email} - {''})   # unique, non-empty
+    # ORDER_NOTIFY_EMAIL can be a list (from settings.py) or a single string
+    if isinstance(notify_emails, list):
+        all_emails = notify_emails + [customer_email]
+    elif notify_emails:
+        all_emails = [notify_emails, customer_email]
+    else:
+        fallback = getattr(settings, 'EMAIL_HOST_USER', '')
+        all_emails = [fallback, customer_email]
+
+    recipients = list({e.strip() for e in all_emails if e and e.strip()})
 
     if not recipients:
         print(f"[EMAIL] No recipients for order {order_id} — skipping")

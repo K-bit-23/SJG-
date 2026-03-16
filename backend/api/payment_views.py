@@ -155,54 +155,7 @@ class CreatePaymentIntentView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class CreateCheckoutSessionView(APIView):
-    def post(self, request):
-        try:
-            order_id_str = request.data.get('order_id')
-            if not order_id_str:
-                 return Response({'error': 'Order ID is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-             # Fetch order
-            collection = mongo_client.get_collection('orders')
-            order = collection.find_one({'order_id': order_id_str})
-            if not order:
-                 try:
-                    order = collection.find_one({'_id': ObjectId(order_id_str)})
-                 except:
-                    pass
-            
-            if not order:
-                return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
-            
-            amount = int(float(order.get('total_amount', 0)) * 100)
-            if amount <= 0:
-                 return Response({'error': 'Invalid order amount'}, status=status.HTTP_400_BAD_REQUEST)
-
-            frontend_url = request.META.get('HTTP_ORIGIN') or 'http://localhost:3000'
-
-            session = stripe.checkout.Session.create(
-                payment_method_types=['card'],
-                line_items=[{
-                    'price_data': {
-                        'currency': 'inr',
-                        'product_data': {
-                            'name': f'Order {order.get("order_id", order_id_str)}',
-                        },
-                        'unit_amount': amount,
-                    },
-                    'quantity': 1,
-                }],
-                mode='payment',
-                success_url=f'{frontend_url}/payment-success?order_id={order_id_str}&amount={order.get("total_amount")}',
-                cancel_url=f'{frontend_url}/checkout',
-                metadata={'order_id': str(order.get('_id')), 'custom_order_id': order.get('order_id')}
-            )
-
-            return Response({
-                'url': session.url,
-            })
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class ConfirmPaymentView(APIView):
     def post(self, request):
