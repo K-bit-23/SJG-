@@ -120,6 +120,20 @@ const AdminSettings = () => {
                 </div>
                 <div className="p-6 space-y-6">
                     <div className="grid grid-cols-2 gap-4">
+                        <div className="col-span-2 flex items-end gap-3 pb-2 border-b border-gray-50 mb-2">
+                             <div className="flex-1">
+                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Government GST Portal</p>
+                                <p className="text-[10px] text-gray-500 italic">Open official portal to check latest tax segments daily.</p>
+                             </div>
+                             <a 
+                                href="https://www.gst.gov.in/" 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors flex items-center gap-2"
+                             >
+                                <Globe size={14} /> Open gst.gov.in
+                             </a>
+                        </div>
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Product GST (%)</label>
                             <input 

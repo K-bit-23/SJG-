@@ -87,7 +87,11 @@ const AdminPanel = () => {
                 setProducts(Array.isArray(productsRes.data) ? productsRes.data : []);
             }
             if (activeTab === 'orders' || activeTab === 'dashboard' || activeTab === 'delivery') {
-                const ordersRes = await api.get('orders/').catch(() => ({ data: [] }));
+                const ordersRes = await api.get('orders/').catch((err) => {
+                    console.error("Order fetch failed:", err);
+                    return { data: [] };
+                });
+                console.log("Fetched orders:", ordersRes.data);
                 setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
             }
             if (activeTab === 'users') {
