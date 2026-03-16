@@ -30,7 +30,9 @@ from .views import (
     HealthCheckView,
     AppSettingsView,
     UserOrdersView,
-    TestEmailView
+    TestEmailView,
+    OrderInvoiceView,
+    api_root_view
 )
 from .payment_views import (
     CreatePaymentIntentView, 
@@ -83,14 +85,15 @@ urlpatterns = [
     # Payment endpoints
     path('create-checkout-session/', CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
     path('create-payment-intent/', CreatePaymentIntentView.as_view(), name='create-payment-intent'),
-    path('create-checkout-session/', CreateCheckoutSessionView.as_view(), name='create-checkout-session'),
     path('confirm-payment/', ConfirmPaymentView.as_view(), name='confirm-payment'),
     path('confirm-stripe-session/', ConfirmStripeSessionView.as_view(), name='confirm-stripe-session'),
 
     # Mobile Auth & User specific endpoints
     path('user-orders/<str:user_email>/', UserOrdersView.as_view(), name='user-orders'),
+    path('orders/<str:pk>/invoice/', OrderInvoiceView.as_view(), name='order-invoice'),
     path('test-email/', TestEmailView.as_view(), name='test-email'),
     path('user-settings/<str:email>/', UserSettingsView.as_view(), name='user-settings'),
+    path('root/', api_root_view, name='api-root-html'),
 ]
 
 # ============================================================================

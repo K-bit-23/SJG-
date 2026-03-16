@@ -8,14 +8,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load .env file
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-new-backend-key-change-in-production')
-
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+# Load .env file
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # ── Core Django settings ─────────────────────────────────────────────────────
-SECRET_KEY   = os.environ.get('SECRET_KEY', 'django-insecure-sjg-dev-key-change-in-production')
-DEBUG        = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1', '.onrender.com']
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-sjg-dev-key-change-in-production')
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1', '.onrender.com', '.vercel.app']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -78,15 +77,17 @@ STRIPE_SECRET_KEY      = os.environ.get('STRIPE_SECRET_KEY', '')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', '')
 
 # ── Email (Gmail SMTP) ────────────────────────────────────────────────────────
+# ── Email (Gmail SMTP) ────────────────────────────────────────────────────────
 EMAIL_BACKEND         = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST            = os.environ.get('EMAIL_HOST',          'smtp.gmail.com')
 EMAIL_PORT            = int(os.environ.get('EMAIL_PORT',      587))
-EMAIL_USE_TLS         = os.environ.get('EMAIL_USE_TLS',       'True') == 'True'
+EMAIL_USE_TLS         = os.environ.get('EMAIL_USE_TLS',       'True').lower() == 'true'
+EMAIL_USE_SSL         = os.environ.get('EMAIL_USE_SSL',       'False').lower() == 'true'
 EMAIL_HOST_USER       = os.environ.get('EMAIL_HOST_USER',     '')
 EMAIL_HOST_PASSWORD   = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL    = os.environ.get('DEFAULT_FROM_EMAIL',  EMAIL_HOST_USER)
+DEFAULT_FROM_EMAIL    = os.environ.get('DEFAULT_FROM_EMAIL',  EMAIL_HOST_USER or 'noreply@sjg.com')
 ORDER_NOTIFY_EMAIL    = os.environ.get('ORDER_NOTIFY_EMAIL',  EMAIL_HOST_USER)
-EMAIL_TIMEOUT         = 10  # Seconds
+EMAIL_TIMEOUT         = 15  # Increased timeout for cloud stability
 
 AUTH_PASSWORD_VALIDATORS = []
 

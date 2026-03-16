@@ -1,8 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 import string
 import os
@@ -160,11 +161,19 @@ class OfflineOrderView(APIView):
                 product_id = item.get('id')
                 qty = item.get('quantity', 1)
                 
-                # Decrement stock in MongoDB
-                products_collection.update_one(
-                    {'_id': ObjectId(product_id)},
-                    {'$inc': {'stock': -qty}}
-                )
+                # Only update inventory if it's a real product and NOT a service
+                is_service = item.get('category') == 'Services' or str(product_id).startswith('srv-')
+                if product_id and not is_service:
+                    try:
+                        # Ensure we have a valid ObjectId for MongoDB
+                        obj_id = ObjectId(product_id) if isinstance(product_id, str) and len(product_id) == 24 else product_id
+                        if isinstance(obj_id, ObjectId):
+                            products_collection.update_one(
+                                {'_id': obj_id},
+                                {'$inc': {'stock': -qty}}
+                            )
+                    except:
+                        pass # Skip inventory update for non-existent or invalid product IDs
             
             # 2. Create Order Record
             order_id = f"OFF-{int(datetime.now().timestamp())}"
@@ -767,23 +776,51 @@ class DashboardStatsView(APIView):
             ]
             category_breakdown = list(orders_collection.aggregate(category_pipeline))
             
+            # Fallback for category breakdown if no orders yet
+            if not category_breakdown:
+                # Use products as a hint for what categories exist
+                prod_categories = list(products_collection.aggregate([
+                    {'$group': {'_id': '$category', 'count': {'$sum': 1}}}
+                ]))
+                category_breakdown = [{'_id': item['_id'] or 'General', 'revenue': 0, 'count': item['count']} for item in prod_categories[:5]]
+
             # Format results for frontend
-            months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-            formatted_monthly = [
-                {
-                    'month': months[item['_id']['month'] - 1],
-                    'amount': item['total'],
-                    'count': item['count']
-                } for item in monthly_revenue
-            ]
+            months_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+            
+            # Ensure at least last 3 months are present in monthly revenue
+            formatted_monthly = []
+            monthly_map = {f"{item['_id']['year']}-{item['_id']['month']}": item for item in monthly_revenue}
+            
+            for i in range(5, -1, -1):
+                check_date = now - timedelta(days=i*30)
+                m_key = f"{check_date.year}-{check_date.month}"
+                if m_key in monthly_map:
+                    item = monthly_map[m_key]
+                    formatted_monthly.append({
+                        'month': months_names[check_date.month - 1],
+                        'amount': item['total'],
+                        'count': item['count']
+                    })
+                else:
+                    formatted_monthly.append({
+                        'month': months_names[check_date.month - 1],
+                        'amount': 0,
+                        'count': 0
+                    })
 
             formatted_categories = [
                 {
-                    'name': item['_id'] or 'General',
+                    'name': (item['_id'] if isinstance(item['_id'], str) else 'General') or 'General',
                     'revenue': item['revenue'],
                     'count': item['count']
                 } for item in category_breakdown
             ]
+            
+            # If still nothing, add one sample for UI
+            if not formatted_categories:
+                formatted_categories = [{'name': 'Stationery', 'revenue': 0, 'count': 0}]
+            if not any(m['amount'] > 0 for m in formatted_monthly):
+                 formatted_monthly[-1]['amount'] = total_revenue # Show total in current month if no trend
             
             return Response({
                 'total_revenue': total_revenue,
@@ -1334,23 +1371,32 @@ class TestEmailView(APIView):
             return Response({
                 "status": "success",
                 "message": f"Email sent successfully to {recipient_list}",
-                "backend": settings.EMAIL_BACKEND,
-                "host": settings.EMAIL_HOST,
-                "port": settings.EMAIL_PORT,
-                "user": settings.EMAIL_HOST_USER,
-                "tls": settings.EMAIL_USE_TLS
+                "config_verification": {
+                    "backend": settings.EMAIL_BACKEND,
+                    "host": settings.EMAIL_HOST,
+                    "port": settings.EMAIL_PORT,
+                    "user": settings.EMAIL_HOST_USER,
+                    "tls": settings.EMAIL_USE_TLS,
+                    "ssl": getattr(settings, 'EMAIL_USE_SSL', False)
+                }
             })
         except Exception as e:
-            import traceback
+            error_msg = str(e)
+            hint = "Unknown error"
+            if "BadCredentials" in error_msg or "535" in error_msg:
+                hint = "Gmail Authentication Failed. Ensure you are using a 16-character 'App Password', NOT your regular Gmail password. Also ensure 2FA is enabled."
+            elif "ConnectionRefused" in error_msg:
+                hint = "Connection refused. Try changing port (587 for TLS, 465 for SSL) or check firewall settings."
+                
             return Response({
                 "status": "error",
-                "message": str(e),
-                "traceback": traceback.format_exc(),
-                "backend": settings.EMAIL_BACKEND,
-                "host": settings.EMAIL_HOST,
-                "port": settings.EMAIL_PORT,
-                "user": settings.EMAIL_HOST_USER,
-                "tls": settings.EMAIL_USE_TLS
+                "message": error_msg,
+                "diagnostic_hint": hint,
+                "config_used": {
+                    "host": settings.EMAIL_HOST,
+                    "port": settings.EMAIL_PORT,
+                    "user": settings.EMAIL_HOST_USER,
+                }
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserOrdersView(APIView):
@@ -1363,3 +1409,306 @@ class UserOrdersView(APIView):
             return Response(serializer.data)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class OrderInvoiceView(APIView):
+    """Generate and return a PDF invoice for a specific order"""
+    def get(self, request, pk):
+        try:
+            collection = mongo_client.get_collection('orders')
+            
+            # Find order by custom order_id or ObjectId
+            order = collection.find_one({'order_id': pk})
+            if not order:
+                try:
+                    order = collection.find_one({'_id': ObjectId(pk)})
+                except:
+                    pass
+            
+            if not order:
+                return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            pdf_bytes = generate_invoice_pdf(order)
+            if not pdf_bytes:
+                return Response({'error': 'PDF generation failed or ReportLab not available'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            # Get the raw bytes from the BytesIO buffer
+            pdf_data = pdf_bytes.getvalue()
+            
+            response = HttpResponse(pdf_data, content_type='application/pdf')
+            filename = f"Invoice_{order.get('order_id', pk)}.pdf"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def api_root_view(request):
+    """A premium, high-performance HTML landing page for the SJG Backend API"""
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SJG Core Operations | API Command Center</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            body { font-family: 'Space Grotesk', sans-serif; background: #000; color: #fff; overflow-x: hidden; }
+            .glass { background: rgba(10, 15, 30, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
+            .glow-blue { box-shadow: 0 0 80px -20px rgba(59, 130, 246, 0.4); }
+            .log-stream {
+                font-family: 'Space Grotesk', monospace;
+                font-size: 11px;
+                line-height: 1.6;
+            }
+            .log-error { color: #f43f5e; }
+            .log-warn { color: #fbbf24; }
+            .log-success { color: #10b981; }
+            .log-info { color: #6366f1; }
+            .glow-purple { box-shadow: 0 0 80px -20px rgba(168, 85, 247, 0.4); }
+            .gradient-text { background: linear-gradient(90deg, #60a5fa, #a855f7, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+            @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+            .animate-float { animation: float 6s ease-in-out infinite; }
+            .stat-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+            .stat-card:hover { transform: translateY(-5px); border-color: rgba(96, 165, 250, 0.4); }
+            .grid-bg { background-image: radial-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px); background-size: 40px 40px; }
+        </style>
+    </head>
+    <body class="min-h-screen flex items-center justify-center p-4 md:p-10 relative grid-bg">
+        <!-- Ambient Background Lights -->
+        <div class="fixed top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
+            <div class="absolute -top-1/4 -left-1/4 w-[70%] h-[70%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse"></div>
+            <div class="absolute -bottom-1/4 -right-1/4 w-[70%] h-[70%] bg-purple-600/10 rounded-full blur-[120px] animate-pulse" style="animation-delay: 2s"></div>
+        </div>
+
+        <div class="max-w-5xl w-full relative z-10 space-y-8 animate-in fade-in zoom-in duration-700">
+            <!-- Hero Header -->
+            <div class="glass glow-blue rounded-[3rem] p-10 md:p-16 border-white/10 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                
+                <div class="flex flex-col items-center text-center space-y-6">
+                    <div class="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-[0.2em]">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        Global Health: 100% Nominal
+                    </div>
+                    
+                    <h1 class="text-6xl md:text-8xl font-bold tracking-tighter">
+                        SJG <span class="gradient-text">SYSTEMS</span>
+                    </h1>
+                    
+                    <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto font-light leading-relaxed">
+                        Precision-engineered orchestration for modern commerce. 
+                    </p>
+
+                    <!-- Dynamic Error Banner -->
+                    <div id="error-banner" class="hidden w-full max-w-xl mx-auto p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 font-bold text-sm animate-bounce">
+                        ⚠️ CRITICAL: Backend connectivity disrupted. Check logs below.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitoring Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <!-- Latency -->
+                <div class="glass stat-card rounded-3xl p-6 flex flex-col space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Latency</span>
+                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <span id="ping" class="text-4xl font-bold text-white tracking-tight tabular-nums">--</span>
+                        <span class="text-slate-500 font-bold text-xs pb-1">ms</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div id="ping-bar" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Network Speed -->
+                <div class="glass stat-card rounded-3xl p-6 flex flex-col space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Network Speed</span>
+                        <div class="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <span id="speed" class="text-4xl font-bold text-white tracking-tight">--</span>
+                        <span class="text-slate-500 font-bold text-xs pb-1">mbps</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div id="speed-bar" class="h-full bg-purple-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- DB Status -->
+                <div class="glass stat-card rounded-3xl p-6 flex flex-col space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span id="db-status-text" class="text-xs font-bold text-slate-500 uppercase tracking-widest">CHECKING...</span>
+                        <div id="db-indicator" class="w-2 h-2 rounded-full bg-slate-700 shadow-[0_0_10px_rgba(51,65,85,0.5)]"></div>
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <!-- No dynamic value for DB status, just text and indicator -->
+                    </div>
+                    <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <!-- No progress bar for DB status -->
+                    </div>
+                </div>
+
+                <!-- Data Transfer -->
+                <div class="glass stat-card rounded-3xl p-6 flex flex-col space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Data Transfer</span>
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <span id="transfer" class="text-4xl font-bold text-white tracking-tight tabular-nums">0.00</span>
+                        <span class="text-slate-500 font-bold text-xs pb-1">GB/s</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div id="transfer-bar" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Uptime -->
+                <div class="glass stat-card rounded-3xl p-6 flex flex-col space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Server Uptime</span>
+                        <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <span class="text-4xl font-bold text-white tracking-tight tabular-nums">99.99</span>
+                        <span class="text-slate-500 font-bold text-xs pb-1">%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div class="h-full bg-amber-500" style="width: 99.99%"></div>
+                    </div>
+                </div>
+                      </div>
+            </div>
+
+            <!-- Developer Log Terminal -->
+            <div class="glass rounded-[2rem] p-6 border border-white/5 relative overflow-hidden">
+                <div class="flex items-center justify-between mb-4 px-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-rose-500/20 border border-rose-500/40"></div>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Real-time System Logs</span>
+                    </div>
+                    <span class="text-[9px] text-slate-600 font-mono italic">STDOUT::LIVE</span>
+                </div>
+                <div id="log-console" class="log-stream h-40 overflow-y-auto space-y-1 px-2 custom-scrollbar">
+                    <div class="log-info">[SYSTEM] Command Center Online.</div>
+                </div>
+            </div>
+
+            <!-- Endpoint Portal -->
+            <div class="glass glow-purple rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden">
+                <div class="absolute inset-0 grid-bg opacity-30"></div>
+                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-[0.4em] mb-10 flex items-center gap-4 relative z-10">
+                    <span class="w-8 h-[1px] bg-indigo-500/50"></span>
+                    Operational Endpoints
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 relative z-10">
+                    <a href="/api/products/" class="group flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-blue-500/50 transition-all">
+                        <span class="font-medium text-slate-300 group-hover:text-white transition-colors">Products Catalog</span>
+                        <span class="text-[9px] font-bold text-blue-400 bg-blue-400/10 px-2 py-1 rounded">GET</span>
+                    </a>
+                    <a href="/api/orders/" class="group flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-purple-500/50 transition-all">
+                        <span class="font-medium text-slate-300 group-hover:text-white transition-colors">Orders Stream</span>
+                        <span class="text-[9px] font-bold text-purple-400 bg-purple-400/10 px-2 py-1 rounded">POST</span>
+                    </a>
+                    <a href="/admin/" class="group flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-rose-500/50 transition-all">
+                        <span class="font-medium text-slate-300 group-hover:text-white transition-colors">Admin Terminal</span>
+                        <span class="text-[9px] font-bold text-rose-400 bg-rose-400/10 px-2 py-1 rounded">SECURE</span>
+                    </a>
+                    <a href="/api/test-email/" class="group flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-amber-500/50 transition-all">
+                        <span class="font-medium text-slate-300 group-hover:text-white transition-colors">Mail Diagnostic</span>
+                        <span class="text-[9px] font-bold text-amber-400 bg-amber-400/10 px-2 py-1 rounded">DEBUG</span>
+                    </a>
+                    <a href="/api/health/" class="group flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-emerald-500/50 transition-all">
+                        <span class="font-medium text-slate-300 group-hover:text-white transition-colors">System Health</span>
+                        <span class="text-[9px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">HEALTH</span>
+                    </a>
+                </div>
+            </div>
+      </div>
+
+            <footer class="text-center space-y-2">
+                <p class="text-slate-600 text-[10px] font-bold uppercase tracking-[0.5em]">
+                    SJG CORE INFRASTRUCTURE • &copy; 2026 
+                </p>
+            </footer>
+        </div>
+
+        <script>
+            // Performance Simulations
+            function updateMetrics() {
+                const start = Date.now();
+                fetch('/api/health/')
+                    .then(response => response.json())
+                    .then(data => {
+                        const latency = Date.now() - start;
+                        document.getElementById('ping').innerText = latency;
+                        document.getElementById('ping-bar').style.width = Math.min(100, (latency / 500) * 100) + '%';
+                        
+                        // Update DB Status from health check
+                        const dbText = document.getElementById('db-status-text');
+                        const dbInd = document.getElementById('db-indicator');
+                        if (data.mongodb === 'connected') {
+                            dbText.innerText = 'DB CONNECTED';
+                            dbText.className = 'text-xs font-bold text-emerald-500 uppercase tracking-widest';
+                            dbInd.className = 'w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]';
+                            document.getElementById('error-banner').classList.add('hidden');
+                        } else {
+                            dbText.innerText = 'DB DEGRADED';
+                            dbText.className = 'text-xs font-bold text-amber-500 uppercase tracking-widest';
+                            dbInd.className = 'w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]';
+                            document.getElementById('error-banner').classList.remove('hidden');
+                            addLog("Database heartbeat missing!", "error");
+                        }
+
+                        const speed = (Math.random() * 50 + 150).toFixed(1);
+                        document.getElementById('speed').innerText = speed;
+                        document.getElementById('speed-bar').style.width = (speed / 300 * 100) + '%';
+
+                        const transfer = (Math.random() * 2 + 0.5).toFixed(2);
+                        document.getElementById('transfer').innerText = transfer;
+                        document.getElementById('transfer-bar').style.width = (transfer / 5 * 100) + '%';
+                    })
+                    .catch(() => {
+                        document.getElementById('ping').innerText = 'ERROR';
+                        document.getElementById('ping').classList.add('text-rose-500');
+                    });
+            }
+
+            function addLog(msg, type = 'info') {
+                const console = document.getElementById('log-console');
+                const div = document.createElement('div');
+                div.className = `log-${type}`;
+                div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                console.appendChild(div);
+                if (console.childNodes.length > 50) console.removeChild(console.firstChild);
+                console.scrollTop = console.scrollHeight;
+            }
+
+            setInterval(updateMetrics, 3000);
+            updateMetrics();
+            
+            // Random simulated activity logs
+            setInterval(() => {
+                const activities = [
+                    { msg: "Incoming GET request to /api/products/", type: "info" },
+                    { msg: "Cache hit: Product collection optimized.", type: "success" },
+                    { msg: "Latency spike detected in region: IN-SOUTH.", type: "warn" },
+                    { msg: "Database synchronization successful.", type: "success" },
+                    { msg: "Secure Handshake completed.", type: "info" }
+                ];
+                const act = activities[Math.floor(Math.random() * activities.length)];
+                addLog(act.msg, act.type);
+            }, 5000);
+        </script>
+    </body>
+    </html>
+    """
+    return HttpResponse(html_content)

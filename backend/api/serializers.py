@@ -33,28 +33,28 @@ class ProductSerializer(serializers.Serializer):
         return getattr(obj, 'stock', 0) > 0
 
 class OrderItemSerializer(serializers.Serializer):
-    product_id = serializers.CharField()
-    product_name = serializers.CharField()
-    quantity = serializers.IntegerField()
+    product_id = serializers.CharField(required=False, allow_null=True)
+    product_name = serializers.CharField(required=False, allow_null=True, source='name')
+    name = serializers.CharField(required=False, allow_null=True) # Support both
+    quantity = serializers.IntegerField(default=1)
     price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    category = serializers.CharField(required=False, allow_blank=True)
 
 class OrderSerializer(serializers.Serializer):
     id = ObjectIdField(read_only=True, source='_id')
     order_id = serializers.CharField(read_only=True)
-    user_email = serializers.EmailField()
-    user_name = serializers.CharField(max_length=200)
+    user_email = serializers.EmailField(required=False, allow_null=True)
+    user_name = serializers.CharField(max_length=200, required=False, allow_null=True)
     items = OrderItemSerializer(many=True)
     total_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
-    status = serializers.ChoiceField(
-        choices=['pending', 'processing', 'shipped', 'completed', 'cancelled'],
-        default='pending'
-    )
-    shipping_address = serializers.CharField()
-    payment_method = serializers.CharField(max_length=50)
-    transaction_id = serializers.CharField(required=False, allow_blank=True)
-    delivery_date = serializers.CharField(required=False, allow_blank=True)
-    delivery_partner = serializers.CharField(required=False, allow_blank=True)
-    tracking_id = serializers.CharField(required=False, allow_blank=True)
+    status = serializers.CharField(default='pending')
+    shipping_address = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    payment_method = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
+    payment_status = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    transaction_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    delivery_date = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    delivery_partner = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    tracking_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 
@@ -139,6 +139,7 @@ class NotificationSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=200)
     message = serializers.CharField()
     type = serializers.CharField(max_length=50) # e.g., 'processing', 'placed', 'completed', 'cancelled'
+    order_id = serializers.CharField(max_length=100, required=False, allow_blank=True)
     is_read = serializers.BooleanField(default=False)
     created_at = serializers.DateTimeField(read_only=True)
 

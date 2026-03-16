@@ -45,113 +45,28 @@ const Orders = () => {
         }
     };
 
-    const downloadInvoice = (order) => {
-        const doc = new jsPDF();
-        const primaryColor = [235, 64, 52]; // #EB4034 - Red/Coral
-        
-        // 1. Top Decoration Bar
-        doc.setFillColor(...primaryColor);
-        doc.rect(0, 0, 210, 8, 'F');
-        
-        // 2. INVOICE Title
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(30);
-        doc.setTextColor(30, 41, 59);
-        doc.text('INVOICE', 14, 25);
-        
-        // 3. Date and Order No (Right Aligned)
-        doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        const orderIdDisplay = order.order_id || order.id || 'ORDER';
-        doc.text(`DATE: ${new Date(order.created_at || Date.now()).toLocaleDateString()}`, 196, 20, { align: 'right' });
-        doc.text(`INVOICE NO: ${orderIdDisplay.split('-').pop() || orderIdDisplay}`, 196, 26, { align: 'right' });
-        
-        // 4. Company Info
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.setFont('Helvetica', 'normal');
-        doc.text('SJG Stationery', 14, 35);
-        doc.text('123 Station Road, SJG Campus', 14, 40);
-        doc.text('Chennai, Tamilnadu - 600001', 14, 45);
-        doc.text('Phone: +91 93600 24821', 14, 50);
-        doc.text('Email: support@sjg.com', 14, 55);
-        
-        // 5. BILL TO / SHIP TO Headers (Coral)
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.setTextColor(...primaryColor);
-        doc.text('BILL TO', 14, 70);
-        doc.text('SHIP TO', 110, 70);
-        
-        // Address Details
-        doc.setFont('Helvetica', 'normal');
-        doc.setTextColor(60);
-        doc.setFontSize(9);
-        const userName = order.user_name || user?.name || user?.fullName || 'Customer';
-        doc.text(userName, 14, 76);
-        doc.text(userName, 110, 76);
-        
-        const address = order.shipping_address || 'Address not provided';
-        const addrLines = doc.splitTextToSize(address, 80);
-        doc.text(addrLines, 14, 82);
-        doc.text(addrLines, 110, 82);
-        
-        // 6. Items Table
-        const tableBody = order.items?.map(item => [
-            item.product_name || 'Stationery Item',
-            item.quantity,
-            `${item.price}`,
-            `${(item.price * item.quantity).toFixed(0)}`
-        ]) || [];
-
-        doc.autoTable({
-            startY: 105,
-            head: [['DESCRIPTION', 'QTY', 'UNIT PRICE', 'TOTAL']],
-            body: tableBody,
-            headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontStyle: 'bold' },
-            bodyStyles: { textColor: [80, 80, 80], fontSize: 9 },
-            alternateRowStyles: { fillColor: [254, 254, 254] },
-            margin: { left: 14, right: 14 },
-            theme: 'striped'
-        });
-        
-        // 7. Summary Totals (Right Aligned)
-        const finalY = doc.lastAutoTable.finalY + 10;
-        doc.setFontSize(9);
-        doc.setTextColor(80);
-        
-        const subtotal = order.total_amount;
-        // Search 2026 data: Stationery GST is 0% since Sept 2025
-        const taxRate = 0; 
-        const shipping = subtotal > 999 ? 0 : 5; // Using 5.00 from image
-        const total = subtotal + shipping;
-        
-        const summaryX = 140;
-        const valueX = 196;
-        
-        doc.text('SUBTOTAL', summaryX, finalY);
-        doc.text(`${subtotal.toFixed(0)}`, valueX, finalY, { align: 'right' });
-        
-        doc.text('DISCOUNT', summaryX, finalY + 6);
-        doc.text('0.00', valueX, finalY + 6, { align: 'right' });
-        
-        doc.text(`TAX RATE (${taxRate}%)`, summaryX, finalY + 12);
-        doc.text('0.00', valueX, finalY + 12, { align: 'right' });
-        
-        doc.text('SHIPPING/HANDLING', summaryX, finalY + 18);
-        doc.text(`${shipping.toFixed(2)}`, valueX, finalY + 18, { align: 'right' });
-        
-        // 8. Balance Due (Green Box)
-        doc.setFillColor(224, 242, 233); // Light Green
-        doc.rect(120, finalY + 24, 76, 10, 'F');
-        
-        doc.setFont('Helvetica', 'bold');
-        doc.setTextColor(22, 101, 52); // Dark Green
-        doc.text('BALANCE DUE', 125, finalY + 31);
-        doc.text(`${total.toFixed(2)}`, 191, finalY + 31, { align: 'right' });
-        
-        doc.save(`Invoice_${orderIdDisplay}.pdf`);
+    const downloadInvoice = async (order) => {
+        try {
+            const orderId = order.order_id || order.id || 'ORDER';
+            // Use the new backend endpoint for premium ReportLab PDF
+            const response = await api.get(`/orders/${orderId}/invoice/`, {
+                responseType: 'blob'
+            });
+            
+            // Create a blob from the response data
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Invoice_${orderId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Failed to download invoice:", error);
+            alert("Could not retrieve the invoice. Please try again later.");
+        }
     };
 
     const filteredOrders = orders.filter(o => 

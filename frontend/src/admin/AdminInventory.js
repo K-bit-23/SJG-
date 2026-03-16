@@ -275,7 +275,7 @@ const ProductPopup = ({ editingProduct, productForm, setProductForm, onSave, onC
                                         <label className={lbl}>Category</label>
                                         <select className={inp} value={productForm.category} onChange={e => setProductForm(p => ({ ...p, category: e.target.value }))}>
                                             <option value="">Select…</option>
-                                            {['Notebooks', 'Pens & Pencils', 'Art Supplies', 'Office Supplies', 'Tech Accessories', 'Bags', 'Others'].map(c => <option key={c} value={c}>{c}</option>)}
+                                            {['Notebooks', 'Pens & Pencils', 'Art Supplies', 'Office Supplies', 'Tech Accessories', 'Bags', 'Services', 'Others'].map(c => <option key={c} value={c}>{c}</option>)}
                                         </select>
                                     </div>
 

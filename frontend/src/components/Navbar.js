@@ -1,10 +1,11 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, BellRing, Smile, CheckCircle, Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useNotifications } from '../context/NotificationContext';
 import api from '../utils/api';
 import AuthModal from './AuthModal';
 
@@ -12,9 +13,9 @@ import AuthModal from './AuthModal';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
-    const { cart } = useCart();
-    const { t } = useLanguage();
-    const [searchTerm, setSearchTerm] = useState('');
+    const { wishlist } = useWishlist();
+    const { showToast, showAlert } = useNotifications();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [isScrolled, setIsScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -23,9 +24,9 @@ const Navbar = () => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
-    const { wishlist } = useWishlist();
-    const [isCartBumping, setIsCartBumping] = useState(false);
-    const [isWishlistBumping, setIsWishlistBumping] = useState(false);
+    const { cart } = useCart();
+    const { t } = useLanguage();
+    const [searchTerm, setSearchTerm] = useState('');
     
     // Auth and Admin states
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -34,11 +35,9 @@ const Navbar = () => {
     const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' });
     const [showAdminPassword, setShowAdminPassword] = useState(false);
     
-    // Helper to show toast (mocking if not available)
-    const showToast = (message, type) => {
-        console.log(`[${type}] ${message}`);
-        // You can implement a real toast here or use an existing one
-    };
+    // Bumping states for cart/wishlist
+    const [isCartBumping, setIsCartBumping] = useState(false);
+    const [isWishlistBumping, setIsWishlistBumping] = useState(false);
 
     useEffect(() => {
         setIsWishlistBumping(true);
@@ -96,8 +95,10 @@ const Navbar = () => {
             await api.patch('notifications/', { user_email: user.email });
             setNotifications(notifications.map(n => ({ ...n, is_read: true })));
             setUnreadCount(0);
+            showAlert('All notifications marked as read.', 'success');
         } catch (err) {
             console.error("Failed to mark read:", err);
+            showAlert('Failed to mark notifications as read.', 'error');
         }
     };
 
@@ -253,10 +254,19 @@ const Navbar = () => {
                                                     Mark all read
                                                 </button>
                                             </div>
-                                            <div className="max-h-[60vh] overflow-y-auto">
+                                                    <div className="max-h-[60vh] overflow-y-auto">
                                                 {notifications.length > 0 ? (
                                                     notifications.map((notif, index) => (
-                                                        <div key={notif.id || index} className={`p-4 border-b border-gray-50 hover:bg-gray-50 flex gap-4 transition-colors ${!notif.is_read ? 'bg-blue-50/30' : ''}`}>
+                                                        <div 
+                                                            key={notif.id || index} 
+                                                            onClick={() => {
+                                                                if (notif.order_id) {
+                                                                    navigate(`/track-order/${notif.order_id}`);
+                                                                    setNotificationsOpen(false);
+                                                                }
+                                                            }}
+                                                            className={`p-4 border-b border-gray-50 hover:bg-gray-50 flex gap-4 transition-colors cursor-pointer ${!notif.is_read ? 'bg-blue-50/30' : ''}`}
+                                                        >
                                                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                                                                 notif.type === 'completed' ? 'bg-green-100' : 
                                                                 notif.type === 'processing' ? 'bg-orange-100' : 
@@ -271,6 +281,9 @@ const Navbar = () => {
                                                             <div>
                                                                 <p className="text-sm font-bold text-gray-800">{notif.title}</p>
                                                                 <p className="text-xs text-gray-600 mt-1">{notif.message}</p>
+                                                                {notif.order_id && (
+                                                                    <p className="text-[9px] font-black text-indigo-500 mt-1 uppercase tracking-widest">Click to track order</p>
+                                                                )}
                                                                 <p className="text-[10px] text-gray-400 mt-2 font-medium">
                                                                     {new Date(notif.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                                                                 </p>

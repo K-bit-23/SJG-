@@ -18,8 +18,10 @@ const AdminBilling = ({
                         <h3 className="text-lg font-bold mb-4">Quick Services</h3>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             {[
-                                { name: 'Xerox (B&W)', icon: Copy, label: 'Xerox' },
-                                { name: 'Printout (Color)', icon: Printer, label: 'Print' },
+                                { name: 'Xerox (B/W)', icon: Copy, label: 'Xerox' },
+                                { name: 'B/W Printout', icon: Printer, label: 'B/W Print' },
+                                { name: 'Color Printout', icon: Printer, label: 'Color Print' },
+                                { name: 'A3 Sheet Print', icon: Printer, label: 'A3 Print' },
                                 { name: 'Lamination', icon: Layers, label: 'Lamination' },
                                 { name: 'Online Services', icon: Globe, label: 'Online Help' },
                             ].map((s, i) => (

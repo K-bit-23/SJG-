@@ -14,7 +14,7 @@ import AccountLayout from '../../src/components/AccountLayout';
 const Profile = () => {
     const { user } = useAuth();
     const { wishlist } = useWishlist();
-    const { showToast } = useNotifications();
+    const { showToast, showAlert } = useNotifications();
     const [searchParams, setSearchParams] = useSearchParams();
 
     // Tabs
@@ -104,10 +104,10 @@ const Profile = () => {
                 savedAddresses
             });
             setSaveSuccess(true);
-            showToast('Profile updated effectively', 'success');
+            showAlert('Identity data synchronized successfully with central servers', 'success');
             setTimeout(() => setSaveSuccess(false), 3000);
         } catch (err) {
-            showToast('Failed to sync profile', 'error');
+            showAlert('System sync failure: Unable to commit changes to cloud', 'error');
         } finally {
             setSaving(false);
         }

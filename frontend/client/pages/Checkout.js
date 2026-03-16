@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, CreditCard, Truck, CheckCircle, Smartphone, ExternalLink } from 'lucide-react';
 import api from '../../src/utils/api';
 import SuccessModal from '../../src/components/SuccessModal';
+import { useNotifications } from '../../src/context/NotificationContext';
 
 const Checkout = () => {
     const { cart } = useCart();
@@ -14,6 +15,7 @@ const Checkout = () => {
 
     const { user } = useAuth();
     const navigate = useNavigate();
+    const { showAlert } = useNotifications();
     const [loading, setLoading] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('STRIPE');
 
@@ -159,8 +161,11 @@ const Checkout = () => {
                     user_email: formData.email,
                     title: 'Order Placed',
                     message: `Order #${orderId.split('-').pop() || orderId} confirmed — ₹${total}`,
-                    type: 'placed'
+                    type: 'placed',
+                    order_id: orderId
                 }).catch(err => console.error("Notification creation failed:", err));
+
+                showAlert('Order placed successfully! We are processing it.', 'success');
 
                 if (paymentMethod === 'STRIPE') {
                     // Create checkout session

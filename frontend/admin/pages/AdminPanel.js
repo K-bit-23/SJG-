@@ -17,6 +17,7 @@ import AdminDelivery from '../../src/admin/AdminDelivery';
 import AdminUsers from '../../src/admin/AdminUsers';
 import AdminContent from '../../src/admin/AdminContent';
 import AdminSettings from '../../src/admin/AdminSettings';
+import AdminChat from '../../src/admin/AdminChat';
 
 const AdminPanel = () => {
     const { user, logout } = useAuth();
@@ -194,11 +195,25 @@ const AdminPanel = () => {
     const addToBill = (product) => {
         const existing = billingItems.find(i => i.id === (product.id || product._id));
         if (existing) setBillingItems(billingItems.map(i => i.id === existing.id ? { ...i, quantity: i.quantity + 1 } : i));
-        else setBillingItems([...billingItems, { id: product.id || product._id, name: product.name, price: parseFloat(product.price), quantity: 1 }]);
+        else setBillingItems([...billingItems, { 
+            id: product.id || product._id, 
+            name: product.name, 
+            price: parseFloat(product.price), 
+            quantity: 1,
+            category: product.category || 'General'
+        }]);
     };
     const addServiceItem = (name) => {
         const id = `srv-${Date.now()}`;
-        setBillingItems([...billingItems, { id, name, price: 10, quantity: 1 }]);
+        let price = 10;
+        if (name.includes('Xerox')) price = 2;
+        else if (name.includes('B/W Printout')) price = 5;
+        else if (name.includes('Color Printout')) price = 10;
+        else if (name.includes('A3 Sheet Print')) price = 20;
+        else if (name.includes('Lamination')) price = 25;
+        else if (name.includes('Online')) price = 50;
+        
+        setBillingItems([...billingItems, { id, name, price, quantity: 1, category: 'Services' }]);
     };
     const removeFromBill = (id) => setBillingItems(billingItems.filter(i => i.id !== id));
     const updateBillQuantity = (id, qty) => { if (qty < 1) return; setBillingItems(billingItems.map(i => i.id === id ? { ...i, quantity: qty } : i)); };
@@ -323,6 +338,7 @@ const AdminPanel = () => {
                 {activeTab === 'orders' && <AdminOrders orders={orders} getStatusBadge={getStatusBadge} updateOrderStatus={updateOrderStatus} />}
                 {activeTab === 'delivery' && <AdminDelivery orders={orders} fetchData={fetchData} />}
                 {activeTab === 'users' && <AdminUsers users={users} />}
+                {activeTab === 'chat' && <AdminChat chatMessages={chatMessages} setChatMessages={setChatMessages} fetchData={fetchData} />}
                 {activeTab === 'content' && (
                     <AdminContent
                         homeContent={homeContent} contentSubTab={contentSubTab} setContentSubTab={setContentSubTab}
