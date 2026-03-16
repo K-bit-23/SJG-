@@ -1311,6 +1311,48 @@ class AppSettingsView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class TestEmailView(APIView):
+    """Debug view to test SMTP settings"""
+    def get(self, request):
+        try:
+            from django.core.mail import send_mail
+            from django.conf import settings
+            
+            subject = "SJG SMTP Test"
+            message = "If you see this, your SMTP settings are working correctly!"
+            from_email = settings.DEFAULT_FROM_EMAIL
+            recipient_list = [request.query_params.get('email', settings.EMAIL_HOST_USER)]
+            
+            sent = send_mail(
+                subject,
+                message,
+                from_email,
+                recipient_list,
+                fail_silently=False,
+            )
+            return Response({
+                "status": "success",
+                "message": f"Email sent successfully to {recipient_list}",
+                "backend": settings.EMAIL_BACKEND,
+                "host": settings.EMAIL_HOST,
+                "port": settings.EMAIL_PORT,
+                "user": settings.EMAIL_HOST_USER,
+                "tls": settings.EMAIL_USE_TLS
+            })
+        except Exception as e:
+            import traceback
+            return Response({
+                "status": "error",
+                "message": str(e),
+                "traceback": traceback.format_exc(),
+                "backend": settings.EMAIL_BACKEND,
+                "host": settings.EMAIL_HOST,
+                "port": settings.EMAIL_PORT,
+                "user": settings.EMAIL_HOST_USER,
+                "tls": settings.EMAIL_USE_TLS
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class UserOrdersView(APIView):
     """Retrieve all orders for a specific user email"""
     def get(self, request, user_email):

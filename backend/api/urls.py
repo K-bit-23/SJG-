@@ -29,7 +29,8 @@ from .views import (
     NotificationView,
     HealthCheckView,
     AppSettingsView,
-    UserOrdersView
+    UserOrdersView,
+    TestEmailView
 )
 from .payment_views import (
     CreatePaymentIntentView, 
@@ -88,6 +89,7 @@ urlpatterns = [
 
     # Mobile Auth & User specific endpoints
     path('user-orders/<str:user_email>/', UserOrdersView.as_view(), name='user-orders'),
+    path('test-email/', TestEmailView.as_view(), name='test-email'),
     path('user-settings/<str:email>/', UserSettingsView.as_view(), name='user-settings'),
 ]
 
