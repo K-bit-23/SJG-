@@ -62,6 +62,7 @@ const AdminBilling = ({
                     <div className="space-y-3 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
                         <input type="text" placeholder="Customer Name" className="w-full bg-transparent border-b border-gray-300 focus:border-secondary outline-none py-1 text-sm" value={billingCustomer.name} onChange={e => setBillingCustomer({ ...billingCustomer, name: e.target.value })} />
                         <input type="text" placeholder="Phone Number" className="w-full bg-transparent border-b border-gray-300 focus:border-secondary outline-none py-1 text-sm" value={billingCustomer.phone} onChange={e => handleBillingPhoneChange(e.target.value)} />
+                        <input type="email" placeholder="Customer Email (Optional)" className="w-full bg-transparent border-b border-gray-300 focus:border-secondary outline-none py-1 text-sm text-gray-500" value={billingCustomer.email} onChange={e => setBillingCustomer({ ...billingCustomer, email: e.target.value })} />
                     </div>
 
                     <div className="space-y-3 mb-6 max-h-[300px] overflow-y-auto">
@@ -108,98 +109,122 @@ const AdminBilling = ({
                             <button onClick={() => setShowInvoiceModal(false)} className="p-1 hover:bg-gray-200 rounded-full"><X size={20} /></button>
                         </div>
                         <div className="overflow-y-auto flex-1 bg-white" id="invoice-template">
-                            <div className="p-8 max-w-3xl mx-auto mt-4 font-sans">
-                                {/* Top Centered Logo */}
-                                <div className="flex justify-center mb-16">
-                                    <div className="w-16 h-16 rounded-full flex items-center justify-center border border-gray-200 shadow-sm p-2">
-                                        <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                            <style>
+                                {`
+                                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+                                .invoice-container { font-family: 'Inter', sans-serif; color: #1e293b; }
+                                .invoice-title { font-family: 'Outfit', sans-serif; }
+                                .brand-text { font-family: 'Outfit', sans-serif; font-weight: 800; }
+                                `}
+                            </style>
+                            <div className="invoice-container p-12 max-w-4xl mx-auto">
+                                {/* Header */}
+                                <div className="flex justify-between items-start mb-16">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center p-3 shadow-xl shadow-slate-200">
+                                            <img src="/logo.png" alt="SJG" className="w-full h-full object-contain brightness-0 invert" />
+                                        </div>
+                                        <div>
+                                            <h1 className="brand-text text-3xl tracking-tighter text-slate-900 leading-none">SJG STATIONERY<span className="text-indigo-600">.</span></h1>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mt-2">Premium Quality Archives</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <h2 className="invoice-title text-5xl font-black text-slate-900 tracking-tighter mb-2">INVOICE</h2>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{currentInvoice.id}</p>
                                     </div>
                                 </div>
 
-                                {/* Bill To & Invoice Meta Data */}
-                                <div className="flex justify-between mb-12 text-sm text-gray-800">
-                                    <div className="w-1/2">
-                                        <h3 className="uppercase text-xs tracking-wider mb-2 font-bold text-gray-500">TO</h3>
-                                        <p className="font-bold text-base mb-1">{currentInvoice.customer.name}</p>
-                                        <p>{currentInvoice.customer.phone || 'N/A'}</p>
+                                {/* Details Grid */}
+                                <div className="grid grid-cols-2 gap-12 mb-16">
+                                    <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Client Entity</p>
+                                        <h3 className="text-xl font-black text-slate-900 mb-2 truncate">{currentInvoice.customer.name}</h3>
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-medium text-slate-600 flex items-center gap-2">
+                                                <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+                                                {currentInvoice.customer.phone || 'Contact not listed'}
+                                            </p>
+                                            {currentInvoice.customer.email && (
+                                                <p className="text-sm font-medium text-slate-500">{currentInvoice.customer.email}</p>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="w-1/2 max-w-[240px]">
-                                        <h3 className="font-bold text-base mb-2">Invoice</h3>
-                                        <div className="flex justify-between mb-1">
-                                            <span className="font-bold text-gray-500">Invoice No:</span>
-                                            <span className="font-medium">{currentInvoice.id}</span>
+                                    <div className="flex flex-col justify-end space-y-4 px-4">
+                                        <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
+                                            <span className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Issue Date</span>
+                                            <span className="font-black text-slate-900">{currentInvoice.date}</span>
                                         </div>
-                                        <div className="flex justify-between mb-1">
-                                            <span className="font-bold text-gray-500">Issue Date:</span>
-                                            <span className="font-medium">{currentInvoice.date}</span>
+                                        <div className="flex justify-between items-center text-sm border-b border-slate-100 pb-2">
+                                            <span className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Currency</span>
+                                            <span className="font-black text-slate-900">INR (₹)</span>
                                         </div>
-                                        <div className="flex justify-between mb-1">
-                                            <span className="font-bold text-gray-500">Due Date:</span>
-                                            <span className="font-medium">{currentInvoice.date}</span>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Status</span>
+                                            <span className="px-3 py-1 bg-emerald-100 text-emerald-600 text-[10px] font-black uppercase tracking-widest rounded-full">Paid</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Items Table */}
-                                <table className="w-full mb-8 text-sm text-gray-800">
-                                    <thead>
-                                        <tr className="border-t-[1.5px] border-b-[1.5px] border-black">
-                                            <th className="py-3 text-left font-bold w-[45%]">Description</th>
-                                            <th className="py-3 text-center font-bold w-[20%]">Quantity</th>
-                                            <th className="py-3 text-right font-bold w-[20%]">Unit Price</th>
-                                            <th className="py-3 text-right font-bold w-[15%]">Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {currentInvoice.items.map((item, i) => (
-                                            <tr key={i} className="border-b border-gray-200">
-                                                <td className="py-3">{item.name}</td>
-                                                <td className="py-3 text-center">{item.quantity}</td>
-                                                <td className="py-3 text-right">₹{item.price.toFixed(2)}</td>
-                                                <td className="py-3 text-right">₹{(item.price * item.quantity).toFixed(2)}</td>
+                                {/* Table */}
+                                <div className="mb-16">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="border-b-2 border-slate-900">
+                                                <th className="py-5 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Service Designation</th>
+                                                <th className="py-5 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Qty</th>
+                                                <th className="py-5 text-right text-[10px] font-black uppercase tracking-widest text-slate-500">Unit Rate</th>
+                                                <th className="py-5 text-right text-[10px] font-black uppercase tracking-widest text-slate-500">Net Total</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100">
+                                            {currentInvoice.items.map((item, i) => (
+                                                <tr key={i} className="group hover:bg-slate-50 transition-colors">
+                                                    <td className="py-6 font-bold text-slate-900">{item.name}</td>
+                                                    <td className="py-6 text-center font-bold text-slate-500">{item.quantity}</td>
+                                                    <td className="py-6 text-right font-medium text-slate-600">₹{item.price.toFixed(2)}</td>
+                                                    <td className="py-6 text-right font-black text-slate-900">₹{(item.price * item.quantity).toFixed(2)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
 
-                                {/* Totals Section */}
-                                <div className="flex justify-end mb-16 text-sm text-gray-800">
-                                    <div className="w-[45%] min-w-[240px]">
-                                        <div className="flex justify-between py-1.5">
-                                            <span className="font-bold text-gray-500">Subtotal</span>
-                                            <span className="font-medium">₹{currentInvoice.total.toFixed(2)}</span>
+                                {/* Totals */}
+                                <div className="flex justify-end mb-24">
+                                    <div className="w-full max-w-xs space-y-4">
+                                        <div className="flex justify-between text-sm font-bold text-slate-500">
+                                            <span>Subtotal</span>
+                                            <span className="text-slate-900">₹{currentInvoice.total.toFixed(2)}</span>
                                         </div>
-                                        <div className="flex justify-between py-1.5">
-                                            <span className="font-bold text-gray-500">Tax (18% GST)</span>
-                                            <span className="font-medium">₹{currentInvoice.tax.toFixed(2)}</span>
+                                        <div className="flex justify-between text-sm font-bold text-indigo-500">
+                                            <span>Tax Infrastructure (18%)</span>
+                                            <span>₹{currentInvoice.tax.toFixed(2)}</span>
                                         </div>
-                                        <div className="flex justify-between py-2 border-t-[1.5px] border-black mt-1 font-black text-lg">
-                                            <span>Total</span>
-                                            <span>₹{currentInvoice.grandTotal.toFixed(2)}</span>
-                                        </div>
-                                        <div className="text-right mt-4">
-                                            <span className="bg-gray-100 px-3 py-1 text-xs font-semibold rounded inline-block">Please pay within 7 days. Thanks!</span>
+                                        <div className="pt-6 border-t-2 border-slate-900 flex justify-between items-end">
+                                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Total Payable</div>
+                                            <div className="text-4xl font-black text-slate-900 tracking-tighter">₹{currentInvoice.grandTotal.toFixed(2)}</div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Footer Contact Info */}
-                                <div className="flex justify-between pt-8 text-xs text-gray-800 mt-20">
-                                    <div>
-                                        <p className="font-bold mb-1">SJG Stationery</p>
-                                        <p>Sakthi Nagar, Thindal</p>
-                                        <p>Erode - 638012</p>
-                                        <p className="mt-1">VAT ID: 12345678</p>
+                                <div className="pt-12 border-t border-slate-100 flex justify-between items-end">
+                                    <div className="max-w-[200px]">
+                                        <h4 className="brand-text text-sm text-slate-900 mb-2 uppercase tracking-tight">SJG Logistics Hub</h4>
+                                        <p className="text-[10px] font-medium text-slate-400 leading-relaxed uppercase tracking-wider">
+                                            Sakthi Nagar, Thindal, Erode - 638012<br/>
+                                            Tamil Nadu, India.
+                                        </p>
                                     </div>
-                                    <div className="text-right text-gray-500">
-                                        <p className="font-bold mb-1 text-gray-800">Contact</p>
-                                        <p>sjgvxerox@gmail.com</p>
-                                        <p>+91 93600 24821</p>
-                                        <p className="text-indigo-600 font-medium mt-1">sjg-ecom.web.app</p>
+                                    <div className="text-right">
+                                        <p className="text-[10px] font-black uppercase tracking-[.2em] text-indigo-600 mb-2">Authenticated Transaction</p>
+                                        <p className="text-[10px] font-bold text-slate-400">sjgvxerox@gmail.com | +91 93600 24821</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                         <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
                             <button onClick={printInvoice} className="bg-secondary text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-600 flex items-center gap-2"><Printer size={18} /> Print Invoice</button>
                         </div>

@@ -9,14 +9,45 @@ import api from '../../src/utils/api';
 const Checkout = () => {
     const { cart } = useCart();
     const { showToast } = useNotifications();
+    const [appSettings, setAppSettings] = useState({
+        freeShippingThreshold: 999,
+        shippingFee: 50,
+        isOnlinePaymentEnabled: true,
+        isCodEnabled: true
+    });
+
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shipping = subtotal > 999 ? 0 : 50;
+    const shipping = subtotal > appSettings.freeShippingThreshold ? 0 : appSettings.shippingFee;
     const total = subtotal + shipping;
 
     const { user } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState('STRIPE');
+    const [paymentMethod, setPaymentMethod] = useState('');
+
+    // Fetch dynamic settings
+    React.useEffect(() => {
+        const fetchAppSettings = async () => {
+            try {
+                const { data } = await api.get('/settings/');
+                if (data) {
+                    setAppSettings({
+                        freeShippingThreshold: data.free_shipping_threshold !== undefined ? data.free_shipping_threshold : 999,
+                        shippingFee: data.shipping_fee !== undefined ? data.shipping_fee : 50,
+                        isOnlinePaymentEnabled: data.is_online_payment_enabled !== undefined ? data.is_online_payment_enabled : true,
+                        isCodEnabled: data.is_cod_enabled !== undefined ? data.is_cod_enabled : true
+                    });
+                    
+                    // Set default payment method based on what's enabled
+                    if (data.is_online_payment_enabled !== false) setPaymentMethod('STRIPE');
+                    else if (data.is_cod_enabled !== false) setPaymentMethod('COD');
+                }
+            } catch (err) {
+                console.warn("Using default settings for checkout", err);
+            }
+        };
+        fetchAppSettings();
+    }, []);
 
     // Saved Addresses (from profile)
     const [savedAddresses, setSavedAddresses] = useState([]);
@@ -33,6 +64,14 @@ const Checkout = () => {
         phone: '',
         utr: ''
     });
+
+    // Enforce Login
+    React.useEffect(() => {
+        if (!user) {
+            showToast('Please login to place an order', 'warning');
+            navigate('/');
+        }
+    }, [user, navigate, showToast]);
 
     // Load saved addresses from profile (for quick checkout)
     React.useEffect(() => {
@@ -286,48 +325,52 @@ const Checkout = () => {
                             </h2>
                             <div className="space-y-4">
                                 {/* COD */}
-                                <label 
-                                    onClick={() => setPaymentMethod('COD')}
-                                    className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${paymentMethod === 'COD' ? 'border-primary bg-[#f0f4ff]' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
-                                >
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'COD' ? 'border-primary' : 'border-gray-300'}`}>
-                                        {paymentMethod === 'COD' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-                                    </div>
-                                    <span className={`font-bold ${paymentMethod === 'COD' ? 'text-primary' : 'text-gray-700'}`}>Cash on Delivery (COD)</span>
-                                </label>
-
-                                {/* Stripe */}
-                                <div className={`rounded-xl border transition-all ${paymentMethod === 'STRIPE' ? 'border-primary bg-[#f0f4ff]' : 'border-gray-200 hover:border-gray-300 bg-white'}`}>
+                                {appSettings.isCodEnabled !== false && (
                                     <label 
-                                        onClick={() => setPaymentMethod('STRIPE')}
-                                        className="flex items-center justify-between p-4 cursor-pointer"
+                                        onClick={() => setPaymentMethod('COD')}
+                                        className={`flex items-center gap-3 p-4 rounded-xl border transition-all cursor-pointer ${paymentMethod === 'COD' ? 'border-primary bg-[#f0f4ff]' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'STRIPE' ? 'border-primary' : 'border-gray-300'}`}>
-                                                {paymentMethod === 'STRIPE' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-                                            </div>
-                                            <span className={`font-bold ${paymentMethod === 'STRIPE' ? 'text-primary' : 'text-gray-700'}`}>Credit / Debit Card (Stripe)</span>
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'COD' ? 'border-primary' : 'border-gray-300'}`}>
+                                            {paymentMethod === 'COD' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
                                         </div>
-                                        <div className="flex gap-1.5">
-                                            <span className="bg-[#1a1f71] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">VISA</span>
-                                            <span className="bg-[#eb001b] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">MC</span>
-                                            <span className="bg-[#2e77bc] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">AMEX</span>
-                                        </div>
+                                        <span className={`font-bold ${paymentMethod === 'COD' ? 'text-primary' : 'text-gray-700'}`}>Cash on Delivery (COD)</span>
                                     </label>
-                                    
-                                    {/* Stripe secure checkout info */}
-                                    {paymentMethod === 'STRIPE' && (
-                                        <div className="px-5 pb-5 pt-1 animate-fade-in pl-[52px]">
-                                            <div className="bg-[#ebf4ff] p-4 rounded-lg flex items-start gap-3 text-sm text-[#1e40af]">
-                                                <ExternalLink className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                                                <div>
-                                                    <p className="font-semibold mb-1">Secure Stripe Checkout</p>
-                                                    <p className="text-opacity-80">You'll be redirected to Stripe's secure payment page (buy.stripe.com) to complete your payment safely.</p>
+                                )}
+                                
+                                {/* Stripe */}
+                                {appSettings.isOnlinePaymentEnabled !== false && (
+                                    <div className={`rounded-xl border transition-all ${paymentMethod === 'STRIPE' ? 'border-primary bg-[#f0f4ff]' : 'border-gray-200 hover:border-gray-300 bg-white'}`}>
+                                        <label 
+                                            onClick={() => setPaymentMethod('STRIPE')}
+                                            className="flex items-center justify-between p-4 cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'STRIPE' ? 'border-primary' : 'border-gray-300'}`}>
+                                                    {paymentMethod === 'STRIPE' && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
+                                                </div>
+                                                <span className={`font-bold ${paymentMethod === 'STRIPE' ? 'text-primary' : 'text-gray-700'}`}>Credit / Debit Card (Stripe)</span>
+                                            </div>
+                                            <div className="flex gap-1.5">
+                                                <span className="bg-[#1a1f71] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">VISA</span>
+                                                <span className="bg-[#eb001b] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">MC</span>
+                                                <span className="bg-[#2e77bc] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm">AMEX</span>
+                                            </div>
+                                        </label>
+                                        
+                                        {/* Stripe secure checkout info */}
+                                        {paymentMethod === 'STRIPE' && (
+                                            <div className="px-5 pb-5 pt-1 animate-fade-in pl-[52px]">
+                                                <div className="bg-[#ebf4ff] p-4 rounded-lg flex items-start gap-3 text-sm text-[#1e40af]">
+                                                    <ExternalLink className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                                                    <div>
+                                                        <p className="font-semibold mb-1">Secure Stripe Checkout</p>
+                                                        <p className="text-opacity-80">You'll be redirected to Stripe's secure payment page to complete your payment safely.</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 {/* UPI */}
                                 <div className={`rounded-xl border transition-all ${paymentMethod === 'UPI' ? 'border-primary bg-[#f0f4ff]' : 'border-gray-200 hover:border-gray-300 bg-white'}`}>

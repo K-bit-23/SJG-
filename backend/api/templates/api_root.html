@@ -9,382 +9,250 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
     <style>
         :root {
-            --primary: #6366f1;
-            --secondary: #a855f7;
+            --primary: #4f46e5;
+            --secondary: #6366f1;
             --accent: #22d3ee;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --slate-950: #020617;
-            --slate-900: #0f172a;
-            --slate-800: #1e293b;
-        }
-
-        * {
-            cursor: default;
-        }
-
-        body {
-            user-select: none;
-            -webkit-user-select: none;
+            --bg-deep: #020408;
+            --bg-card: rgba(13, 17, 23, 0.7);
+            --border: rgba(255, 255, 255, 0.08);
         }
 
         html, body {
             height: 100%;
             margin: 0;
-            background-color: var(--slate-950);
-            color: #f8fafc;
+            background-color: var(--bg-deep);
+            color: #e6edf3;
             font-family: 'Outfit', sans-serif;
-            overflow: hidden;
+            overflow-x: hidden;
         }
 
-        /* Background Effects */
-        .bg-grid {
+        /* Animated Background Elements */
+        .glow-sphere {
             position: fixed;
-            inset: 0;
-            background-image: 
-                linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
-            background-size: 60px 60px;
-            z-index: -2;
-            mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%);
-        }
-
-        .bg-glow {
-            position: fixed;
-            width: 150vw;
-            height: 150vh;
-            top: -25%;
-            left: -25%;
-            background: 
-                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15), transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.1), transparent 40%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(80px);
             z-index: -1;
-            filter: blur(100px);
-            animation: drift 30s infinite alternate ease-in-out;
+            pointer-events: none;
         }
+
+        .sphere-1 { top: -200px; right: -100px; animation: drift 20s infinite alternate; }
+        .sphere-2 { bottom: -200px; left: -100px; animation: drift 25s infinite alternate-reverse; }
 
         @keyframes drift {
-            from { transform: translate(-5%, -5%) scale(1) rotate(0deg); }
-            to { transform: translate(5%, 5%) scale(1.1) rotate(5deg); }
+            from { transform: translate(0, 0); }
+            to { transform: translate(50px, 100px); }
         }
 
-        .glass {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        .bento-card {
-            border-radius: 2.25rem;
-            padding: 2.25rem;
-            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-            position: relative;
-            overflow: hidden;
+        .status-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
+            animation: pulse-ring 2s infinite;
         }
 
-        .bento-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(99, 102, 241, 0.35);
-            background: rgba(30, 41, 59, 0.65);
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #22d3ee 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
         }
 
         .mono { font-family: 'JetBrains Mono', monospace; }
 
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
+        .terminal-scroll::-webkit-scrollbar { width: 4px; }
+        .terminal-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .nav-link {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-link:hover {
+            color: var(--secondary);
+            transform: translateY(-1px);
         }
 
-        .status-dot.active {
-            background: var(--success);
-            box-shadow: 0 0 20px var(--success);
-            animation: pulse-green 2s infinite;
-        }
-
-        @keyframes pulse-green {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.2); }
-        }
-
-        .terminal-log {
-            font-size: 11px;
-            color: #94a3b8;
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-            display: flex;
-            gap: 15px;
-            animation: slideIn 0.3s forwards;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-10px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 10px; }
-
-        .tab-btn {
-            position: relative;
-            transition: all 0.3s;
-        }
-        .tab-btn.active {
-            color: white;
-        }
-        .tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: var(--primary);
+        .metric-bar-container {
+            height: 4px;
+            background: rgba(255,255,255,0.05);
             border-radius: 10px;
-            box-shadow: 0 0 10px var(--primary);
+            overflow: hidden;
         }
 
-        .ping-visual { display: flex; align-items: flex-end; gap: 2px; height: 30px; }
-        .ping-bar { width: 3px; background: var(--primary); border-radius: 1px; transition: height 0.3s; }
-
-        .diagnostic-badge {
-            padding: 1rem;
-            border-radius: 1rem;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        .metric-glow {
+            box-shadow: 0 0 15px currentColor;
         }
     </style>
 </head>
-<body class="p-4 md:p-8 lg:p-10 h-full flex flex-col gap-6">
-    <div class="bg-grid"></div>
-    <div class="bg-glow"></div>
+<body class="flex flex-col p-4 md:p-8 lg:p-12">
+    <div class="glow-sphere sphere-1"></div>
+    <div class="glow-sphere sphere-2"></div>
 
-    <!-- NAVIGATION HEADER -->
-    <header class="flex justify-between items-center shrink-0">
+    <!-- Header Section -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 animate-fade-in">
         <div class="flex items-center gap-6">
-            <div class="relative w-14 h-14 bg-slate-950 rounded-2xl flex items-center justify-center border border-white/10 overflow-hidden shadow-2xl">
-                <img src="/static/logo.png" alt="SJG" class="w-8 h-8 object-contain">
-                <div class="absolute inset-0 bg-gradient-to-t from-indigo-500/20 to-transparent"></div>
+            <div class="w-16 h-16 bg-white flex items-center justify-center rounded-2xl shadow-xl shadow-indigo-500/10">
+                <img src="/static/logo.png" alt="SJG" class="w-10 h-10 object-contain">
             </div>
             <div>
-                <h1 class="text-2xl font-black tracking-tighter text-white flex items-center gap-2">
-                    SJG <span class="gradient-text">COMMAND_CENTER</span>
-                </h1>
-                <nav class="flex gap-8 mt-4">
-                    <button onclick="switchTab('dashboard')" class="tab-btn active text-slate-500 text-xs font-black uppercase tracking-widest" id="btn-dashboard">Overview</button>
-                    <button onclick="switchTab('system')" class="tab-btn text-slate-500 text-xs font-black uppercase tracking-widest" id="btn-system">Infrastructure</button>
-                    <button onclick="switchTab('diagnostics')" class="tab-btn text-slate-500 text-xs font-black uppercase tracking-widest" id="btn-diagnostics">Diagnostics</button>
-                </nav>
+                <h1 class="text-3xl font-black tracking-tight text-white">SJG Systems <span class="text-indigo-500">v2.5</span></h1>
+                <div class="flex items-center gap-2 mt-1">
+                    <div class="status-pulse"></div>
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mono">Operational Status: Nominal</span>
+                </div>
             </div>
         </div>
-
-        <div id="global-status" class="flex items-center gap-4 bg-white/5 border border-white/10 px-6 py-3 rounded-[2rem]">
-            <span class="status-dot active"></span>
-            <span class="text-[10px] font-black text-white/60 uppercase tracking-[0.3em] mono">KERNEL::NOMINAL</span>
+        
+        <div class="flex flex-wrap gap-4">
+            <a href="/admin/" class="glass-card px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest nav-link flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 004.561 21h14.878a2 2 0 001.94-1.515L22 17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Management Portal
+            </a>
+            <a href="/api/" class="glass-card px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest nav-link flex items-center gap-2 text-indigo-400 border-indigo-500/20 bg-indigo-500/5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Endpoint Map
+            </a>
         </div>
     </header>
 
-    <!-- CONTENT AREA -->
-    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+    <!-- Main Grid -->
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-8 flex-1">
         
-        <!-- DASHBOARD TAB -->
-        <div id="tab-dashboard" class="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6 h-full tab-content">
-            <!-- Stats -->
-            <div class="lg:col-span-8 flex flex-col gap-6 min-h-0">
-                <div class="h-1/2 glass bento-card flex flex-col justify-end">
-                    <h2 class="text-5xl font-black text-white tracking-tighter leading-none mb-4 uppercase">Ops<br/><span class="gradient-text italic">Neural Overlay</span></h2>
-                    <p class="text-slate-400 max-w-sm text-sm font-medium">Monitoring distributed architecture, logistics telemetry, and secure payment orchestration in real-time.</p>
+        <!-- Metrics Column -->
+        <div class="lg:col-span-2 flex flex-col gap-8">
+            <div class="glass-card rounded-[2.5rem] p-10 flex-1 flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-10 opacity-10">
+                    <svg class="w-48 h-48" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.97 4.44c-.31.17-.69.17-1 0l-7.97-4.44c-.32-.17-.53-.5-.53-.88v-9c0-.38.21-.71.53-.88l7.97-4.44c.31-.17.69-.17 1 0l7.97 4.44c.32.17.53.5.53.88v9z"/></svg>
                 </div>
-                <div class="h-1/2 glass bento-card flex flex-col min-h-0">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-[10px] font-black text-white uppercase tracking-[0.4em] mono">Signal_Stream.log</span>
-                        <div class="flex gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-slate-800"></div><div class="w-2.5 h-2.5 rounded-full bg-slate-800"></div></div>
-                    </div>
-                    <div id="terminal" class="flex-1 overflow-y-auto custom-scrollbar flex flex-col-reverse mono px-2">
-                        <div class="terminal-log"><span class="timestamp text-indigo-400">00:00:00</span> <span class="tag text-emerald-400 font-bold">[SYNC]</span> <span class="content">Secure channel verified. SJG Node Active.</span></div>
+                
+                <div class="relative z-10 flex-1">
+                    <span class="text-[11px] font-black uppercase tracking-[0.4em] text-indigo-500 mb-4 block">System Core Telemetry</span>
+                    <h2 class="text-6xl font-black text-white tracking-tighter mb-12 leading-tight">Infrastructure <br/><span class="text-slate-500">Real-time Feed.</span></h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-xs font-bold text-slate-400">Processor Utilization</span>
+                                <span id="cpu-val" class="mono text-white font-bold text-lg">0%</span>
+                            </div>
+                            <div class="metric-bar-container">
+                                <div id="cpu-bar" class="h-full bg-indigo-500 text-indigo-500 metric-glow transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-xs font-bold text-slate-400">Memory Allocation</span>
+                                <span id="mem-val" class="mono text-white font-bold text-lg">0 MB</span>
+                            </div>
+                            <div class="metric-bar-container">
+                                <div id="mem-bar" class="h-full bg-purple-500 text-purple-500 metric-glow transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-xs font-bold text-slate-400">Network Latency</span>
+                                <span id="ping-summary" class="mono text-white font-bold text-lg">-- MS</span>
+                            </div>
+                            <div class="metric-bar-container">
+                                <div id="ping-bar" class="h-full bg-emerald-500 text-emerald-500 metric-glow transition-all duration-1000" style="width: 60%"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Side Cards -->
-            <div class="lg:col-span-4 grid grid-cols-1 gap-6">
-                <div class="glass bento-card bg-gradient-to-br from-indigo-500/10 to-transparent">
-                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 block">Aggregated Revenue</span>
-                    <div class="text-5xl font-black text-white tabular-nums tracking-[-4px]" id="stat-revenue">₹0</div>
+            <!-- Log View -->
+            <div class="glass-card rounded-[2.5rem] p-8 h-80 flex flex-col">
+                <div class="flex items-center justify-between mb-6 px-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_#6366f1]"></div>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-white">Live System Logs</span>
+                    </div>
+                    <span class="text-[9px] font-mono text-slate-500 tracking-tighter">CONNECTED_ENCRYPTED</span>
                 </div>
-                <div class="grid grid-cols-2 gap-6 shrink-0">
-                    <div class="glass bento-card p-6 flex flex-col justify-between">
-                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Orders</span>
-                        <div class="text-3xl font-black text-white" id="stat-orders">0</div>
-                    </div>
-                    <div class="glass bento-card p-6 flex flex-col justify-between">
-                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Items</span>
-                        <div class="text-3xl font-black text-white" id="stat-products">0</div>
-                    </div>
-                </div>
-                <div class="glass bento-card flex-1 overflow-y-auto custom-scrollbar p-6">
-                    <span class="text-[10px] font-black text-white uppercase tracking-[0.3em] font-mono mb-6 block">Quick_Access_Gateways</span>
-                    <div class="space-y-3">
-                        <a href="/admin/" class="block p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-indigo-500/30 transition-all text-xs font-bold">Admin Control Panel</a>
-                        <a href="/api/products/" class="block p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-indigo-500/30 transition-all text-xs font-bold">Products API</a>
-                        <a href="/api/health/" class="block p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-indigo-500/30 transition-all text-xs font-bold">Health Heartbeat</a>
-                    </div>
+                <div id="terminal" class="flex-1 overflow-y-auto terminal-scroll px-4 mono text-[11px] leading-relaxed flex flex-col-reverse divide-y divide-white/5">
+                    <div class="py-3 text-emerald-400 flex gap-4"><span class="opacity-40">OK</span><span>[SYSTEM] Secure kernel instance initiated successfully.</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- DIAGNOSTICS TAB -->
-        <div id="tab-diagnostics" class="lg:col-span-12 glass bento-card h-full hidden tab-content overflow-y-auto custom-scrollbar">
-            <div class="max-w-4xl mx-auto space-y-12 py-8">
-                <div class="flex items-center justify-between border-b border-white/10 pb-8">
-                    <div>
-                        <h3 class="text-3xl font-black text-white tracking-tighter uppercase italic gradient-text">Diagnostic Dashboard</h3>
-                        <p class="text-slate-500 text-sm mt-1 font-medium tracking-wide">Manual inspection and service probing protocols.</p>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <button onclick="runDiagnostic('email')" class="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20 active:scale-95">Probe SMTP</button>
-                        <button onclick="runDiagnostic('health')" class="px-6 py-3 bg-white hover:bg-slate-100 text-slate-900 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">Verify Health</button>
-                    </div>
+        <!-- Right Side Stats -->
+        <div class="flex flex-col gap-8">
+            <div class="glass-card rounded-[2.5rem] p-10 flex flex-col justify-between">
+                <div>
+                    <span class="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500 mb-2 block">Monthly Revenue</span>
+                    <div class="text-5xl font-black text-white tracking-tight tabular-nums" id="stat-revenue">₹0</div>
                 </div>
-
-                <!-- Last result display -->
-                <div id="diag-results" class="bg-black/40 rounded-[2rem] border border-white/5 p-8 min-h-[300px] flex flex-col">
-                    {% if initial_view == 'diagnostic' %}
-                        <!-- Render results if passed from view -->
-                        <div class="flex items-center gap-4 mb-8">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-{% if result.status == 'success' %}emerald{% else %}rose{% endif %}-500 shadow-xl">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="{% if result.status == 'success' %}M5 13l4 4L19 7{% else %}M6 18L18 6M6 6l12 12{% endif %}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </div>
-                            <div>
-                                <h4 class="text-xl font-black text-white uppercase italic tracking-tighter">{% if result.status == 'success' %}Transmission Successful{% else %}Signal Failure Detected{% endif %}</h4>
-                                <p class="text-{% if result.status == 'success' %}emerald{% else %}rose{% endif %}-400 text-xs font-bold tracking-widest">{{ result.message }}</p>
-                            </div>
-                        </div>
-
-                        {% if result.status == 'error' %}
-                        <div class="bg-rose-500/5 border border-rose-500/20 rounded-3xl p-6 mb-8">
-                            <span class="text-[10px] font-black text-rose-500 uppercase tracking-[0.3em] mb-3 block">Analysis_Hint</span>
-                            <p class="text-sm text-slate-200 font-bold leading-relaxed">{{ result.diagnostic_hint }}</p>
-                        </div>
-                        {% endif %}
-
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                            {% for key, val in result.config_diagnostics.items %}
-                            <div class="diagnostic-badge">
-                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">{{ key }}</span>
-                                <span class="text-xs font-bold text-white mono truncate block">{{ val }}</span>
-                            </div>
-                            {% endfor %}
-                        </div>
-
-                        <div class="flex-1 mt-auto">
-                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 block">Trace_Log</span>
-                            <pre class="bg-black/50 p-6 rounded-2xl text-[10px] text-slate-400 mono overflow-x-auto border border-white/5 custom-scrollbar">{{ result.details|default:"No trace data available for this operation." }}</pre>
-                        </div>
-                    {% else %}
-                        <div class="m-auto text-center space-y-4">
-                            <div class="w-20 h-20 mx-auto rounded-3xl bg-white/5 flex items-center justify-center text-slate-700 animate-pulse">
-                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                            </div>
-                            <p class="text-slate-500 text-xs font-black uppercase tracking-[0.5em]">Awaiting Instruction...</p>
-                        </div>
-                    {% endif %}
+                <div class="mt-8 flex items-center gap-4">
+                    <div class="h-10 w-[2px] bg-slate-800"></div>
+                    <p class="text-xs font-bold text-slate-400 leading-relaxed uppercase tracking-wide">Aggregate business telemetry synchronized.</p>
                 </div>
             </div>
-        </div>
 
-        <!-- INFRASTRUCTURE TAB -->
-        <div id="tab-system" class="lg:col-span-12 glass bento-card hidden tab-content overflow-hidden">
-             <div class="h-full flex flex-col gap-12 p-8 overflow-y-auto custom-scrollbar">
-                <div class="flex flex-col md:flex-row gap-12">
-                    <div class="flex-1 space-y-12">
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-end">
-                                <span class="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] font-mono">Telemetry.sys::Processor_Load</span>
-                                <span id="cpu-val" class="text-white text-xl font-black mono tracking-tighter">0%</span>
-                            </div>
-                            <div class="h-3 w-full bg-white/5 rounded-full p-[2px]">
-                                <div id="cpu-bar" class="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full transition-all duration-1000 shadow-[0_0_15px_#6366f1]" style="width: 0%"></div>
-                            </div>
-                        </div>
+            <div class="grid grid-cols-2 gap-8">
+                <div class="glass-card rounded-[2.5rem] p-8">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4 block">Orders</span>
+                    <div class="text-4xl font-black text-white" id="stat-orders">0</div>
+                </div>
+                <div class="glass-card rounded-[2.5rem] p-8">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4 block">Products</span>
+                    <div class="text-4xl font-black text-white" id="stat-products">0</div>
+                </div>
+            </div>
 
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-end">
-                                <span class="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] font-mono">Telemetry.sys::Heap_Allocation</span>
-                                <span id="mem-val" class="text-white text-xl font-black mono tracking-tighter">0 MB</span>
+            <div class="glass-card rounded-[2.5rem] p-10 flex-1 flex flex-col">
+                <span class="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500 mb-8 block">Diagnostic Suite</span>
+                <div class="space-y-4">
+                    <button onclick="runDiagnostic('email')" class="w-full flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-indigo-500/30 transition-all text-sm font-bold group">
+                        SMTP Probe <span class="text-indigo-500 group-hover:translate-x-1 transition-transform">&rarr;</span>
+                    </button>
+                    <button onclick="runDiagnostic('health')" class="w-full flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-emerald-500/30 transition-all text-sm font-bold group">
+                        Health Check <span class="text-emerald-500 group-hover:translate-x-1 transition-transform">&rarr;</span>
+                    </button>
+                    <div class="pt-8">
+                        <div class="p-6 rounded-3xl bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-4">
+                            <div class="w-10 h-10 shrink-0 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </div>
-                            <div class="h-3 w-full bg-white/5 rounded-full p-[2px]">
-                                <div id="mem-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-400 rounded-full transition-all duration-1000 shadow-[0_0_15px_#a855f7]" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="w-full md:w-80 space-y-12">
-                         <div class="space-y-4">
-                            <span class="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] font-mono">Latency Oscilloscope</span>
-                            <div class="glass rounded-3xl p-6 h-32 flex items-end justify-center gap-1.5" id="ping-oscilloscope">
-                                <div class="ping-bar h-[10%]"></div><div class="ping-bar h-[40%]"></div><div class="ping-bar h-[25%]"></div><div class="ping-bar h-[60%]"></div><div class="ping-bar h-[30%]"></div><div class="ping-bar h-[45%]"></div><div class="ping-bar h-[20%]"></div>
-                            </div>
+                            <p class="text-[11px] font-bold text-slate-400 leading-relaxed uppercase tracking-wide">
+                                All automated scripts and background tasks are currently running at peak efficiency levels.
+                            </p>
                         </div>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="diagnostic-badge flex items-center justify-between">
-                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global Latency</span> 
-                        <span id="ping-summary" class="text-white font-black mono">-- MS</span>
-                    </div>
-                    <div class="diagnostic-badge flex items-center justify-between">
-                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Database Node</span> 
-                        <span class="text-emerald-400 font-black mono uppercase">SYNCED</span>
-                    </div>
-                    <div class="diagnostic-badge flex items-center justify-between">
-                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Uptime Record</span> 
-                        <span class="text-white font-black mono">99.9997%</span>
-                    </div>
-                </div>
-             </div>
+            </div>
         </div>
     </main>
 
-    <footer class="flex justify-between items-center py-4 border-t border-white/5 mt-auto shrink-0">
-        <div class="text-[10px] font-black text-slate-600 uppercase tracking-[0.8em]">SJG Infrastructure v2.5.0-STABLE</div>
-        <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest border border-white/5 px-4 py-1.5 rounded-full">&copy; {{ year }} SJG Stationery Group</div>
-        <div id="digital-clock" class="text-xl font-black text-white mono opacity-80">00:00:00</div>
+    <!-- Footer -->
+    <footer class="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="text-[10px] font-black text-slate-600 uppercase tracking-[1em] mb-4 md:mb-0">Secure Operations Environment</div>
+        <div class="flex items-center gap-12">
+            <div class="text-right">
+                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Architecture Time</span>
+                <div id="digital-clock" class="text-xl font-black text-white mono">00:00:00</div>
+            </div>
+            <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest py-2 px-6 border border-white/10 rounded-full">
+                &copy; {{ year }} SJG Stationery Group
+            </div>
+        </div>
     </footer>
 
-    <script shadow="true">
-        const initialTab = "{{ initial_view|default:'dashboard' }}";
-        
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
-            document.getElementById('btn-' + tabId).classList.add('active');
-            
-            // If tab is diagnostics, make sure results container is clean if it was just a manual switch
-            // But we keep it if was an initial load with results
-        }
-
-        function runDiagnostic(type) {
-            if (type === 'email') window.location.href = '/api/test-email/?format=html';
-            if (type === 'health') window.location.href = '/api/health/?format=html';
-        }
-
+    <script>
         function updateClock() {
             const now = new Date();
             const h = String(now.getHours()).padStart(2, '0');
@@ -399,21 +267,25 @@
         function addLog(msg, type = 'info') {
             const now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-            const tags = { 'info': '[SYS]', 'success': '[SIGN]', 'error': '[ALRT]', 'warn': '[PULS]' };
-            const colors = { 'info': 'text-indigo-400', 'success': 'text-emerald-400', 'error': 'text-rose-500', 'warn': 'text-amber-500' };
-
             const log = document.createElement('div');
-            log.className = 'terminal-log';
-            log.innerHTML = `<span class="timestamp text-indigo-400/60">${timeStr}</span> <span class="tag ${colors[type]} font-bold">${tags[type]}</span> <span class="content">${msg}</span>`;
+            log.className = 'py-3 flex gap-6 animate-fade-in-left';
+            const color = type === 'error' ? 'text-rose-500' : 'text-slate-400';
+            log.innerHTML = `<span class="opacity-30 flex-shrink-0">${timeStr}</span><span class="${color}">${msg}</span>`;
             terminal.insertBefore(log, terminal.firstChild);
-            if (terminal.children.length > 40) terminal.lastChild.remove();
+            if (terminal.children.length > 20) terminal.lastChild.remove();
         }
 
+        function runDiagnostic(type) {
+            if (type === 'email') window.location.href = '/api/test-email/?format=html';
+            if (type === 'health') window.location.href = '/api/health/?format=html';
+        }
+
+        let prev = { products: 0, orders: 0, revenue: 0 };
         function animateValue(id, start, end, duration) {
             const obj = document.getElementById(id);
             if(!obj) return;
-            let current = start;
             const range = end - start;
+            let current = start;
             const increment = range / (duration / 30);
             const timer = setInterval(() => {
                 current += increment;
@@ -424,7 +296,6 @@
             }, 30);
         }
 
-        let prev = { products: 0, orders: 0, revenue: 0 };
         async function fetchStats() {
             const start = Date.now();
             try {
@@ -439,21 +310,17 @@
 
                 document.getElementById('cpu-bar').style.width = data.cpu;
                 document.getElementById('cpu-val').innerText = data.cpu;
-                document.getElementById('mem-bar').style.width = ((parseInt(data.memory) / 150) * 100) + '%';
+                document.getElementById('mem-bar').style.width = ((parseInt(data.memory) / 1000) * 100) + '%';
                 document.getElementById('mem-val').innerText = data.memory;
 
-                document.querySelectorAll('.ping-bar').forEach(b => b.style.height = (Math.random() * 80 + 10) + '%');
-                
-                if (data.logs) data.logs.forEach(l => {
-                    if (!Array.from(terminal.querySelectorAll('.content')).some(c => c.innerText === l.msg)) addLog(l.msg, l.type);
-                });
-            } catch (e) { addLog('FEED_INTERRUPTED: Connection lost.', 'error'); }
+                if (data.logs) data.logs.forEach(l => addLog(l.msg, l.type));
+            } catch (e) { addLog('FAILED: Stat feed synchronization error.', 'error'); }
         }
 
         fetchStats();
-        setInterval(fetchStats, 6000);
-        switchTab(initialTab);
-        addLog('Operations Kernel v2.5.0 Initialized.', 'success');
+        setInterval(fetchStats, 10000);
+        addLog('Deployment system online. All services stabilized.');
     </script>
 </body>
 </html>
+l>

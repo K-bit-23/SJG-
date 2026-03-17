@@ -164,21 +164,26 @@ class OfflineOrderView(APIView):
             
             # 1. Update Inventory for each item
             for item in items:
-                product_id = item.get('id')
-                qty = item.get('quantity', 1)
+                # Support both 'id' and 'product_id' sent from different frontend parts
+                pid = item.get('product_id') or item.get('id')
+                qty = int(item.get('quantity', 1))
                 
                 # Only update inventory if it's a real product and NOT a service
-                is_service = item.get('category') == 'Services' or str(product_id).startswith('srv-')
-                if product_id and not is_service:
+                is_service = item.get('category') == 'Services' or str(pid).startswith('srv-')
+                if pid and not is_service:
                     try:
-                        # Ensure we have a valid ObjectId for MongoDB
-                        obj_id = ObjectId(product_id) if isinstance(product_id, str) and len(product_id) == 24 else product_id
-                        if isinstance(obj_id, ObjectId):
-                            products_collection.update_one(
-                                {'_id': obj_id},
-                                {'$inc': {'stock': -qty}}
-                            )
-                    except:
+                        # Robust ID resolution matching OrderListCreateView
+                        try:
+                            query = {'_id': ObjectId(pid)}
+                        except Exception:
+                            query = {'id': pid}
+
+                        products_collection.update_one(
+                            query,
+                            {'$inc': {'stock': -qty}}
+                        )
+                    except Exception as e:
+                        print(f"DEBUG: Offline stock update failed for {pid}: {e}")
                         pass # Skip inventory update for non-existent or invalid product IDs
             
             # 2. Create Order Record
@@ -198,6 +203,15 @@ class OfflineOrderView(APIView):
             }
             
             orders_collection.insert_one(order_data)
+            
+            # Send order confirmation email asynchronously
+            # This uses the common email utility with consistent branding
+            if order_data.get('user_email') and order_data.get('user_email') != 'offline@sjg.com':
+                try:
+                    from api.email_utils import send_order_confirmation_after_delay
+                    send_order_confirmation_after_delay(dict(order_data), delay_seconds=0)
+                except Exception as e:
+                    print(f"[ERROR] Failed to send offline order email: {e}")
             
             return Response({'success': True, 'order_id': order_id})
         except Exception as e:
@@ -759,7 +773,18 @@ class OrderDetailView(APIView):
                     {'error': f'Order not found: {pk}'},
                     status=status.HTTP_404_NOT_FOUND
                 )
+            
+            # Retrieve updated order to send email notification
             order = collection.find_one(query)
+            
+            # If status was updated, send a status notification email
+            if 'status' in update_data:
+                try:
+                    from api.email_utils import send_order_status_notification
+                    send_order_status_notification(dict(order))
+                except Exception as e:
+                    print(f"[ERROR] Failed to send status notification: {e}")
+
             return Response(OrderSerializer(order).data)
         except Exception as e:
             return Response(
@@ -1432,7 +1457,9 @@ class AppSettingsView(APIView):
                     'gst_percentage': 18,
                     'service_gst': 18,
                     'is_online_payment_enabled': True,
-                    'is_cod_enabled': True
+                    'is_cod_enabled': True,
+                    'free_shipping_threshold': 999,
+                    'shipping_fee': 50
                 })
             settings['id'] = str(settings.pop('_id'))
             return Response(settings)

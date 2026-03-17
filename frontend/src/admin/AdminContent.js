@@ -105,7 +105,16 @@ const AdminContent = ({
                                 <>
                                     <div><label className="block text-sm font-medium mb-1">Title</label><input type="text" value={homeItemForm.title || ''} onChange={e => setHomeItemForm({ ...homeItemForm, title: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
                                     <div><label className="block text-sm font-medium mb-1">Subtitle</label><input type="text" value={homeItemForm.subtitle || ''} onChange={e => setHomeItemForm({ ...homeItemForm, subtitle: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
-                                    <div><label className="block text-sm font-medium mb-1">Image URL</label><input type="text" value={homeItemForm.img || ''} onChange={e => setHomeItemForm({ ...homeItemForm, img: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
+                                    <div><label className="block text-sm font-medium mb-1 text-slate-500 uppercase text-[10px] font-black tracking-widest">Image Content URL</label><input type="text" value={homeItemForm.img || ''} onChange={e => setHomeItemForm({ ...homeItemForm, img: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 ring-indigo-500/10 outline-none font-bold" placeholder="https://..." /></div>
+                                    {homeItemForm.img && (
+                                        <div className="relative h-40 rounded-2xl overflow-hidden border border-slate-100 shadow-inner group">
+                                            <img src={homeItemForm.img} alt="Preview" className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-slate-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <span className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900 border border-white">Live Preview</span>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="grid grid-cols-2 gap-4">
                                         <div><label className="block text-sm font-medium mb-1">Button Text</label><input type="text" value={homeItemForm.btnText || ''} onChange={e => setHomeItemForm({ ...homeItemForm, btnText: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
                                         <div><label className="block text-sm font-medium mb-1">Button Link</label><input type="text" value={homeItemForm.btnLink || ''} onChange={e => setHomeItemForm({ ...homeItemForm, btnLink: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
@@ -130,7 +139,16 @@ const AdminContent = ({
                             {editingHomeItem.type === 'category' && (
                                 <>
                                     <div><label className="block text-sm font-medium mb-1">Category Name</label><input type="text" value={homeItemForm.name || ''} onChange={e => setHomeItemForm({ ...homeItemForm, name: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
-                                    <div><label className="block text-sm font-medium mb-1">Image URL</label><input type="text" value={homeItemForm.img || ''} onChange={e => setHomeItemForm({ ...homeItemForm, img: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
+                                    <div><label className="block text-sm font-medium mb-1 text-slate-500 uppercase text-[10px] font-black tracking-widest">Category Graphic URL</label><input type="text" value={homeItemForm.img || ''} onChange={e => setHomeItemForm({ ...homeItemForm, img: e.target.value })} className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 ring-indigo-500/10 outline-none font-bold" placeholder="https://..." /></div>
+                                    {homeItemForm.img && (
+                                        <div className="relative h-32 w-32 mx-auto rounded-3xl overflow-hidden border border-slate-100 shadow-lg group">
+                                            <img src={homeItemForm.img} alt="Preview" className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-indigo-500/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Edit size={24} className="text-white drop-shadow-lg" />
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div><label className="block text-sm font-medium mb-1">Product Count Label (Optional)</label><input type="text" value={homeItemForm.count || ''} onChange={e => setHomeItemForm({ ...homeItemForm, count: e.target.value })} className="w-full p-2.5 border rounded-lg" placeholder="e.g. 100+ Products" /></div>
                                 </>
                             )}

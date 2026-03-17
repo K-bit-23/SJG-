@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
     Activity, Box, ShoppingCart, Users, MessageCircle, Edit, Settings, Menu, X, LogOut, 
-    BarChart2, Receipt, Wifi, WifiOff, UserCircle, RefreshCw, Truck
+    BarChart2, Receipt, Wifi, WifiOff, UserCircle, RefreshCw, Truck, ChevronDown, 
+    ShieldCheck, Key, User, Bell, Terminal, Palette, Database
 } from 'lucide-react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import api from '../../src/utils/api';
 import { useAuth } from '../../src/context/AuthContext';
-import { useNotifications } from '../../src/context/NotificationContext';
 
 // Import Admin Sub-components
 import AdminDashboard from '../../src/admin/AdminDashboard';
@@ -22,19 +22,26 @@ import AdminChat from '../../src/admin/AdminChat';
 
 const AdminPanel = () => {
     const { user, logout } = useAuth();
-    const { showAlert, showToast } = useNotifications();
+
+
     const navigate = useNavigate();
     const location = useLocation();
 
     // Derive active tab from URL: /admin/orders → 'orders'
     const pathSegment = location.pathname.split('/').filter(Boolean)[1];
-    const validTabs = ['dashboard', 'business', 'billing', 'inventory', 'orders', 'delivery', 'users', 'chat', 'content', 'settings'];
+    const validTabs = ['dashboard', 'business', 'billing', 'inventory', 'orders', 'delivery', 'users', 'chat', 'content', 'settings', 'console'];
     const activeTab = validTabs.includes(pathSegment) ? pathSegment : 'dashboard';
 
     const [isOnline, setIsOnline] = useState(navigator.onLine);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+    const [showOTPModal, setShowOTPModal] = useState(false);
+    const [otpCode, setOtpCode] = useState('');
+    const [adminOtp, setAdminOtp] = useState('0707');
+    const dropdownRef = useRef(null);
+
 
     // ── Shared data state ──
     const [stats, setStats] = useState({ total_revenue: 0, active_orders: 0, customers_count: 0, products_count: 0 });
@@ -64,18 +71,45 @@ const AdminPanel = () => {
 
     useEffect(() => {
         const isAdmin = (user && (user.role === 'admin' || user.publicMetadata?.role === 'admin')) || localStorage.getItem('admin_session') === 'true';
-        if (!isAdmin) navigate('/');
-    }, [user, navigate]);
+        if (!isAdmin && pathSegment !== 'otp') navigate('/');
+    }, [user, navigate, pathSegment]);
 
     useEffect(() => {
         const on = () => setIsOnline(true);
         const off = () => setIsOnline(false);
         window.addEventListener('online', on);
         window.addEventListener('offline', off);
-        return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setProfileDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => { 
+            window.removeEventListener('online', on); 
+            window.removeEventListener('offline', off);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
     }, []);
 
-    useEffect(() => { fetchData(); }, [activeTab]);
+    useEffect(() => { 
+        fetchData(); 
+        // Fetch current OTP from settings if it exists
+        api.get('/settings/').then(res => {
+            if (res.data?.admin_otp) setAdminOtp(res.data.admin_otp);
+        }).catch(() => {});
+    }, [activeTab]);
+
+    const generateNewOtp = async () => {
+        const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
+        try {
+            await api.post('/settings/', { admin_otp: newOtp });
+            setAdminOtp(newOtp);
+        } catch (err) {
+            console.error("Failed to sync OTP to DB");
+        }
+    };
+
 
     const fetchData = async () => {
         setLoading(true); setError('');
@@ -98,8 +132,16 @@ const AdminPanel = () => {
             }
             if (activeTab === 'chat') {
                 const messagesRes = await api.get('messages/').catch(() => ({ data: [] }));
-                setChatMessages(Array.isArray(messagesRes.data) ? messagesRes.data : []);
+                const raw = Array.isArray(messagesRes.data) ? messagesRes.data : [];
+                // Map fields for consistency: name -> sender_name, message -> message
+                const mapped = raw.map(m => ({
+                    ...m,
+                    sender_name: m.sender_name || m.name || 'Anonymous',
+                    message: m.message || m.text || ''
+                }));
+                setChatMessages(mapped);
             }
+
             if (activeTab === 'content') {
                 const contentRes = await api.get('content/home/').catch(() => ({ data: { banners: [], services: [], trust_strip: [] } }));
                 setHomeContent(contentRes.data);
@@ -142,11 +184,12 @@ const AdminPanel = () => {
                 }).catch(() => {});
             }
             setOrders(orders.map(o => o.order_id === orderId ? { ...o, status: newStatus } : o));
-            showToast(`Order status updated to ${newStatus}`, 'success');
+            setOrders(orders.map(o => o.order_id === orderId ? { ...o, status: newStatus } : o));
         } catch (err) {
-            showAlert('Failed to update order status', 'error');
+            console.error('Failed to update order status');
         }
     };
+
 
     const openAddProduct = () => { setEditingProduct(null); setProductForm({ name: '', category: '', price: '', stock: '', description: '', image: '', status: 'active', tags: '' }); setShowProductModal(true); };
     const openEditProduct = (p) => { setEditingProduct(p); setProductForm({ name: p.name || '', category: p.category || '', price: p.price || '', stock: p.stock || '', description: p.description || '', image: p.image || '', status: p.status || 'active', tags: p.tags || '' }); setShowProductModal(true); };
@@ -167,20 +210,20 @@ const AdminPanel = () => {
         try { 
             await api.delete(`products/${id}/`); 
             setProducts(products.filter(p => (p.id || p._id) !== id)); 
-            showToast('Product deleted from store', 'info');
         }
-        catch { showAlert('Failed to delete product', 'error'); }
+        catch { console.error('Failed to delete product'); }
     };
+
 
     const saveHomeContent = async (newContent) => {
         try { 
             const res = await api.post('content/home/', newContent); 
             setHomeContent(res.data); 
-            showToast('Content updated successfully', 'success');
             return true; 
         }
-        catch { showAlert('Failed to save content', 'error'); return false; }
+        catch { console.error('Failed to save content'); return false; }
     };
+
 
     const openHomeItemEditor = (item, type) => {
         let index = -1;
@@ -238,10 +281,11 @@ const AdminPanel = () => {
                 const res = await api.get(`customers/find/?phone=${phone}`);
                 if (res.data) setBillingCustomer({ name: res.data.name, phone: res.data.phone, email: res.data.email || '' });
             } catch (err) { 
-                showToast("New customer or search failed", "info"); 
+                console.log("New customer or search ignored"); 
             }
         }
     };
+
 
     const addToBill = (product) => {
         const existing = billingItems.find(i => (i.id || i._id) === (product.id || product._id));
@@ -258,8 +302,9 @@ const AdminPanel = () => {
     const calculateBillTotal = () => billingItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
     const generateInvoice = async () => {
         if (!billingItems.length || !billingCustomer.name) {
-            return showAlert('Enter customer details and at least one item', 'warning');
+            return console.error('Enter customer details and at least one item');
         }
+
         const adminSettings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
         const subTotal = calculateBillTotal();
         const taxRate = adminSettings.gst_percentage || 18;
@@ -292,115 +337,329 @@ const AdminPanel = () => {
             setBillingItems([]);
             setBillingCustomer({ name: '', phone: '', email: '' });
             fetchData();
-            showToast('Invoice generated and saved', 'success');
         } catch (err) {
-            showAlert('Failed to save offline order', 'error');
+
+            console.error('Failed to save offline order');
         }
     };
+
     const printInvoice = () => { const c = document.getElementById('invoice-template').innerHTML, orig = document.body.innerHTML; document.body.innerHTML = c; window.print(); document.body.innerHTML = orig; window.location.reload(); };
 
     const handleLogout = async () => { localStorage.removeItem('admin_session'); await logout(); navigate('/'); };
 
+    const handleOTPLogin = () => {
+        if (otpCode === adminOtp) {
+            localStorage.setItem('admin_session', 'true');
+            setShowOTPModal(false);
+            setOtpCode('');
+            navigate('/admin/dashboard');
+        } else {
+            console.error('Invalid OTP Access Key');
+        }
+    };
+
+
     const tabs = [
-        { id: 'dashboard', label: 'Dashboard', icon: Activity },
+        { id: 'dashboard', label: 'Monitor', icon: Activity },
         { id: 'business', label: 'Analysis', icon: BarChart2 },
-        { id: 'billing', label: 'Billing', icon: Receipt },
-        { id: 'inventory', label: 'Inventory', icon: Box },
-        { id: 'orders', label: 'Orders', icon: ShoppingCart },
-        { id: 'delivery', label: 'Delivery', icon: Truck },
-        { id: 'users', label: 'Users', icon: Users },
-        { id: 'chat', label: 'Chat', icon: MessageCircle },
-        { id: 'content', label: 'Content', icon: Edit },
-        { id: 'settings', label: 'Settings', icon: Settings },
+        { id: 'billing', label: 'Point of Sale', icon: Receipt },
+        { id: 'inventory', label: 'Warehouse', icon: Box },
+        { id: 'orders', label: 'Fulfillment', icon: ShoppingCart },
+        { id: 'delivery', label: 'Logistics', icon: Truck },
+        { id: 'users', label: 'Directory', icon: Users },
+        { id: 'chat', label: 'Support', icon: MessageCircle },
+        { id: 'content', label: 'Creative Studio', icon: Palette },
+        { id: 'settings', label: 'Preferences', icon: Settings },
     ];
 
     if (!user && localStorage.getItem('admin_session') !== 'true') {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                <div className="text-center">
-                    <h2 className="text-xl font-bold mb-4 text-slate-700">Checking Authorization...</h2>
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+            <div className="min-h-screen flex items-center justify-center bg-slate-950">
+                <div className="bg-slate-900 p-12 rounded-[2rem] border border-white/5 text-center max-w-sm w-full animate-fade-in shadow-2xl">
+                    <div className="w-16 h-16 bg-slate-800 rounded-2xl mx-auto flex items-center justify-center mb-6">
+                        <ShieldCheck size={32} className="text-indigo-500" />
+                    </div>
+                    <h2 className="text-2xl font-black text-white mb-2 tracking-tight">System Portal</h2>
+                    <p className="text-slate-500 text-xs mb-8 font-bold uppercase tracking-widest">Identification Required</p>
+                    
+                    <button 
+                        onClick={() => navigate('/')}
+                        className="w-full py-3.5 text-slate-400 font-bold hover:text-white transition-all mb-4 text-sm"
+                    >
+                        Return to Store
+                    </button>
+                    <button 
+                        onClick={() => setShowOTPModal(true)}
+                        className="w-full py-4 bg-indigo-600 rounded-xl text-white font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 text-sm"
+                    >
+                        Emergency OTP Access
+                    </button>
                 </div>
+
+
+                {/* OTP Modal */}
+                {showOTPModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-xl">
+                        <div className="bg-slate-900 border border-white/10 p-10 rounded-[2.5rem] w-full max-w-sm">
+                            <h3 className="text-2xl font-black text-white mb-2">Internal Override</h3>
+                            <p className="text-slate-400 text-xs mb-8 uppercase tracking-widest font-bold">Secure OTP Protocol 2.5</p>
+                            <input 
+                                type="password" 
+                                placeholder="Enter Access Key"
+                                value={otpCode}
+                                onChange={(e) => setOtpCode(e.target.value)}
+                                className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white text-center text-2xl tracking-[1em] mb-6 focus:border-indigo-500 outline-none transition-all"
+                                autoFocus
+                            />
+                            <div className="flex gap-4">
+                                <button onClick={() => setShowOTPModal(false)} className="flex-1 py-4 bg-white/5 text-white font-bold rounded-2xl">Cancel</button>
+                                <button onClick={handleOTPLogin} className="flex-1 py-4 bg-indigo-600 text-white font-black rounded-2xl">Verify</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 flex">
+        <div className="min-h-screen bg-slate-50 flex font-plus-jakarta">
             {/* Sidebar */}
-            <aside className={`${sidebarOpen ? 'w-64' : 'w-0'} bg-slate-900 text-white flex flex-col fixed h-screen transition-all duration-300 overflow-hidden z-40`}>
-                <div className="p-6 border-b border-white/10 flex justify-between items-center min-w-[256px] gap-3">
-                    <div className="flex items-center gap-3">
-                        <img src="/logo.png" alt="SJG" className="w-10 h-10 object-contain bg-white rounded-lg p-1" />
-                        <h1 className="text-xl font-bold">SJG Admin</h1>
+            <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-slate-200 text-slate-600 flex flex-col fixed h-screen transition-all duration-300 ease-in-out z-[60] overflow-hidden`}>
+                <div className={`p-6 border-b border-slate-100 flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'}`}>
+                    <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+                            <Box size={20} className="text-white" />
+                        </div>
+                        {sidebarOpen && (
+                            <div className="animate-fade-in whitespace-nowrap">
+                                <h1 className="text-sm font-black tracking-tight text-slate-900 leading-none">SJG ADMIN</h1>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1.5">Version 2.0</p>
+                            </div>
+                        )}
                     </div>
-                    <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-white/10 rounded-lg"><X size={18} /></button>
                 </div>
-                <nav className="flex-1 p-4 space-y-1 min-w-[256px]">
+
+                <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
                     {tabs.map(tab => (
-                        <Link key={tab.id} to={`/admin/${tab.id}`} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${activeTab === tab.id ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}>
-                            <tab.icon size={18} /> {tab.label}
+                        <Link 
+                            key={tab.id} 
+                            to={`/admin/${tab.id}`} 
+                            title={!sidebarOpen ? tab.label : ''}
+                            className={`group w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === tab.id ? 'bg-indigo-50 text-indigo-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}
+                        >
+                            <tab.icon size={20} className={`shrink-0 ${activeTab === tab.id ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'}`} /> 
+                            {sidebarOpen && <span className="animate-fade-in">{tab.label}</span>}
                         </Link>
                     ))}
+                    
+                    <div className="pt-4 mt-4 border-t border-slate-100">
+                        <Link to="/admin/console" title={!sidebarOpen ? "Console" : ''} className={`group w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === 'console' ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-900'}`}>
+                            <Terminal size={20} className="shrink-0" /> 
+                            {sidebarOpen && <span className="animate-fade-in">Developer Console</span>}
+                        </Link>
+                    </div>
                 </nav>
-                <div className="p-4 border-t border-white/10 flex items-center gap-3 min-w-[256px]">
-                    <div className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-400"><UserCircle size={20} /></div>
-                    <div><p className="text-sm font-medium">{user?.fullName || user?.name || 'Admin'}</p></div>
+
+                <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+                    <button 
+                        onClick={handleLogout}
+                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold text-rose-500 hover:bg-rose-50 transition-all ${!sidebarOpen && 'justify-center'}`}
+                        title={!sidebarOpen ? "Logout" : ''}
+                    >
+                        <LogOut size={20} className="shrink-0" />
+                        {sidebarOpen && <span>Exit System</span>}
+                    </button>
                 </div>
             </aside>
 
-            {/* Main */}
-            <main className={`flex-1 ${sidebarOpen ? 'ml-64' : 'ml-0'} p-8 transition-all duration-300`}>
-                <header className="flex justify-between items-center mb-8">
+
+            {/* Main Content */}
+            <main className={`flex-1 ${sidebarOpen ? 'ml-64' : 'ml-20'} min-h-screen transition-all duration-300 ease-in-out`}>
+                <header className="sticky top-0 z-50 px-8 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200 flex justify-between items-center">
                     <div className="flex items-center gap-4">
-                        {!sidebarOpen && <button onClick={() => setSidebarOpen(true)} className="p-2.5 bg-slate-900 text-white rounded-lg shadow-lg"><Menu size={20} /></button>}
-                        <h2 className="text-2xl font-bold text-slate-800 capitalize">{activeTab}</h2>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className={`flex items-center gap-2 text-xs mr-4 ${isOnline ? 'text-green-500' : 'text-red-500'}`}>
-                            {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />} {isOnline ? 'Online' : 'Offline'}
+                        <button 
+                            onClick={() => setSidebarOpen(!sidebarOpen)} 
+                            className="p-2.5 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-all border border-slate-200"
+                        >
+                            <Menu size={20} />
+                        </button>
+                        <div>
+                            <h2 className="text-lg font-black text-slate-900 capitalize tracking-tight">{activeTab}</h2>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Control Center</p>
                         </div>
-                        <button onClick={fetchData} className="p-2.5 bg-white rounded-xl shadow-sm hover:shadow-md transition-all text-slate-500"><RefreshCw size={18} className={loading ? 'animate-spin text-indigo-500' : ''} /></button>
-                        <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all font-bold"><LogOut size={18} /> Exit</button>
+                    </div>
+
+
+                    <div className="flex items-center gap-4">
+                        {/* Status indicators */}
+                        <div className="hidden lg:flex items-center gap-4 mr-4">
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-full border border-slate-100">
+                                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{isOnline ? 'Online' : 'Offline'}</span>
+                            </div>
+                            <button onClick={fetchData} className="p-2 text-slate-400 hover:text-indigo-600 transition-colors">
+                                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                            </button>
+                        </div>
+
+                        {/* Profile Section */}
+                        <div className="relative" ref={dropdownRef}>
+                            <button 
+                                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                                className="flex items-center gap-2 p-1.5 pr-3 hover:bg-slate-50 rounded-full border border-transparent hover:border-slate-100 transition-all"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden border border-slate-300">
+                                    {user?.photoURL ? (
+                                        <img src={user.photoURL} alt="P" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <User size={16} className="text-slate-500 mt-1.5 mx-auto" />
+                                    )}
+                                </div>
+                                <div className="text-left hidden sm:block">
+                                    <p className="text-xs font-bold text-slate-700 leading-none">{user?.fullName || 'Admin'}</p>
+                                </div>
+                                <ChevronDown size={14} className={`text-slate-400 transition-transform ${profileDropdownOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {profileDropdownOpen && (
+                                <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-[100] animate-fade-in">
+                                    <div className="px-4 py-3 border-b border-slate-50 mb-1">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">Connected User</p>
+                                        <p className="text-xs font-bold text-slate-700 truncate">{user?.email || 'admin@sjg.com'}</p>
+                                    </div>
+                                    <button onClick={() => navigate('/admin/settings')} className="w-full flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 transition-all text-xs font-bold">
+                                        <Settings size={16} className="text-slate-400" /> Account Settings
+                                    </button>
+                                    <button onClick={() => setShowOTPModal(true)} className="w-full flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 transition-all text-xs font-bold">
+                                        <Key size={16} className="text-slate-400" /> Emergency Login
+                                    </button>
+                                    <div className="mt-1 pt-1 border-t border-slate-50">
+                                        <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2.5 text-rose-500 hover:bg-rose-50 transition-all text-xs font-bold">
+                                            <LogOut size={16} /> Logout Systems
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </header>
 
-                {error && <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-2 border border-red-100 animate-pulse"><X size={18} /> {error}</div>}
 
-                {/* Tab Rendering */}
-                {activeTab === 'dashboard' && <AdminDashboard stats={stats} orders={orders} getStatusBadge={getStatusBadge} />}
-                {activeTab === 'business' && <AdminBusiness />}
-                {activeTab === 'billing' && (
-                    <AdminBilling
-                        products={products} billingItems={billingItems} billingCustomer={billingCustomer} setBillingCustomer={setBillingCustomer}
-                        handleBillingPhoneChange={handleBillingPhoneChange}
-                        billingProductSearch={billingProductSearch} setBillingProductSearch={setBillingProductSearch}
-                        addToBill={addToBill} addServiceItem={addServiceItem} removeFromBill={removeFromBill} 
-                        updateBillQuantity={updateBillQuantity} updateItemPrice={updateItemPrice} calculateBillTotal={calculateBillTotal}
-                        generateInvoice={generateInvoice} showInvoiceModal={showInvoiceModal} setShowInvoiceModal={setShowInvoiceModal}
-                        currentInvoice={currentInvoice} printInvoice={printInvoice}
-                    />
+                <div className="px-10 py-10">
+                    {error && (
+                        <div className="mb-10 p-6 bg-rose-50 border border-rose-100 rounded-[2rem] flex items-center gap-4 text-rose-600 animate-fade-in">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center"><X size={24} /></div>
+                            <div>
+                                <h4 className="font-black text-lg">System Signal Error</h4>
+                                <p className="text-sm font-bold opacity-80">{error}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Content Views */}
+                    <div className="animate-fade-in-up">
+                        {activeTab === 'dashboard' && <AdminDashboard stats={stats} orders={orders} getStatusBadge={getStatusBadge} />}
+                        {activeTab === 'business' && <AdminBusiness />}
+                        {activeTab === 'billing' && (
+                            <AdminBilling
+                                products={products} billingItems={billingItems} billingCustomer={billingCustomer} setBillingCustomer={setBillingCustomer}
+                                handleBillingPhoneChange={handleBillingPhoneChange}
+                                billingProductSearch={billingProductSearch} setBillingProductSearch={setBillingProductSearch}
+                                addToBill={addToBill} addServiceItem={addServiceItem} removeFromBill={removeFromBill} 
+                                updateBillQuantity={updateBillQuantity} updateItemPrice={updateItemPrice} calculateBillTotal={calculateBillTotal}
+                                generateInvoice={generateInvoice} showInvoiceModal={showInvoiceModal} setShowInvoiceModal={setShowInvoiceModal}
+                                currentInvoice={currentInvoice} printInvoice={printInvoice}
+                            />
+                        )}
+                        {activeTab === 'inventory' && (
+                            <AdminInventory
+                                products={products} openAddProduct={openAddProduct} openEditProduct={openEditProduct} deleteProduct={deleteProduct}
+                                showProductModal={showProductModal} setShowProductModal={setShowProductModal} editingProduct={editingProduct} 
+                                productForm={productForm} setProductForm={setProductForm} saveProduct={saveProduct}
+                            />
+                        )}
+                        {activeTab === 'orders' && <AdminOrders orders={orders} getStatusBadge={getStatusBadge} updateOrderStatus={updateOrderStatus} />}
+                        {activeTab === 'delivery' && <AdminDelivery orders={orders} fetchData={fetchData} />}
+                        {activeTab === 'users' && <AdminUsers users={users} />}
+                        {activeTab === 'content' && (
+                            <AdminContent
+                                homeContent={homeContent} contentSubTab={contentSubTab} setContentSubTab={setContentSubTab}
+                                openHomeItemEditor={openHomeItemEditor} deleteHomeItem={deleteHomeItem}
+                                showHomeModal={showHomeModal} setShowHomeModal={setShowHomeModal} editingHomeItem={editingHomeItem}
+                                homeItemForm={homeItemForm} setHomeItemForm={setHomeItemForm} handleSaveHomeItem={handleSaveHomeItem}
+                            />
+                        )}
+                        {activeTab === 'chat' && <AdminChat messages={chatMessages} />}
+                        {activeTab === 'settings' && <AdminSettings />}
+                        
+                        {activeTab === 'console' && (
+                            <div className="bg-white rounded-[2.5rem] p-12 border border-slate-200">
+                                <div className="flex justify-between items-start mb-8">
+                                    <div>
+                                        <Terminal size={48} className="text-slate-400 mb-6" />
+                                        <h3 className="text-3xl font-black text-slate-900 mb-2 tracking-tighter">Advanced Control Console</h3>
+                                        <p className="text-slate-500 max-w-lg font-medium leading-relaxed">
+                                            Direct kernel access for system-level modifications and security overrides.
+                                        </p>
+                                    </div>
+                                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 text-center">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Master Override OTP</p>
+                                        <div className="text-4xl font-black text-indigo-600 tracking-[0.2em] mb-4">{adminOtp}</div>
+                                        <button 
+                                            onClick={generateNewOtp}
+                                            className="px-4 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-900 transition-all"
+                                        >
+                                            Regenerate
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div className="mt-8 bg-slate-900 rounded-2xl p-8 font-mono text-sm text-indigo-400 border border-slate-700 shadow-xl">
+                                    <p className="opacity-40 mb-2"># SJG Systems Shell v2.5.0</p>
+                                    <p>$ initializing session...</p>
+                                    <p className="text-emerald-400">$ secure_tunnel established [TLS 1.3]</p>
+                                    <p>$ admin@sjg-systems: ready_</p>
+                                </div>
+                            </div>
+                        )}
+
+
+                    </div>
+                </div>
+
+                {/* OTP Login Modal */}
+                {showOTPModal && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+                        <div className="bg-slate-900 border border-white/10 p-12 rounded-[3.5rem] w-full max-w-md shadow-2xl">
+                            <div className="w-20 h-20 bg-emerald-500 rounded-3xl mb-8 flex items-center justify-center shadow-emerald-500/20 shadow-2xl">
+                                <Key size={36} className="text-white" />
+                            </div>
+                            <h3 className="text-3xl font-black text-white mb-2 tracking-tight">Access Override</h3>
+                            <p className="text-slate-400 text-xs mb-10 uppercase tracking-[0.3em] font-black">OTP Protocol 24-Secure-A</p>
+                            
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 block">Temporary Access Key</label>
+                                    <input 
+                                        type="password" 
+                                        placeholder="••••"
+                                        maxLength={4}
+                                        value={otpCode}
+                                        onChange={(e) => setOtpCode(e.target.value)}
+                                        className="w-full bg-slate-950 border border-white/10 rounded-2xl p-6 text-white text-center text-4xl font-black tracking-[1em] focus:border-emerald-500 outline-none transition-all shadow-inner"
+                                        autoFocus
+                                    />
+                                </div>
+                                <div className="flex gap-4 pt-4">
+                                    <button onClick={() => setShowOTPModal(false)} className="flex-1 py-5 bg-white/5 border border-white/10 text-white font-bold rounded-2xl hover:bg-white/10 transition-all">Cancel</button>
+                                    <button onClick={handleOTPLogin} className="flex-1 py-5 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-700 shadow-xl shadow-emerald-600/20 transition-all">Verify Key</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )}
-                {activeTab === 'inventory' && (
-                    <AdminInventory
-                        products={products} openAddProduct={openAddProduct} openEditProduct={openEditProduct} deleteProduct={deleteProduct}
-                        showProductModal={showProductModal} setShowProductModal={setShowProductModal} editingProduct={editingProduct} 
-                        productForm={productForm} setProductForm={setProductForm} saveProduct={saveProduct}
-                    />
-                )}
-                {activeTab === 'orders' && <AdminOrders orders={orders} getStatusBadge={getStatusBadge} updateOrderStatus={updateOrderStatus} />}
-                {activeTab === 'delivery' && <AdminDelivery orders={orders} fetchData={fetchData} />}
-                {activeTab === 'users' && <AdminUsers users={users} />}
-                {activeTab === 'content' && (
-                    <AdminContent
-                        homeContent={homeContent} contentSubTab={contentSubTab} setContentSubTab={setContentSubTab}
-                        openHomeItemEditor={openHomeItemEditor} deleteHomeItem={deleteHomeItem}
-                        showHomeModal={showHomeModal} setShowHomeModal={setShowHomeModal} editingHomeItem={editingHomeItem}
-                        homeItemForm={homeItemForm} setHomeItemForm={setHomeItemForm} handleSaveHomeItem={handleSaveHomeItem}
-                    />
-                )}
-                {activeTab === 'chat' && <AdminChat messages={chatMessages} />}
-                {activeTab === 'settings' && <AdminSettings />}
             </main>
         </div>
     );

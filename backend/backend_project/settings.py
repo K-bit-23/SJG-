@@ -110,6 +110,9 @@ ORDER_NOTIFY_EMAIL = [e.strip() for e in _admin_emails_str.split(',') if e.strip
 if not ORDER_NOTIFY_EMAIL and EMAIL_HOST_USER:
     ORDER_NOTIFY_EMAIL = [EMAIL_HOST_USER]
 
+# Frontend URL for emails/redirects
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://sjg-ecom.web.app').rstrip('/')
+
 EMAIL_TIMEOUT = 30  # Increased timeout for cloud stability
 
 AUTH_PASSWORD_VALIDATORS = []

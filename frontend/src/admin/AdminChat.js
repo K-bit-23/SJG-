@@ -29,9 +29,10 @@ const AdminChat = ({ chatMessages, setChatMessages, fetchData }) => {
 
     const handleReply = async () => {
         if (!replyText.trim()) return;
-        showAlert('Reply stream offline. SMTP integration required for external communication.', 'warning', 'SMTP Offline');
+        console.warn('Reply stream offline. SMTP integration required for external communication.');
         setReplyText('');
     };
+
 
     return (
         <div className="flex gap-10 h-[calc(100vh-220px)] animate-fade-in-up">

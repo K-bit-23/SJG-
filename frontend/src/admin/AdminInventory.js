@@ -373,7 +373,17 @@ const AdminInventory = ({
     showProductModal, editingProduct, productForm, setProductForm,
     saveProduct, setShowProductModal
 }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('All');
     const [deleteTarget, setDeleteTarget] = useState(null);
+
+    const filteredProducts = products.filter(p => {
+        const matchesSearch = (p.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            (p.tags || '').toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCat = categoryFilter === 'All' || p.category === categoryFilter;
+        return matchesSearch && matchesCat;
+    });
+
     const confirmDelete = () => { deleteProduct(deleteTarget.id || deleteTarget._id); setDeleteTarget(null); };
 
     return (
@@ -391,17 +401,44 @@ const AdminInventory = ({
             )}
 
             {/* ── Header ── */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <div>
                     <h3 className="text-xl font-bold text-gray-800">Product Inventory</h3>
                     <p className="text-sm text-gray-500 mt-0.5">{products.length} product{products.length !== 1 ? 's' : ''} in store</p>
                 </div>
-                <button
-                    onClick={openAddProduct}
-                    className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-indigo-200 hover:from-indigo-700 hover:to-indigo-600 transition-all active:scale-95"
-                >
-                    <Plus size={18} /> Add Product
-                </button>
+                
+                <div className="flex flex-wrap gap-4 items-center">
+                    {/* Search */}
+                    <div className="relative">
+                        <input 
+                            type="text" 
+                            placeholder="Search names, tags…" 
+                            className="bg-gray-50/50 border border-gray-100 px-4 py-2.5 pl-10 rounded-xl text-sm focus:ring-2 ring-indigo-100 outline-none w-64 transition-all"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                        />
+                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                            <Plus size={16} className="rotate-45" /> 
+                        </div>
+                    </div>
+
+                    {/* Category Filter */}
+                    <select 
+                        className="bg-gray-50/50 border border-gray-100 px-4 py-2.5 rounded-xl text-sm outline-none focus:ring-2 ring-indigo-100 cursor-pointer"
+                        value={categoryFilter}
+                        onChange={e => setCategoryFilter(e.target.value)}
+                    >
+                        <option value="All">All Categories</option>
+                        {['Notebooks', 'Pens & Pencils', 'Art Supplies', 'Office Supplies', 'Tech Accessories', 'Bags', 'Others'].map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+
+                    <button
+                        onClick={openAddProduct}
+                        className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 hover:from-indigo-700 hover:to-indigo-600 transition-all active:scale-95 whitespace-nowrap"
+                    >
+                        <Plus size={18} /> Add Product
+                    </button>
+                </div>
             </div>
 
             {/* ── Empty State ── */}
@@ -428,7 +465,7 @@ const AdminInventory = ({
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
-                                {products.map(product => (
+                                {filteredProducts.map(product => (
                                     <tr key={product.id || product._id} className="hover:bg-blue-50/30 transition-colors">
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">

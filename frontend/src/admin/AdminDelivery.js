@@ -13,12 +13,13 @@ const AdminDelivery = ({ orders, fetchData }) => {
         try {
             await api.patch(`orders/${orderId}/`, { [field]: value });
             await fetchData();
-            showToast('Delivery information updated', 'success');
+            console.log('Delivery information updated');
         } catch (err) {
-            showAlert('Failed to update delivery info', 'error');
+            console.error('Failed to update delivery info');
         } finally {
             setUpdating(null);
         }
+
     };
 
     const filteredOrders = orders.filter(order => 
