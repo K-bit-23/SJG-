@@ -11,6 +11,7 @@ import os
 import base64
 import io
 from pathlib import Path
+import traceback
 from .mongodb import mongo_client
 from .serializers import (
     ProductSerializer, OrderSerializer, ContactMessageSerializer, UserSerializer,
