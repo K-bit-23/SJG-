@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Truck, Calendar, Search, MapPin, Package, Save } from 'lucide-react';
 import api from '../utils/api';
+import { useNotifications } from '../context/NotificationContext';
 
 const AdminDelivery = ({ orders, fetchData }) => {
+    const { showAlert, showToast } = useNotifications();
     const [searchTerm, setSearchTerm] = useState('');
     const [updating, setUpdating] = useState(null);
 
@@ -11,8 +13,9 @@ const AdminDelivery = ({ orders, fetchData }) => {
         try {
             await api.patch(`orders/${orderId}/`, { [field]: value });
             await fetchData();
+            showToast('Delivery information updated', 'success');
         } catch (err) {
-            alert('Failed to update delivery info');
+            showAlert('Failed to update delivery info', 'error');
         } finally {
             setUpdating(null);
         }

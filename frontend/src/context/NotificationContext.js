@@ -8,7 +8,14 @@ export const NotificationProvider = ({ children }) => {
     const [notifications, setNotifications] = useState([]);
     const [toast, setToast] = useState(null);
     const [alert, setAlert] = useState(null);
+    const [callout, setCallout] = useState(null);
     const [barMessage, setBarMessage] = useState("Welcome to SJG - Quality Textiles & Modern Designs! 🚚 Free delivery on orders above ₹1000");
+
+    const showCallout = (message, type = 'info', title = null) => {
+        setCallout({ message, type, title });
+    };
+
+    const clearCallout = () => setCallout(null);
 
     const addNotification = (message, type = 'info', order_id = null) => {
         const id = Date.now();
@@ -25,13 +32,23 @@ export const NotificationProvider = ({ children }) => {
         setTimeout(() => setToast(current => current?.id === id ? null : current), 4000);
     };
 
-    const showAlert = (message, type = 'success') => {
+    const showAlert = (message, type = 'success', title = null) => {
         const id = Date.now();
-        setAlert({ id, message, type });
-        setTimeout(() => setAlert(current => current?.id === id ? null : current), 5000);
+        setAlert({ id, message, type, title });
+        setTimeout(() => setAlert(current => current?.id === id ? null : current), 6000);
     };
 
     const updateBarMessage = (msg) => setBarMessage(msg);
+
+    useEffect(() => {
+        const handleBackendError = (event) => {
+            const { message, type, title } = event.detail || {};
+            showAlert(message || "A backend error occurred.", type || "error", title || "Server Connection Reset");
+        };
+
+        window.addEventListener('backend-error', handleBackendError);
+        return () => window.removeEventListener('backend-error', handleBackendError);
+    }, []);
 
     return (
         <NotificationContext.Provider value={{ 
@@ -41,6 +58,9 @@ export const NotificationProvider = ({ children }) => {
             showToast, 
             alert,
             showAlert,
+            callout,
+            showCallout,
+            clearCallout,
             barMessage, 
             updateBarMessage,
             clearToast: () => setToast(null),

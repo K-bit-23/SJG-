@@ -7,9 +7,11 @@ import {
     Plus, Trash2, Home, Briefcase
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNotifications } from '../context/NotificationContext';
 
 const Profile = () => {
     const { user, logout } = useAuth();
+    const { showAlert, showToast } = useNotifications();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('profile');
@@ -122,10 +124,11 @@ const Profile = () => {
                 axios.post(`/api/user-settings/${encodeURIComponent(user.email)}/`, appSettings)
             ]);
             setSaveSuccess(true);
+            showToast("Profile and settings updated", "success");
             setTimeout(() => setSaveSuccess(false), 3000);
         } catch (error) {
             console.error("Error saving profile/settings:", error);
-            alert("Failed to save. Please try again.");
+            showAlert("Failed to save changes", "error");
         } finally {
             setSaving(false);
         }
@@ -133,7 +136,7 @@ const Profile = () => {
 
     const handleAddAddress = () => {
         if (!addressForm.addressLine1 || !addressForm.city || !addressForm.pincode) {
-            alert("Please fill in the required address fields.");
+            showAlert("Required address fields missing", "warning");
             return;
         }
         setAddresses([...addresses, { ...addressForm, id: Date.now() }]);
@@ -158,14 +161,14 @@ const Profile = () => {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     setAppSettings(prev => ({ ...prev, location_access: true }));
-                    alert(`Location access granted! Lat: ${position.coords.latitude.toFixed(4)}, Long: ${position.coords.longitude.toFixed(4)}`);
+                    showToast("Location access granted", "info");
                 },
                 (error) => {
-                    alert("Location access denied. Please enable it in your browser settings.");
+                    showAlert("Location access denied. Please enable it in browser settings.", "warning");
                 }
             );
         } else {
-            alert("Geolocation is not supported by this browser.");
+            showAlert("Geolocation not supported by this browser.", "error");
         }
     };
 
@@ -616,9 +619,9 @@ const Profile = () => {
                                                     navigator.mediaDevices.getUserMedia({ video: true })
                                                         .then(() => {
                                                             setAppSettings(prev => ({ ...prev, camera_access: true }));
-                                                            alert("Camera access granted!");
+                                                            showToast("Camera access granted", "info");
                                                         })
-                                                        .catch(() => alert("Camera access denied."));
+                                                        .catch(() => showAlert("Camera access denied", "warning"));
                                                 }
                                             }}
                                             className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all ${appSettings.camera_access ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}

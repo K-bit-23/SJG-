@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNotifications } from './NotificationContext';
 
 const CartContext = createContext();
 
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
+    const { showAlert, showToast } = useNotifications();
     const [cart, setCart] = useState([]);
 
     useEffect(() => {
@@ -25,14 +27,16 @@ export const CartProvider = ({ children }) => {
             const stockLimit = product.stock !== undefined ? product.stock : 999;
 
             if (currentQty >= stockLimit) {
-                alert(`Cannot add more. Only ${stockLimit} units available in stock.`);
+                showAlert(`Cannot add more. Only ${stockLimit} units available.`, 'warning', 'Stock Limit');
                 return prev;
             }
 
-            if (existing) {
-                return prev.map(item => (item.id === product.id || item.id === product._id) ? { ...item, quantity: item.quantity + 1 } : item);
-            }
-            return [...prev, { ...product, id: product.id || product._id, quantity: 1 }];
+            const newCart = existing 
+                ? prev.map(item => (item.id === product.id || item.id === product._id) ? { ...item, quantity: item.quantity + 1 } : item)
+                : [...prev, { ...product, id: product.id || product._id, quantity: 1 }];
+            
+            showToast(`${product.name || 'Item'} added to bag`, 'success');
+            return newCart;
         });
         // Dispatch event for UI animations
         window.dispatchEvent(new Event('cartUpdate'));

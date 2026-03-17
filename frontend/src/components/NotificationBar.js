@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNotifications } from '../context/NotificationContext';
-import { Sparkles, X, CheckCircle, Info, AlertTriangle } from 'lucide-react';
+import { Sparkles, X, CheckCircle, Info, AlertTriangle, XCircle } from 'lucide-react';
+import Callout from './Callout';
 
 const alertStyles = {
   success: 'bg-emerald-500 text-white border-emerald-400',
@@ -17,22 +18,51 @@ const toastStyles = {
 };
 
 const NotificationBar = () => {
-    const { toast, clearToast, alert, clearAlert } = useNotifications();
+    const { toast, clearToast, alert, clearAlert, callout, clearCallout } = useNotifications();
 
     return (
         <>
-            {/* Top-Center Alert (Blocking / High Priority) */}
-            {alert && (
-                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4 animate-slide-down">
-                    <div className={`${alertStyles[alert.type] || alertStyles.info} rounded-2xl p-4 shadow-xl border flex items-center justify-between gap-4 backdrop-blur-md bg-opacity-95`}>
+            {/* Global Persistent Callout / Banner */}
+            {callout && (
+                <div className="bg-white border-b border-gray-100 flex justify-center py-2 px-4 shadow-sm relative group overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-secondary/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    <div className="max-w-7xl w-full flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                            <Sparkles size={18} />
-                            <p className="text-sm font-bold tracking-tight">{alert.message}</p>
+                            <span className="flex h-2 w-2 relative shrink-0">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
+                            </span>
+                            <p className="text-sm font-semibold text-gray-800 tracking-tight">
+                                {callout.title && <span className="text-secondary mr-2">{callout.title}</span>}
+                                {callout.message}
+                            </p>
                         </div>
-                        <button onClick={clearAlert} className="p-1 hover:bg-black/10 rounded-full transition-colors">
-                            <X size={18} />
+                        <button onClick={clearCallout} className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-400">
+                            <X size={14} />
                         </button>
                     </div>
+                </div>
+            )}
+            {/* Top-Center Alert (Blocking / High Priority) */}
+            {alert && (
+                <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4 animate-slide-down">
+                    <div className={`${alertStyles[alert.type] || alertStyles.info} rounded-3xl p-6 shadow-2xl border-2 flex items-start justify-between gap-5 backdrop-blur-xl bg-opacity-95`}>
+                        <div className="flex-shrink-0 mt-1">
+                            {alert.type === 'success' && <CheckCircle size={28} className="text-white/80" />}
+                            {alert.type === 'error' && <XCircle size={28} className="text-white/80" />}
+                            {alert.type === 'warning' && <AlertTriangle size={28} className="text-slate-800/80" />}
+                            {alert.type === 'info' && <Info size={28} className="text-white/80" />}
+                        </div>
+                        <div className="flex-1">
+                            {alert.title && <h4 className={`text-sm font-black uppercase tracking-[0.2em] mb-1.5 ${alert.type === 'warning' ? 'text-slate-900' : 'text-white'}`}>{alert.title}</h4>}
+                            <p className={`text-sm font-bold leading-relaxed ${alert.type === 'warning' ? 'text-slate-800/90' : 'text-white/90'}`}>{alert.message}</p>
+                        </div>
+                        <button onClick={clearAlert} className={`flex-shrink-0 p-2 rounded-xl transition-all ${alert.type === 'warning' ? 'hover:bg-black/5 text-slate-900' : 'hover:bg-white/10 text-white'}`}>
+                            <X size={20} />
+                        </button>
+                    </div>
+                    {/* Glass refraction effect */}
+                    <div className="absolute inset-0 bg-white/10 blur-3xl -z-10 rounded-full scale-110 opacity-50"></div>
                 </div>
             )}
 

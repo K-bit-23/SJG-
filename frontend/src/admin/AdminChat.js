@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { MessageCircle, Search, Trash2, CheckCircle, Clock, User, Reply, X, Command, Activity } from 'lucide-react';
 import api from '../../src/utils/api';
+import { useNotifications } from '../context/NotificationContext';
 
 const AdminChat = ({ chatMessages, setChatMessages, fetchData }) => {
+    const { showAlert, showToast } = useNotifications();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedMessage, setSelectedMessage] = useState(null);
     const [replyText, setReplyText] = useState('');
@@ -27,7 +29,7 @@ const AdminChat = ({ chatMessages, setChatMessages, fetchData }) => {
 
     const handleReply = async () => {
         if (!replyText.trim()) return;
-        alert('Reply stream offline. SMTP integration required for external communication.');
+        showAlert('Reply stream offline. SMTP integration required for external communication.', 'warning', 'SMTP Offline');
         setReplyText('');
     };
 

@@ -6,6 +6,7 @@ import {
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import api from '../../src/utils/api';
 import { useAuth } from '../../src/context/AuthContext';
+import { useNotifications } from '../../src/context/NotificationContext';
 
 // Import Admin Sub-components
 import AdminDashboard from '../../src/admin/AdminDashboard';
@@ -21,6 +22,7 @@ import AdminChat from '../../src/admin/AdminChat';
 
 const AdminPanel = () => {
     const { user, logout } = useAuth();
+    const { showAlert, showToast } = useNotifications();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -140,8 +142,9 @@ const AdminPanel = () => {
                 }).catch(() => {});
             }
             setOrders(orders.map(o => o.order_id === orderId ? { ...o, status: newStatus } : o));
+            showToast(`Order status updated to ${newStatus}`, 'success');
         } catch (err) {
-            alert('Failed to update order status');
+            showAlert('Failed to update order status', 'error');
         }
     };
 
@@ -152,18 +155,31 @@ const AdminPanel = () => {
             const payload = { ...productForm, price: parseFloat(productForm.price), stock: parseInt(productForm.stock) };
             if (editingProduct) await api.put(`products/${editingProduct.id || editingProduct._id}/`, payload);
             else await api.post('products/', payload);
-            setShowProductModal(false); fetchData();
-        } catch (err) { alert('Failed to save product'); }
+            setShowProductModal(false); 
+            fetchData();
+            showToast(`Product ${editingProduct ? 'updated' : 'added'} successfully`, 'success');
+        } catch (err) { 
+            showAlert('Failed to save product', 'error'); 
+        }
     };
     const deleteProduct = async (id) => {
         if (!window.confirm('Delete this product?')) return;
-        try { await api.delete(`products/${id}/`); setProducts(products.filter(p => (p.id || p._id) !== id)); }
-        catch { alert('Failed to delete product'); }
+        try { 
+            await api.delete(`products/${id}/`); 
+            setProducts(products.filter(p => (p.id || p._id) !== id)); 
+            showToast('Product deleted from store', 'info');
+        }
+        catch { showAlert('Failed to delete product', 'error'); }
     };
 
     const saveHomeContent = async (newContent) => {
-        try { const res = await api.post('content/home/', newContent); setHomeContent(res.data); return true; }
-        catch { alert('Failed to save'); return false; }
+        try { 
+            const res = await api.post('content/home/', newContent); 
+            setHomeContent(res.data); 
+            showToast('Content updated successfully', 'success');
+            return true; 
+        }
+        catch { showAlert('Failed to save content', 'error'); return false; }
     };
 
     const openHomeItemEditor = (item, type) => {
@@ -221,7 +237,9 @@ const AdminPanel = () => {
             try {
                 const res = await api.get(`customers/find/?phone=${phone}`);
                 if (res.data) setBillingCustomer({ name: res.data.name, phone: res.data.phone, email: res.data.email || '' });
-            } catch (err) { console.error("Customer search failed", err); }
+            } catch (err) { 
+                showToast("New customer or search failed", "info"); 
+            }
         }
     };
 
@@ -239,7 +257,9 @@ const AdminPanel = () => {
     const updateItemPrice = (id, price) => setBillingItems(billingItems.map(i => i.id === id ? { ...i, price: parseFloat(price) || 0 } : i));
     const calculateBillTotal = () => billingItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
     const generateInvoice = async () => {
-        if (!billingItems.length || !billingCustomer.name) return alert('Enter customer details and items');
+        if (!billingItems.length || !billingCustomer.name) {
+            return showAlert('Enter customer details and at least one item', 'warning');
+        }
         const adminSettings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
         const subTotal = calculateBillTotal();
         const taxRate = adminSettings.gst_percentage || 18;
@@ -272,8 +292,9 @@ const AdminPanel = () => {
             setBillingItems([]);
             setBillingCustomer({ name: '', phone: '', email: '' });
             fetchData();
+            showToast('Invoice generated and saved', 'success');
         } catch (err) {
-            alert('Failed to save offline order');
+            showAlert('Failed to save offline order', 'error');
         }
     };
     const printInvoice = () => { const c = document.getElementById('invoice-template').innerHTML, orig = document.body.innerHTML; document.body.innerHTML = c; window.print(); document.body.innerHTML = orig; window.location.reload(); };
