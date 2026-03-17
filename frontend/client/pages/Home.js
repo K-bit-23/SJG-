@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Truck, ShieldCheck, Clock, ArrowRight, ChevronLeft, ChevronRight as ChevronRightIcon, Printer, FileText, Layers, Copy, BookOpen, Palette, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../src/utils/api';
+import { useNotifications } from '../../src/context/NotificationContext';
 
 // Categories with modern icons/images
 // Default categories if backend is empty
@@ -61,11 +62,17 @@ const ICON_MAP = {
 };
 
 const Home = () => {
+    const { showCallout } = useNotifications();
     const [bannerContent, setBannerContent] = useState(null);
     const [currentBanner, setCurrentBanner] = useState(0);
     const [banners, setBanners] = useState(DEFAULT_BANNERS);
     const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
     const [error, setError] = useState(null);
+
+    useEffect(() => {
+        // Show premium welcome callout
+        showCallout("Free delivery on orders above ₹1000! 🚚 Shop the new 2024 collection now.", "premium", "Exclusive Offer");
+    }, []);
 
 
     useEffect(() => {
