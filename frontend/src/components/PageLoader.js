@@ -4,26 +4,26 @@ import { Loader2 } from 'lucide-react';
 const PageLoader = ({ open }) => {
     if (!open) return null;
     return (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/90 backdrop-blur-md">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/95 backdrop-blur-lg">
             <div className="relative flex items-center justify-center">
-                {/* Circular Loader Track */}
-                <div className="w-24 h-24 border-4 border-gray-100 rounded-full"></div>
+                {/* Outer Ring */}
+                <div className="w-28 h-28 border-[3px] border-gray-100 rounded-full shadow-inner"></div>
                 
-                {/* Spinning Accent */}
-                <div className="absolute w-24 h-24 border-4 border-transparent border-t-secondary rounded-full animate-spin"></div>
+                {/* Rotating Ring */}
+                <div className="absolute w-28 h-28 border-[3px] border-transparent border-t-secondary rounded-full animate-spin"></div>
                 
-                {/* Logo in center */}
-                <div className="absolute inset-0 flex items-center justify-center p-4">
+                {/* Logo with pulse */}
+                <div className="absolute flex items-center justify-center bg-white rounded-full p-2 shadow-lg border border-gray-50">
                     <img 
                         src="/logo.png" 
                         alt="SJG" 
-                        className="w-12 h-12 object-contain animate-pulse"
+                        className="w-14 h-14 object-contain"
                         onError={(e) => e.target.style.display = 'none'} 
                     />
                 </div>
 
-                {/* Optional: Glowing effect behind */}
-                <div className="absolute inset-0 bg-secondary/10 rounded-full blur-2xl animate-pulse -z-10 scale-150"></div>
+                {/* Ambient Glow */}
+                <div className="absolute inset-0 bg-secondary/5 rounded-full blur-3xl animate-pulse -z-10 scale-150"></div>
             </div>
         </div>
     );

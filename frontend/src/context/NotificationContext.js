@@ -8,8 +8,12 @@ export const NotificationProvider = ({ children }) => {
     const [notifications, setNotifications] = useState([]);
     const [toast, setToast] = useState(null);
     const [alert, setAlert] = useState(null);
-    const [callout, setCallout] = useState(null);
-    const [barMessage, setBarMessage] = useState("Welcome to SJG - Quality Textiles & Modern Designs! 🚚 Free delivery on orders above ₹1000");
+    const [callout, setCallout] = useState({
+        message: "Free delivery on orders above ₹1000! 🚚 Shop the new 2024 collection now.",
+        type: "premium",
+        title: "Exclusive Offer"
+    });
+    const [barMessage, setBarMessage] = useState("Welcome to SJG - Quality Textiles & Modern Designs!");
 
     const showCallout = (message, type = 'info', title = null) => {
         setCallout({ message, type, title });

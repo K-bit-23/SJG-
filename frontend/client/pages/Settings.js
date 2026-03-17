@@ -72,9 +72,17 @@ const Settings = () => {
         setSaving(true);
         try {
             const userEmail = user.emailAddresses ? user.emailAddresses[0].emailAddress : user.email;
-            await api.post(`/profile/${encodeURIComponent(userEmail)}/`, {
-                appSettings: appSettings
-            });
+            await Promise.all([
+                api.post(`/profile/${encodeURIComponent(userEmail)}/`, {
+                    appSettings: appSettings
+                }),
+                api.post(`/user-settings/${encodeURIComponent(userEmail)}/`, {
+                    ...appSettings,
+                    dark_mode: appSettings.darkMode,
+                    notifications: appSettings.notifications,
+                    email_updates: appSettings.emailUpdates,
+                })
+            ]);
             showToast('Settings saved successfully!', 'success');
         } catch (error) {
             console.error("Error saving settings:", error);

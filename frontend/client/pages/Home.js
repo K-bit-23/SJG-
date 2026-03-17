@@ -69,10 +69,6 @@ const Home = () => {
     const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        // Show premium welcome callout
-        showCallout("Free delivery on orders above ₹1000! 🚚 Shop the new 2024 collection now.", "premium", "Exclusive Offer");
-    }, []);
 
 
     useEffect(() => {
