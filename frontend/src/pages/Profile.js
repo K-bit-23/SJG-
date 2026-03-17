@@ -31,6 +31,7 @@ const Profile = () => {
     // Addresses Management
     const [addresses, setAddresses] = useState([]);
     const [showAddressForm, setShowAddressForm] = useState(false);
+    const [editingAddressId, setEditingAddressId] = useState(null);
     const [addressForm, setAddressForm] = useState({
         type: 'Home', // Home, Office, Other
         addressLine1: '',
@@ -139,7 +140,12 @@ const Profile = () => {
             showAlert("Required address fields missing", "warning");
             return;
         }
-        setAddresses([...addresses, { ...addressForm, id: Date.now() }]);
+        if (editingAddressId) {
+            setAddresses(addresses.map(a => a.id === editingAddressId ? { ...addressForm, id: editingAddressId } : a));
+            setEditingAddressId(null);
+        } else {
+            setAddresses([...addresses, { ...addressForm, id: Date.now() }]);
+        }
         setAddressForm({
             type: 'Home',
             addressLine1: '',
@@ -150,6 +156,12 @@ const Profile = () => {
             country: 'India'
         });
         setShowAddressForm(false);
+    };
+
+    const editAddress = (addr) => {
+        setAddressForm(addr);
+        setEditingAddressId(addr.id);
+        setShowAddressForm(true);
     };
 
     const removeAddress = (id) => {
@@ -387,16 +399,21 @@ const Profile = () => {
                                                     </p>
                                                 </div>
                                             </div>
-                                            <button onClick={() => removeAddress(addr.id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors overflow-hidden opacity-0 group-hover:opacity-100">
-                                                <Trash2 size={14} />
-                                            </button>
+                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => editAddress(addr)} className="p-1.5 text-blue-400 hover:bg-blue-50 rounded-lg transition-colors">
+                                                    <Edit2 size={14} />
+                                                </button>
+                                                <button onClick={() => removeAddress(addr.id)} className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors">
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
 
                                 {showAddressForm && (
                                     <div className="bg-gray-50 p-6 rounded-2xl border border-secondary/20 animate-fade-in mb-6">
-                                        <h4 className="font-bold text-gray-800 mb-4 text-sm">Add New Address</h4>
+                                        <h4 className="font-bold text-gray-800 mb-4 text-sm">{editingAddressId ? 'Edit Address' : 'Add New Address'}</h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="md:col-span-2">
                                                 <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Address Type</label>
@@ -459,9 +476,9 @@ const Profile = () => {
                                             </div>
                                             <div className="flex gap-2">
                                                 <button onClick={handleAddAddress} className="flex-1 bg-secondary text-white py-2.5 rounded-lg text-sm font-bold shadow-lg hover:bg-indigo-600 transition-all">
-                                                    Add Address
+                                                    {editingAddressId ? 'Update Address' : 'Add Address'}
                                                 </button>
-                                                <button onClick={() => setShowAddressForm(false)} className="px-4 bg-white text-gray-500 border border-gray-200 rounded-lg text-sm font-bold">
+                                                <button onClick={() => { setShowAddressForm(false); setEditingAddressId(null); }} className="px-4 bg-white text-gray-500 border border-gray-200 rounded-lg text-sm font-bold">
                                                     Cancel
                                                 </button>
                                             </div>
