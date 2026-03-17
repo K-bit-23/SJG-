@@ -555,8 +555,8 @@ const AdminPanel = () => {
                         </div>
                         {sidebarOpen && (
                             <div className="animate-fade-in whitespace-nowrap">
-                                <h1 className="text-sm font-black tracking-tight text-slate-900 leading-none">SJG ADMIN</h1>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1.5">Version 2.0</p>
+                                <h1 className="text-sm font-bold text-slate-900 leading-none">SJG Admin</h1>
+                                <p className="text-xs text-slate-400 mt-1">Management Panel</p>
                             </div>
                         )}
                     </div>
@@ -594,7 +594,7 @@ const AdminPanel = () => {
                         title={!sidebarOpen ? "Logout" : ''}
                     >
                         <LogOut size={20} className="shrink-0" />
-                        {sidebarOpen && <span>Exit System</span>}
+                        {sidebarOpen && <span>Logout</span>}
                     </button>
                 </div>
             </aside>
@@ -611,78 +611,54 @@ const AdminPanel = () => {
                             <Menu size={20} />
                         </button>
                         <div>
-                            <h2 className="text-lg font-black text-slate-900 capitalize tracking-tight">{activeTab}</h2>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Admin Control Center</p>
+                            <h2 className="text-base font-bold text-slate-900 capitalize">{activeTab}</h2>
+                            <p className="text-xs text-slate-400">Admin Panel</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        {/* Auto-refresh controls */}
-                        <div className="hidden lg:flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100">
-
-                            {/* Online status dot */}
-                            <div className="flex items-center gap-1.5">
-                                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">{isOnline ? 'Live' : 'Offline'}</span>
-                            </div>
-
-                            <div className="w-px h-4 bg-slate-200"></div>
-
-                            {/* Auto-refresh toggle */}
-                            <button
-                                onClick={() => setAutoRefresh(v => !v)}
-                                className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${autoRefresh ? 'text-indigo-600' : 'text-slate-400'}`}
-                                title="Toggle auto-refresh"
-                            >
-                                <RefreshCw size={12} className={autoRefresh ? 'animate-spin [animation-duration:3s]' : ''} />
-                                {autoRefresh ? 'Auto' : 'Paused'}
-                            </button>
-
-                            {/* Countdown */}
+                    <div className="flex items-center gap-3">
+                        {/* Status + refresh */}
+                        <div className="hidden md:flex items-center gap-2 text-xs text-slate-500">
+                            <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-400'}`}></div>
+                            <span>{isOnline ? 'Online' : 'Offline'}</span>
                             {autoRefresh && (
-                                <div className="flex items-center gap-1">
-                                    <div className="w-14 h-1 bg-slate-200 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-indigo-500 rounded-full transition-all"
-                                            style={{ width: `${(countdown / refreshInterval) * 100}%` }}
-                                        ></div>
-                                    </div>
-                                    <span className="text-[9px] font-black text-slate-400 mono w-5">{countdown}s</span>
-                                </div>
+                                <span className="text-slate-300">·</span>
                             )}
-
-                            <div className="w-px h-4 bg-slate-200"></div>
-
-                            {/* Interval selector */}
-                            <select
-                                value={refreshInterval}
-                                onChange={e => { setRefreshInterval(Number(e.target.value)); setCountdown(Number(e.target.value)); }}
-                                className="text-[10px] font-black text-slate-500 bg-transparent outline-none uppercase cursor-pointer"
-                            >
-                                <option value={30}>30s</option>
-                                <option value={60}>60s</option>
-                                <option value={120}>2m</option>
-                                <option value={300}>5m</option>
-                            </select>
-
-                            <div className="w-px h-4 bg-slate-200"></div>
-
-                            {/* Manual refresh */}
-                            <button
-                                onClick={() => { fetchData(); setLastRefreshed(new Date()); setCountdown(refreshInterval); }}
-                                className="p-1 text-slate-400 hover:text-indigo-600 transition-colors"
-                                title="Refresh now"
-                            >
-                                <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-                            </button>
+                            {autoRefresh && (
+                                <span>Refresh in {countdown}s</span>
+                            )}
                         </div>
 
-                        {/* Last refreshed */}
-                        {lastRefreshed && (
-                            <span className="hidden xl:block text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                                Updated {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                            </span>
-                        )}
+                        <button
+                            onClick={() => setAutoRefresh(v => !v)}
+                            className={`hidden md:flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border transition-all ${
+                                autoRefresh
+                                    ? 'border-indigo-200 bg-indigo-50 text-indigo-600'
+                                    : 'border-slate-200 bg-white text-slate-500'
+                            }`}
+                        >
+                            <RefreshCw size={12} className={autoRefresh ? 'animate-spin [animation-duration:3s]' : ''} />
+                            {autoRefresh ? 'Auto' : 'Paused'}
+                        </button>
+
+                        <select
+                            value={refreshInterval}
+                            onChange={e => { setRefreshInterval(Number(e.target.value)); setCountdown(Number(e.target.value)); }}
+                            className="hidden md:block text-xs text-slate-500 bg-white border border-slate-200 rounded-lg px-2 py-1.5 outline-none cursor-pointer"
+                        >
+                            <option value={30}>30s</option>
+                            <option value={60}>1 min</option>
+                            <option value={120}>2 min</option>
+                            <option value={300}>5 min</option>
+                        </select>
+
+                        <button
+                            onClick={() => { fetchData(); setLastRefreshed(new Date()); setCountdown(refreshInterval); }}
+                            title="Refresh now"
+                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                        >
+                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                        </button>
 
                         {/* Profile Section */}
                         <div className="relative" ref={dropdownRef}>
