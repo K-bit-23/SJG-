@@ -3,14 +3,14 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {
-    ShieldCheck, CreditCard, Truck, CheckCircle,
+    ShieldCheck, CreditCard, Truck, ShoppingBag, CheckCircle,
     Smartphone, AlertCircle, ExternalLink, Loader2,
-    Home, Briefcase, Plus, MapPin
+    Home, Briefcase, Plus, MapPin, Trash2
 } from 'lucide-react';
 import axios from 'axios';
 
 const Checkout = () => {
-    const { cart, clearCart } = useCart();
+    const { cart, clearCart, removeFromCart } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
 
@@ -93,7 +93,8 @@ const Checkout = () => {
         }));
 
         const res = await axios.post('/api/orders/', {
-            user_email: formData.email,
+            // Ensure order confirmation emails are sent only to the signed-in user
+            user_email: user?.email || formData.email,
             user_name: formData.name,
             items,
             total_amount: total,
@@ -212,7 +213,19 @@ const Checkout = () => {
                                 </div>
                                 <div className="md:col-span-2 space-y-1">
                                     <label className="text-xs font-semibold text-gray-500 uppercase">Email</label>
-                                    <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full p-3 bg-gray-50 rounded-lg border focus:ring-2 ring-secondary/20 outline-none" placeholder="john@example.com" />
+                                    <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={!!user?.email}
+                                    className="w-full p-3 bg-gray-50 rounded-lg border focus:ring-2 ring-secondary/20 outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                    placeholder="john@example.com"
+                                />
+                                {user?.email && (
+                                    <p className="text-xs text-gray-500 mt-1">Your order confirmation will be sent to your signed-in email.</p>
+                                )
                                 </div>
                                 
                                 {selectedAddressId === 'new' && (
@@ -242,6 +255,35 @@ const Checkout = () => {
                                     </div>
                                 )}
                             </form>
+                        </div>
+
+                        {/* Cart Review (delete items from cart) */}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                                <ShoppingBag className="text-secondary" /> Your Cart
+                            </h2>
+
+                            {cart.length === 0 ? (
+                                <p className="text-sm text-gray-500">Your cart is empty. Add items before placing an order.</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {cart.map(item => (
+                                        <div key={item._id || item.id} className="flex items-center justify-between gap-3 p-3 rounded-lg border border-gray-100 hover:shadow-sm transition">
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-semibold text-gray-800 line-clamp-1">{item.name}</p>
+                                                <p className="text-xs text-gray-500">Qty: {item.quantity} · ₹{item.price * item.quantity}</p>
+                                            </div>
+                                            <button
+                                                onClick={() => removeFromCart(item._id || item.id)}
+                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition"
+                                                title="Remove from cart"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Payment Method */}

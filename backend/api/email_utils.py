@@ -241,19 +241,30 @@ def _send(order: dict, delay_seconds: int, status_label: str):
         time.sleep(delay_seconds)
 
     notify_emails = getattr(settings, 'ORDER_NOTIFY_EMAIL', None)
-    customer_email = order.get('user_email', '')
+    customer_email = (order.get('user_email') or '').strip()
     order_id = order.get('order_id', 'N/A')
 
-    # ORDER_NOTIFY_EMAIL can be a list (from settings.py) or a single string
-    if isinstance(notify_emails, list):
-        all_emails = notify_emails + [customer_email]
-    elif notify_emails:
-        all_emails = [notify_emails, customer_email]
-    else:
-        fallback = getattr(settings, 'EMAIL_HOST_USER', '')
-        all_emails = [fallback, customer_email]
+    # By default, send confirmation only to the customer's email.
+    # If you want admin/owner copies, set EMAIL_SEND_TO_CUSTOMER_ONLY=False in your env.
+    send_to_customer_only = getattr(settings, 'EMAIL_SEND_TO_CUSTOMER_ONLY', True)
 
-    recipients = list({e.strip() for e in all_emails if e and e.strip()})
+    recipients = []
+    if customer_email:
+        recipients.append(customer_email)
+
+    if not send_to_customer_only:
+        # Add admin notification emails (if configured) as BCC-like recipients
+        if isinstance(notify_emails, list):
+            recipients.extend([e.strip() for e in notify_emails if e and e.strip()])
+        elif notify_emails:
+            recipients.append(str(notify_emails).strip())
+        elif not recipients:
+            # Fallback to sender if no other email is configured
+            fallback = getattr(settings, 'EMAIL_HOST_USER', '')
+            if fallback:
+                recipients.append(fallback)
+
+    recipients = list({e for e in recipients if e})
 
     if not recipients:
         print(f"[EMAIL] No recipients for order {order_id} — skipping")
