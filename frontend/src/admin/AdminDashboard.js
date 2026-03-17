@@ -138,8 +138,7 @@ const AdminDashboard = ({ stats, orders }) => {
                                 <tr key={order.order_id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 group-hover:animate-pulse"></div>
-                                            <span className="text-xs font-black text-indigo-600 mono">{order.order_id.split('-').pop() || '#' + order.order_id.slice(-6).toUpperCase()}</span>
+                                            <span className="text-xs font-black text-indigo-600 mono">{order.order_id && typeof order.order_id === 'string' ? (order.order_id.split('-').pop() || '#' + order.order_id.slice(-6).toUpperCase()) : '#' + String(order.order_id || 'N/A').slice(-6)}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-6">

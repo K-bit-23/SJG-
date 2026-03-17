@@ -47,6 +47,8 @@ const AdminSettings = () => {
         setSaving(true);
         try {
             await api.post('/settings/', settings);
+            localStorage.setItem('admin_settings', JSON.stringify(settings));
+            localStorage.setItem('appSettings', JSON.stringify(settings));
             showToast('Settings saved successfully!', 'success');
         } catch (err) {
             showToast('Failed to save settings', 'error');

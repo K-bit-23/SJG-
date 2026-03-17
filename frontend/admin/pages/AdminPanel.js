@@ -41,6 +41,18 @@ const AdminPanel = () => {
     const [chatMessages, setChatMessages] = useState([]);
     const [homeContent, setHomeContent] = useState({ banners: [], services: [], trust_strip: [] });
 
+    // ── Billing State ──
+    const [billingItems, setBillingItems] = useState([]);
+    const [billingCustomer, setBillingCustomer] = useState({ name: '', phone: '', email: '' });
+    const [billingProductSearch, setBillingProductSearch] = useState('');
+    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+    const [currentInvoice, setCurrentInvoice] = useState(null);
+
+    // ── Inventory State ──
+    const [showProductModal, setShowProductModal] = useState(false);
+    const [editingProduct, setEditingProduct] = useState(null);
+    const [productForm, setProductForm] = useState({ name: '', price: '', category: '', stock: '', description: '', image: '', tax_rate: 18, delivery_days: 0 });
+
     useEffect(() => {
         const isAdmin = (user && (user.role === 'admin' || user.publicMetadata?.role === 'admin')) || localStorage.getItem('admin_session') === 'true';
         if (!isAdmin) navigate('/');
@@ -61,7 +73,7 @@ const AdminPanel = () => {
         try {
             if (activeTab === 'dashboard' || activeTab === 'inventory' || activeTab === 'billing') {
                 const [statsRes, productsRes] = await Promise.all([
-                    api.get('dashboard/stats/').catch(() => ({ data: { total_revenue: "5,00,000", active_orders: 45, customers_count: 120, products_count: 850 } })),
+                    api.get('dashboard/stats/').catch(() => ({ data: { total_revenue: 500000, active_orders: 45, customers_count: 120, products_count: 850 } })),
                     api.get('products/').catch(() => ({ data: [] }))
                 ]);
                 setStats(statsRes.data);
@@ -88,6 +100,146 @@ const AdminPanel = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // ── Billing Handlers ──
+    const addToBill = (product) => {
+        const exists = billingItems.find(i => (i.id || i._id) === (product.id || product._id));
+        if (exists) {
+            setBillingItems(billingItems.map(i => (i.id || i._id) === (product.id || product._id) ? { ...i, quantity: i.quantity + 1 } : i));
+        } else {
+            setBillingItems([...billingItems, { ...product, id: product.id || product._id, quantity: 1, price: parseFloat(product.price) }]);
+        }
+    };
+
+    const removeFromBill = (id) => setBillingItems(billingItems.filter(i => (i.id || i._id) !== id));
+    
+    const updateBillQuantity = (id, q) => {
+        if (q < 1) return removeFromBill(id);
+        setBillingItems(billingItems.map(i => (i.id || i._id) === id ? { ...i, quantity: q } : i));
+    };
+
+    const updateItemPrice = (id, p) => {
+        setBillingItems(billingItems.map(i => (i.id || i._id) === id ? { ...i, price: parseFloat(p) || 0 } : i));
+    };
+
+    const calculateBillTotal = () => billingItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+
+    const handleBillingPhoneChange = async (phone) => {
+        setBillingCustomer(prev => ({ ...prev, phone }));
+        if (phone.length === 10) {
+            try {
+                const res = await api.get(`customers/find/?phone=${phone}`);
+                if (res.data) setBillingCustomer({ name: res.data.name, phone: res.data.phone, email: res.data.email || '' });
+            } catch (err) { console.error("Customer search failed", err); }
+        }
+    };
+
+    const generateInvoice = async () => {
+        if (billingItems.length === 0) return alert('Add items first');
+        const adminSettings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
+        const total = calculateBillTotal();
+        const taxRate = adminSettings.gst_percentage || 18;
+        const tax = total * (taxRate / 100);
+        const grandTotal = total + tax;
+
+        const invoiceData = {
+            id: 'INV-' + Date.now().toString().slice(-6),
+            date: new Date().toLocaleDateString(),
+            customer: billingCustomer,
+            items: billingItems,
+            total,
+            tax,
+            grandTotal,
+            settings: adminSettings
+        };
+
+        try {
+            // Save to DB as an offline order
+            await api.post('orders/offline/', {
+                customer_name: billingCustomer.name,
+                customer_phone: billingCustomer.phone,
+                customer_email: billingCustomer.email,
+                items: billingItems.map(i => ({ product_id: i.id || i._id, product_name: i.name, quantity: i.quantity, price: i.price })),
+                total_amount: grandTotal,
+                payment_status: 'paid',
+                status: 'completed'
+            });
+            setCurrentInvoice(invoiceData);
+            setShowInvoiceModal(true);
+            setBillingItems([]);
+            setBillingCustomer({ name: '', phone: '', email: '' });
+            fetchData();
+        } catch (err) {
+            alert('Failed to save offline order');
+        }
+    };
+
+    const printInvoice = () => {
+        const printContent = document.getElementById('invoice-template');
+        const win = window.open('', '', 'width=900,height=900');
+        win.document.write('<html><head><title>Print Invoice</title>');
+        win.document.write('<script src="https://cdn.tailwindcss.com"></script>');
+        win.document.write('</head><body>');
+        win.document.write(printContent.innerHTML);
+        win.document.write('</body></html>');
+        setTimeout(() => {
+            win.print();
+            win.close();
+        }, 1000);
+    };
+
+    // ── Inventory Handlers ──
+    const openAddProduct = () => {
+        setEditingProduct(null);
+        setProductForm({ name: '', price: '', category: '', stock: '', description: '', image: '', tax_rate: 18, delivery_days: 0 });
+        setShowProductModal(true);
+    };
+
+    const openEditProduct = (p) => {
+        setEditingProduct(p);
+        setProductForm({ ...p, id: p.id || p._id });
+        setShowProductModal(true);
+    };
+
+    const deleteProduct = async (id) => {
+        if (window.confirm('Delete this product?')) {
+            try {
+                await api.delete(`products/${id}/`);
+                fetchData();
+            } catch (err) { alert('Delete failed'); }
+        }
+    };
+
+    const saveProduct = async () => {
+        try {
+            if (editingProduct) {
+                await api.put(`products/${editingProduct.id || editingProduct._id}/`, productForm);
+            } else {
+                await api.post('products/', productForm);
+            }
+            setShowProductModal(false);
+            fetchData();
+        } catch (err) { alert('Save failed'); }
+    };
+
+    // ── Order Handlers ──
+    const updateOrderStatus = async (id, status) => {
+        try {
+            await api.patch(`orders/${id}/`, { status });
+            fetchData();
+        } catch (err) { alert('Update failed'); }
+    };
+
+    const getStatusBadge = (status) => {
+        const styles = {
+            pending: 'bg-amber-100 text-amber-700',
+            processing: 'bg-blue-100 text-blue-700',
+            shipped: 'bg-indigo-100 text-indigo-700',
+            completed: 'bg-emerald-100 text-emerald-700',
+            cancelled: 'bg-rose-100 text-rose-700'
+        };
+        return styles[status] || 'bg-gray-100';
     };
 
     const navItems = [
@@ -211,13 +363,52 @@ const AdminPanel = () => {
                     <div className="max-w-7xl mx-auto animate-fade-in-up">
                         {activeTab === 'dashboard' && <AdminDashboard stats={stats} orders={orders} />}
                         {activeTab === 'business' && <AdminBusiness />}
-                        {activeTab === 'billing' && <AdminBilling />}
-                        {activeTab === 'inventory' && <AdminInventory />}
-                        {activeTab === 'orders' && <AdminOrders />}
-                        {activeTab === 'delivery' && <AdminDelivery />}
-                        {activeTab === 'users' && <AdminUsers />}
-                        {activeTab === 'chat' && <AdminChat />}
-                        {activeTab === 'content' && <AdminContent />}
+                        {activeTab === 'billing' && (
+                            <AdminBilling 
+                                products={products}
+                                billingItems={billingItems}
+                                billingCustomer={billingCustomer}
+                                setBillingCustomer={setBillingCustomer}
+                                handleBillingPhoneChange={handleBillingPhoneChange}
+                                billingProductSearch={billingProductSearch}
+                                setBillingProductSearch={setBillingProductSearch}
+                                addToBill={addToBill}
+                                removeFromBill={removeFromBill}
+                                updateBillQuantity={updateBillQuantity}
+                                updateItemPrice={updateItemPrice}
+                                calculateBillTotal={calculateBillTotal}
+                                generateInvoice={generateInvoice}
+                                showInvoiceModal={showInvoiceModal}
+                                setShowInvoiceModal={setShowInvoiceModal}
+                                currentInvoice={currentInvoice}
+                                printInvoice={printInvoice}
+                            />
+                        )}
+                        {activeTab === 'inventory' && (
+                            <AdminInventory 
+                                products={products}
+                                openAddProduct={openAddProduct}
+                                openEditProduct={openEditProduct}
+                                deleteProduct={deleteProduct}
+                                showProductModal={showProductModal}
+                                editingProduct={editingProduct}
+                                productForm={productForm}
+                                setProductForm={setProductForm}
+                                saveProduct={saveProduct}
+                                setShowProductModal={setShowProductModal}
+                            />
+                        )}
+                        {activeTab === 'orders' && (
+                            <AdminOrders 
+                                orders={orders}
+                                getStatusBadge={getStatusBadge}
+                                updateOrderStatus={updateOrderStatus}
+                            />
+                        )}
+                        {activeTab === 'delivery' && <AdminDelivery orders={orders} />}
+                        {activeTab === 'users' && <AdminUsers users={usersList} />}
+                        {activeTab === 'chat' && <AdminChat messages={chatMessages} />}
+                        {activeTab === 'content' && <AdminContent content={homeContent} setContent={setHomeContent} />}
                         {activeTab === 'settings' && <AdminSettings />}
                     </div>
                 </main>
@@ -238,5 +429,4 @@ const AdminPanel = () => {
         </div>
     );
 };
-
 export default AdminPanel;
