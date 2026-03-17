@@ -13,10 +13,11 @@ const AdminContent = ({
                 <div className="flex border-b">
                     <button onClick={() => setContentSubTab('banners')} className={`px-6 py-4 text-sm font-bold transition-all ${contentSubTab === 'banners' ? 'border-b-2 border-secondary text-secondary' : 'text-gray-500 hover:text-gray-700'}`}>Hero Banners</button>
                     <button onClick={() => setContentSubTab('services')} className={`px-6 py-4 text-sm font-bold transition-all ${contentSubTab === 'services' ? 'border-b-2 border-secondary text-secondary' : 'text-gray-500 hover:text-gray-700'}`}>Print Services</button>
+                    <button onClick={() => setContentSubTab('categories')} className={`px-6 py-4 text-sm font-bold transition-all ${contentSubTab === 'categories' ? 'border-b-2 border-secondary text-secondary' : 'text-gray-500 hover:text-gray-700'}`}>Product Categories</button>
                 </div>
 
                 <div className="p-6">
-                    {contentSubTab === 'banners' ? (
+                    {contentSubTab === 'banners' && (
                         <div className="space-y-4">
                             <div className="flex justify-between items-center mb-4">
                                 <h4 className="font-bold text-gray-700">Home Hero Banners</h4>
@@ -36,10 +37,12 @@ const AdminContent = ({
                                         </div>
                                     </div>
                                 ))}
-                                {homeContent.banners.length === 0 && <p className="col-span-full text-center py-8 text-gray-400 text-sm">No banners configured</p>}
+                                {(!homeContent.banners || homeContent.banners.length === 0) && <p className="col-span-full text-center py-8 text-gray-400 text-sm">No banners configured</p>}
                             </div>
                         </div>
-                    ) : (
+                    )}
+
+                    {contentSubTab === 'services' && (
                         <div className="space-y-4">
                             <div className="flex justify-between items-center mb-4">
                                 <h4 className="font-bold text-gray-700">Service Grid Items</h4>
@@ -57,7 +60,32 @@ const AdminContent = ({
                                         </div>
                                     </div>
                                 ))}
-                                {homeContent.services.length === 0 && <p className="col-span-full text-center py-8 text-gray-400 text-sm">No services configured</p>}
+                                {(!homeContent.services || homeContent.services.length === 0) && <p className="col-span-full text-center py-8 text-gray-400 text-sm">No services configured</p>}
+                            </div>
+                        </div>
+                    )}
+
+                    {contentSubTab === 'categories' && (
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h4 className="font-bold text-gray-700">Product Categories</h4>
+                                <button onClick={() => openHomeItemEditor(null, 'category')} className="flex items-center gap-2 bg-secondary text-white px-3 py-1.5 rounded-lg text-xs font-bold"><Plus size={14} /> Add Category</button>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {Array.isArray(homeContent.categories) && homeContent.categories.map((category, idx) => (
+                                    <div key={idx} className="group relative bg-gray-50 rounded-xl overflow-hidden border border-gray-100 hover:shadow-md transition-all">
+                                        <img src={category.img} alt="" className="w-full h-32 object-cover" />
+                                        <div className="p-3">
+                                            <h5 className="font-bold text-sm truncate">{category.name}</h5>
+                                            <p className="text-xs text-gray-500 truncate">{category.count || '0 Products'}</p>
+                                            <div className="flex gap-2 mt-3">
+                                                <button onClick={() => openHomeItemEditor(category, 'category')} className="p-1.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100"><Edit size={14} /></button>
+                                                <button onClick={() => deleteHomeItem('category', idx)} className="p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100"><Trash2 size={14} /></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                                {(!homeContent.categories || homeContent.categories.length === 0) && <p className="col-span-full text-center py-8 text-gray-400 text-sm">No categories configured</p>}
                             </div>
                         </div>
                     )}
@@ -69,11 +97,11 @@ const AdminContent = ({
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold">{editingHomeItem.item ? 'Edit' : 'Add'} {editingHomeItem.type === 'banner' ? 'Banner' : 'Service'}</h3>
+                            <h3 className="text-xl font-bold">{editingHomeItem.item ? 'Edit' : 'Add'} {editingHomeItem.type.charAt(0).toUpperCase() + editingHomeItem.type.slice(1)}</h3>
                             <button onClick={() => setShowHomeModal(false)} className="p-2 hover:bg-gray-100 rounded-full"><X size={20} /></button>
                         </div>
                         <div className="space-y-4">
-                            {editingHomeItem.type === 'banner' ? (
+                            {editingHomeItem.type === 'banner' && (
                                 <>
                                     <div><label className="block text-sm font-medium mb-1">Title</label><input type="text" value={homeItemForm.title || ''} onChange={e => setHomeItemForm({ ...homeItemForm, title: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
                                     <div><label className="block text-sm font-medium mb-1">Subtitle</label><input type="text" value={homeItemForm.subtitle || ''} onChange={e => setHomeItemForm({ ...homeItemForm, subtitle: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
@@ -83,7 +111,8 @@ const AdminContent = ({
                                         <div><label className="block text-sm font-medium mb-1">Button Link</label><input type="text" value={homeItemForm.btnLink || ''} onChange={e => setHomeItemForm({ ...homeItemForm, btnLink: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
                                     </div>
                                 </>
-                            ) : (
+                            )}
+                            {editingHomeItem.type === 'service' && (
                                 <>
                                     <div><label className="block text-sm font-medium mb-1">Service Name</label><input type="text" value={homeItemForm.name || ''} onChange={e => setHomeItemForm({ ...homeItemForm, name: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
                                     <div><label className="block text-sm font-medium mb-1">Description</label><textarea value={homeItemForm.desc || ''} onChange={e => setHomeItemForm({ ...homeItemForm, desc: e.target.value })} className="w-full p-2.5 border rounded-lg h-20" /></div>
@@ -96,6 +125,13 @@ const AdminContent = ({
                                         </div>
                                         <div><label className="block text-sm font-medium mb-1">Price Label</label><input type="text" value={homeItemForm.price || ''} onChange={e => setHomeItemForm({ ...homeItemForm, price: e.target.value })} className="w-full p-2.5 border rounded-lg" placeholder="e.g. From ₹10" /></div>
                                     </div>
+                                </>
+                            )}
+                            {editingHomeItem.type === 'category' && (
+                                <>
+                                    <div><label className="block text-sm font-medium mb-1">Category Name</label><input type="text" value={homeItemForm.name || ''} onChange={e => setHomeItemForm({ ...homeItemForm, name: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
+                                    <div><label className="block text-sm font-medium mb-1">Image URL</label><input type="text" value={homeItemForm.img || ''} onChange={e => setHomeItemForm({ ...homeItemForm, img: e.target.value })} className="w-full p-2.5 border rounded-lg" /></div>
+                                    <div><label className="block text-sm font-medium mb-1">Product Count Label (Optional)</label><input type="text" value={homeItemForm.count || ''} onChange={e => setHomeItemForm({ ...homeItemForm, count: e.target.value })} className="w-full p-2.5 border rounded-lg" placeholder="e.g. 100+ Products" /></div>
                                 </>
                             )}
                             <div className="flex gap-3 pt-4">

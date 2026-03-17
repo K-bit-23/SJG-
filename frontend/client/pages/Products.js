@@ -36,7 +36,8 @@ const Products = () => {
     // Categories from products
     const categories = useMemo(() => {
         const cats = [...new Set(products.map(p => p.category).filter(Boolean))];
-        return ['all', ...cats];
+        // Filter out "services" from customer view
+        return ['all', ...cats.filter(cat => cat.toLowerCase() !== 'services')];
     }, [products]);
 
     // Fetch products
@@ -66,6 +67,9 @@ const Products = () => {
 
         if (selectedCategory !== 'all') {
             result = result.filter(p => p.category?.toLowerCase() === selectedCategory.toLowerCase());
+        } else {
+            // Always exclude services from "All Products" view for regular users
+            result = result.filter(p => p.category?.toLowerCase() !== 'services');
         }
 
         if (searchTerm) {
