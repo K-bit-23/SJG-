@@ -40,6 +40,9 @@ const AdminPanel = () => {
     const [showOTPModal, setShowOTPModal] = useState(false);
     const [otpCode, setOtpCode] = useState('');
     const [adminOtp, setAdminOtp] = useState('0707');
+    const [adminUsername, setAdminUsername] = useState('');
+    const [adminPassword, setAdminPassword] = useState('');
+    const [loginType, setLoginType] = useState('otp'); // 'otp' or 'credentials'
     const dropdownRef = useRef(null);
 
 
@@ -358,6 +361,24 @@ const AdminPanel = () => {
         }
     };
 
+    const handleAdminLogin = async () => {
+        setLoading(true);
+        try {
+            const res = await api.post('/admin-login/', { 
+                username: adminUsername, 
+                password: adminPassword 
+            });
+            if (res.data.status === 'success') {
+                localStorage.setItem('admin_session', 'true');
+                navigate('/admin/dashboard');
+            }
+        } catch (err) {
+            console.error('Login failed:', err.response?.data?.message || err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
 
     const tabs = [
         { id: 'dashboard', label: 'Monitor', icon: Activity },
@@ -382,18 +403,61 @@ const AdminPanel = () => {
                     <h2 className="text-2xl font-black text-white mb-2 tracking-tight">System Portal</h2>
                     <p className="text-slate-500 text-xs mb-8 font-bold uppercase tracking-widest">Identification Required</p>
                     
-                    <button 
-                        onClick={() => navigate('/')}
-                        className="w-full py-3.5 text-slate-400 font-bold hover:text-white transition-all mb-4 text-sm"
-                    >
-                        Return to Store
-                    </button>
-                    <button 
-                        onClick={() => setShowOTPModal(true)}
-                        className="w-full py-4 bg-indigo-600 rounded-xl text-white font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 text-sm"
-                    >
-                        Emergency OTP Access
-                    </button>
+                    {loginType === 'credentials' ? (
+                        <div className="space-y-4 animate-fade-in">
+                            <input 
+                                type="text" 
+                                placeholder="Username"
+                                value={adminUsername}
+                                onChange={(e) => setAdminUsername(e.target.value)}
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-indigo-500 transition-all font-bold text-sm"
+                            />
+                            <input 
+                                type="password" 
+                                placeholder="Password"
+                                value={adminPassword}
+                                onChange={(e) => setAdminPassword(e.target.value)}
+                                className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-indigo-500 transition-all font-bold text-sm shadow-inner"
+                            />
+                            <button 
+                                onClick={handleAdminLogin}
+                                disabled={loading}
+                                className="w-full py-4 bg-indigo-600 rounded-xl text-white font-black hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 text-sm disabled:opacity-50"
+                            >
+                                {loading ? 'Authenticating...' : 'Authorize Login'}
+                            </button>
+                            <button 
+                                onClick={() => setLoginType('otp')}
+                                className="w-full py-2 text-slate-500 hover:text-white transition-all text-xs font-bold"
+                            >
+                                Switch to Emergency OTP
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="space-y-4 animate-fade-in">
+                            <button 
+                                onClick={() => setShowOTPModal(true)}
+                                className="w-full py-4 bg-white/5 border border-white/10 rounded-xl text-white font-black hover:bg-white/10 transition-all text-sm mb-2"
+                            >
+                                Emergency OTP Access
+                            </button>
+                            <button 
+                                onClick={() => setLoginType('credentials')}
+                                className="w-full py-4 bg-slate-800 rounded-xl text-slate-300 font-bold hover:bg-slate-700 transition-all text-sm"
+                            >
+                                Admin Credentials Login
+                            </button>
+                        </div>
+                    )}
+
+                    <div className="mt-8 pt-6 border-t border-white/5">
+                        <button 
+                            onClick={() => navigate('/')}
+                            className="text-slate-500 hover:text-white transition-all text-sm font-bold flex items-center justify-center gap-2 mx-auto"
+                        >
+                            <RefreshCw size={14} /> Return to Storefront
+                        </button>
+                    </div>
                 </div>
 
 
@@ -458,6 +522,10 @@ const AdminPanel = () => {
                             <Terminal size={20} className="shrink-0" /> 
                             {sidebarOpen && <span className="animate-fade-in">Developer Console</span>}
                         </Link>
+                        <a href="http://localhost:8000/admin/" target="_blank" rel="noopener noreferrer" title={!sidebarOpen ? "Django Admin" : ''} className="group w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold text-slate-400 hover:bg-slate-50 hover:text-indigo-600 transition-all mt-1">
+                            <ShieldCheck size={20} className="shrink-0" />
+                            {sidebarOpen && <span className="animate-fade-in">System Database</span>}
+                        </a>
                     </div>
                 </nav>
 

@@ -91,6 +91,8 @@ const Home = () => {
         return <IconComponent size={28} />;
     };
 
+    const activeBanner = banners[currentBanner] || DEFAULT_BANNERS[0];
+
     return (
         <div className="bg-background min-h-screen text-primary overflow-x-hidden">
             {/* Hero Section with Parallax-style transition */}

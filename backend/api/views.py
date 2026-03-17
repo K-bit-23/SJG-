@@ -1,5 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from django.contrib.auth import authenticate, login
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from rest_framework import status
@@ -1647,3 +1649,30 @@ def api_root_view(request):
     return render(request, 'api_root.html', {
         'year': datetime.now().year,
     })
+
+class AdminLoginView(APIView):
+    """Secure login for admin panel using Django superuser credentials"""
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        if not username or not password:
+            return Response({'error': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None and user.is_superuser:
+            login(request, user)
+            return Response({
+                'status': 'success', 
+                'user': {
+                    'username': user.username,
+                    'email': user.email,
+                    'is_staff': user.is_staff,
+                    'is_superuser': user.is_superuser
+                }
+            })
+        
+        return Response({'status': 'error', 'message': 'Invalid admin credentials'}, status=status.HTTP_401_UNAUTHORIZED)

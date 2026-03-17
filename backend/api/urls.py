@@ -34,6 +34,7 @@ from .views import (
     TestEmailView,
     OrderInvoiceView,
     SystemStatsView,
+    AdminLoginView,
     api_root_view
 )
 from .payment_views import (
@@ -97,6 +98,7 @@ urlpatterns = [
     path('test-email/', TestEmailView.as_view(), name='test-email'),
     path('user-settings/<str:email>/', UserSettingsView.as_view(), name='user-settings'),
     path('system/stats/', SystemStatsView.as_view(), name='system-stats'),
+    path('admin-login/', AdminLoginView.as_view(), name='admin-login'),
     path('root/', api_root_view, name='api-root-html'),
 ]
 
