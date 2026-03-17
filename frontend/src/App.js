@@ -54,14 +54,14 @@ const Layout = ({ children }) => {
   const isHomePage = location.pathname === '/';
 
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--background)] transition-colors duration-300">
+    <div className="flex flex-col min-h-screen transition-colors duration-300">
       <NotificationBar />
       {!isAdminPage && <Navbar />}
       {!isAdminPage && <WhatsAppButton />}
       {!isAdminPage && <ChatBot />}
       {!isAdminPage && <FloatingShortcut />}
       {!isAdminPage && <ScrollToTop />}
-      <main className={isAdminPage ? '' : 'flex-grow'}>
+      <main className={isAdminPage ? '' : 'flex-grow pt-16'}>
         {children}
       </main>
       {!isAdminPage && <Footer />}

@@ -22,22 +22,21 @@ const NotificationBar = () => {
 
     return (
         <>
-            {/* Global Persistent Callout / Banner */}
+            {/* Global Persistent Callout / Banner - fixed so it doesn't push layout */}
             {callout && (
-                <div className="bg-white border-b border-gray-100 flex justify-center py-2 px-4 shadow-sm relative group overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-secondary/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                <div className="fixed top-0 left-0 right-0 z-[60] bg-indigo-600 flex justify-center py-1.5 px-4 shadow-sm">
                     <div className="max-w-7xl w-full flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <span className="flex h-2 w-2 relative shrink-0">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-secondary"></span>
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
                             </span>
-                            <p className="text-sm font-semibold text-gray-800 tracking-tight">
-                                {callout.title && <span className="text-secondary mr-2">{callout.title}</span>}
+                            <p className="text-sm font-semibold text-white tracking-tight">
+                                {callout.title && <span className="text-yellow-300 mr-2">{callout.title}</span>}
                                 {callout.message}
                             </p>
                         </div>
-                        <button onClick={clearCallout} className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-400">
+                        <button onClick={clearCallout} className="p-1 hover:bg-white/20 rounded-full transition-colors text-white/80">
                             <X size={14} />
                         </button>
                     </div>

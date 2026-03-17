@@ -37,9 +37,11 @@
 
     body {
         @apply transition-colors duration-300;
-        background-color: var(--background);
+        background-color: #ffffff;
         color: var(--primary);
         font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
     }
 }
 

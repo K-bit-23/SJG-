@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { ShoppingBag, ShoppingCart, Search, Menu, X, LogIn, Home, Grid, ChevronDown, Settings, LogOut, ShieldCheck, Package, User, Heart, Clock, BellRing, Smile, CheckCircle, Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -27,14 +27,14 @@ const Navbar = () => {
     const { cart } = useCart();
     const { t } = useLanguage();
     const [searchTerm, setSearchTerm] = useState('');
-    
+
     // Auth and Admin states
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [adminModalOpen, setAdminModalOpen] = useState(false);
     const [adminError, setAdminError] = useState('');
     const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' });
     const [showAdminPassword, setShowAdminPassword] = useState(false);
-    
+
     // Bumping states for cart/wishlist
     const [isCartBumping, setIsCartBumping] = useState(false);
     const [isWishlistBumping, setIsWishlistBumping] = useState(false);
@@ -174,7 +174,7 @@ const Navbar = () => {
     return (
         <>
 
-            <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md' : 'bg-white shadow-sm'}`}>
+            <nav className={`fixed top-0 left-0 w-full h-16 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md' : 'bg-white shadow-sm'}`}>
                 <div className="max-w-7xl mx-auto px-4 lg:px-6">
                     <div className="flex items-center justify-between h-16">
                         {/* Navigation Structure: Logo | Home | Products | [Search] | My Orders */}
@@ -192,7 +192,6 @@ const Navbar = () => {
                                     <Grid size={16} /> {t('products')}
                                 </Link>
 
-                                {/* Center: Search Bar Integrated */}
                                 <div className="flex-1 max-w-md mx-4">
                                     <form onSubmit={handleSearch} className="relative">
                                         <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -219,11 +218,11 @@ const Navbar = () => {
                             {/* Notifications */}
                             {user && (
                                 <div className="relative notifications-dropdown flex items-center">
-                                    <button 
-                                        onClick={(e) => { 
-                                            e.stopPropagation(); 
-                                            setNotificationsOpen(!notificationsOpen); 
-                                            setProfileDropdownOpen(false); 
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setNotificationsOpen(!notificationsOpen);
+                                            setProfileDropdownOpen(false);
                                         }}
                                         className={`relative p-2.5 hover:bg-gray-100 rounded-full transition-all group`}
                                         title="Notifications"
@@ -240,10 +239,10 @@ const Navbar = () => {
                                         <div className="absolute right-0 top-full mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50 animate-fade-in cursor-default" onClick={e => e.stopPropagation()}>
                                             <div className="flex justify-between items-center p-4 border-b border-gray-100">
                                                 <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                                                        <Smile size={18} className="text-primary"/> Notifications
+                                                    <Smile size={18} className="text-primary" /> Notifications
                                                     {unreadCount > 0 && <span className="bg-[#f04f47] text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm">{unreadCount} new</span>}
                                                 </h3>
-                                                <button 
+                                                <button
                                                     className={`text-xs font-bold px-2 py-1 rounded transition-colors ${unreadCount > 0 ? 'text-primary hover:underline bg-blue-50' : 'text-gray-400 bg-gray-50 cursor-not-allowed'}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -254,11 +253,11 @@ const Navbar = () => {
                                                     Mark all read
                                                 </button>
                                             </div>
-                                                    <div className="max-h-[60vh] overflow-y-auto">
+                                            <div className="max-h-[60vh] overflow-y-auto">
                                                 {notifications.length > 0 ? (
                                                     notifications.map((notif, index) => (
-                                                        <div 
-                                                            key={notif.id || index} 
+                                                        <div
+                                                            key={notif.id || index}
                                                             onClick={() => {
                                                                 if (notif.order_id) {
                                                                     navigate(`/track-order/${notif.order_id}`);
@@ -267,16 +266,15 @@ const Navbar = () => {
                                                             }}
                                                             className={`p-4 border-b border-gray-50 hover:bg-gray-50 flex gap-4 transition-colors cursor-pointer ${!notif.is_read ? 'bg-blue-50/30' : ''}`}
                                                         >
-                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                                                                notif.type === 'completed' ? 'bg-green-100' : 
-                                                                notif.type === 'processing' ? 'bg-orange-100' : 
-                                                                notif.type === 'cancelled' ? 'bg-red-100' : 
-                                                                notif.type === 'placed' ? 'bg-purple-100' : 'bg-blue-100'
-                                                            }`}>
-                                                                {notif.type === 'completed' ? <CheckCircle size={18} className="text-green-600"/> : 
-                                                                 notif.type === 'processing' ? <Package size={18} className="text-orange-600"/> : 
-                                                                 notif.type === 'placed' ? <CheckCircle size={18} className="text-purple-600"/> : 
-                                                                 <Package size={18} className="text-blue-600"/>}
+                                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${notif.type === 'completed' ? 'bg-green-100' :
+                                                                    notif.type === 'processing' ? 'bg-orange-100' :
+                                                                        notif.type === 'cancelled' ? 'bg-red-100' :
+                                                                            notif.type === 'placed' ? 'bg-purple-100' : 'bg-blue-100'
+                                                                }`}>
+                                                                {notif.type === 'completed' ? <CheckCircle size={18} className="text-green-600" /> :
+                                                                    notif.type === 'processing' ? <Package size={18} className="text-orange-600" /> :
+                                                                        notif.type === 'placed' ? <CheckCircle size={18} className="text-purple-600" /> :
+                                                                            <Package size={18} className="text-blue-600" />}
                                                             </div>
                                                             <div>
                                                                 <p className="text-sm font-bold text-gray-800">{notif.title}</p>
@@ -453,19 +451,7 @@ const Navbar = () => {
                         </div>
                     </div>
 
-                    {/* Mobile Search */}
-                    <div className="md:hidden pb-3">
-                        <form onSubmit={handleSearch} className="relative">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder={t('searchplaceholder')}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 bg-gray-100 rounded-full text-sm outline-none"
-                            />
-                        </form>
-                    </div>
+
                 </div>
             </nav>
             <style>
@@ -600,7 +586,7 @@ const Navbar = () => {
                                         placeholder="••••••••"
                                         className="w-full pl-9 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-400/40 focus:border-amber-400 transition-all"
                                     />
-                                    <button 
+                                    <button
                                         type="button"
                                         onClick={() => setShowAdminPassword(!showAdminPassword)}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
@@ -642,9 +628,9 @@ const Navbar = () => {
             `}</style>
 
             {/* ── Auth Modal ── */}
-            <AuthModal 
-                isOpen={isAuthModalOpen} 
-                onClose={() => setIsAuthModalOpen(false)} 
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
             />
 
         </>
