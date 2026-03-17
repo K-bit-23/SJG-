@@ -14,28 +14,52 @@ if (process.defaultApp) {
   app.setAsDefaultProtocolClient('sjg-app');
 }
 
+app.commandLine.appendSwitch('ignore-certificate-errors');
+app.commandLine.appendSwitch('allow-insecure-localhost');
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    show: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      webSecurity: false, // Temporary for debugging blank screen
     },
     icon: path.join(__dirname, 'assets/icon.png')
   });
 
   const liveUrl = 'https://sjg-stationary.vercel.app/';
   
-  if (isDev) {
-    mainWindow.loadURL(liveUrl);
-    mainWindow.webContents.openDevTools();
-  } else {
-    mainWindow.loadFile(path.join(__dirname, '../frontend/build/index.html')).catch(() => {
-      mainWindow.loadURL(liveUrl);
-    });
-  }
+  // Set User Agent to include Electron so frontend detection works
+  mainWindow.webContents.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SJG-Desktop/1.0.0 Electron");
+
+  console.log("Launching SJG Store...");
+  mainWindow.loadURL(liveUrl).catch(err => {
+    console.error("Critical Load Error:", err);
+  });
+
+  // Pipe console errors from app to terminal
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    if (level >= 2) { // 2 = Warning, 3 = Error
+      console.log(`[App Console] ${message} (Line: ${line})`);
+    }
+  });
+
+  // Still open DevTools to help us see the fix
+  mainWindow.webContents.openDevTools();
+
+  // Handle errors and retries
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+    console.warn(`Load failed: ${errorDescription}. Retrying in 3s...`);
+    setTimeout(() => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.loadURL(liveUrl);
+      }
+    }, 3000);
+  });
 
   // Intercept navigation to Clerk/Auth URLs
   mainWindow.webContents.on('will-navigate', (event, url) => {

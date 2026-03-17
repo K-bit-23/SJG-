@@ -1,22 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SJG Systems | Core Operations Center</title>
+    <title>SJG Systems | Operations Command Center</title>
 
-    <!-- Tailwind CDN (fast, no build step) -->
+    <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Fonts -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <style>
         :root {
             --primary: #6366f1;
+            --secondary: #a855f7;
+            --accent: #22d3ee;
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
@@ -25,523 +24,436 @@
             --slate-800: #1e293b;
         }
 
-        html,
+        * {
+            cursor: default;
+        }
+
         body {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        html, body {
             height: 100%;
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background: radial-gradient(circle at top, rgba(99, 102, 241, 0.18), transparent 55%),
-                radial-gradient(circle at bottom, rgba(16, 185, 129, 0.2), transparent 55%),
-                var(--slate-950);
-            color: #f8fafc;
             margin: 0;
-            padding: 0;
-            overflow-x: hidden;
+            background-color: var(--slate-950);
+            color: #f8fafc;
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
         }
 
-        .glass {
-            background: rgba(15, 23, 42, 0.52);
-            backdrop-filter: blur(13px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .bento-card {
-            border-radius: 1.5rem;
-            padding: 1.6rem;
-            transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
-        }
-
-        .bento-card:hover {
-            transform: translateY(-2px);
-            background: rgba(30, 41, 59, 0.55);
-            border-color: rgba(99, 102, 241, 0.28);
-        }
-
-        .mono {
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .log-stream {
-            font-size: 12px;
-            line-height: 1.6;
-        }
-
-        .log-info {
-            color: #94a3b8;
-        }
-
-        .log-success {
-            color: #34d399;
-        }
-
-        .log-warn {
-            color: #fbbf24;
-        }
-
-        .log-error {
-            color: #f87171;
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 10px;
-        }
-
-        @keyframes pulse-soft {
-            0%,
-            100% {
-                opacity: 0.1;
-            }
-
-            50% {
-                opacity: 0.2;
-            }
+        /* Background Effects */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: -2;
+            mask-image: radial-gradient(circle at 50% 50%, black, transparent 80%);
         }
 
         .bg-glow {
             position: fixed;
-            width: 100vw;
-            height: 100vh;
-            background: radial-gradient(circle at 50% 50%, rgba(79, 70, 229, 0.12) 0%, transparent 55%);
-            pointer-events: none;
+            width: 150vw;
+            height: 150vh;
+            top: -25%;
+            left: -25%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15), transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.1), transparent 40%);
             z-index: -1;
-            animation: pulse-soft 10s infinite;
+            filter: blur(100px);
+            animation: drift 30s infinite alternate ease-in-out;
         }
 
-        .health-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.3rem 0.6rem;
-            border-radius: 9999px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        @keyframes drift {
+            from { transform: translate(-5%, -5%) scale(1) rotate(0deg); }
+            to { transform: translate(5%, 5%) scale(1.1) rotate(5deg); }
         }
 
-        .health-pill span {
-            width: 0.75rem;
-            height: 0.75rem;
-            border-radius: 9999px;
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .bento-card {
+            border-radius: 2.25rem;
+            padding: 2.25rem;
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bento-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(99, 102, 241, 0.35);
+            background: rgba(30, 41, 59, 0.65);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #22d3ee 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
             display: inline-block;
         }
 
-        .health-pill.ok span {
-            background: rgba(16, 185, 129, 0.8);
-            box-shadow: 0 0 0 0.1rem rgba(16, 185, 129, 0.3);
+        .status-dot.active {
+            background: var(--success);
+            box-shadow: 0 0 20px var(--success);
+            animation: pulse-green 2s infinite;
         }
 
-        .health-pill.warn span {
-            background: rgba(250, 204, 21, 0.85);
-            box-shadow: 0 0 0 0.1rem rgba(250, 204, 21, 0.3);
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
         }
 
-        .health-pill.alert span {
-            background: rgba(239, 68, 68, 0.85);
-            box-shadow: 0 0 0 0.1rem rgba(239, 68, 68, 0.3);
+        .terminal-log {
+            font-size: 11px;
+            color: #94a3b8;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            display: flex;
+            gap: 15px;
+            animation: slideIn 0.3s forwards;
         }
 
-        .smoke {
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 10px; }
+
+        .tab-btn {
+            position: relative;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            color: white;
+        }
+        .tab-btn.active::after {
+            content: '';
             position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background: radial-gradient(circle at 30% 40%, rgba(99, 102, 241, 0.14), transparent 60%),
-                radial-gradient(circle at 70% 70%, rgba(16, 185, 129, 0.12), transparent 55%);
-            opacity: 0.9;
+            bottom: -15px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 10px;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .ping-visual { display: flex; align-items: flex-end; gap: 2px; height: 30px; }
+        .ping-bar { width: 3px; background: var(--primary); border-radius: 1px; transition: height 0.3s; }
+
+        .diagnostic-badge {
+            padding: 1rem;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
     </style>
 </head>
-<body class="p-6 md:p-12 lg:p-16 min-h-screen">
+<body class="p-4 md:p-8 lg:p-10 h-full flex flex-col gap-6">
+    <div class="bg-grid"></div>
     <div class="bg-glow"></div>
 
-    <div class="max-w-7xl mx-auto space-y-8">
-        <!-- Header -->
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-3xl bg-gradient-to-br from-indigo-500 via-blue-500 to-purple-500 shadow-[0_18px_40px_rgba(99,102,241,0.25)] flex items-center justify-center">
-                    <img src="/static/logo.png" alt="SJG Logo" class="w-7 h-7 object-contain">
+    <!-- NAVIGATION HEADER -->
+    <header class="flex justify-between items-center shrink-0">
+        <div class="flex items-center gap-6">
+            <div class="relative w-14 h-14 bg-slate-950 rounded-2xl flex items-center justify-center border border-white/10 overflow-hidden shadow-2xl">
+                <img src="/static/logo.png" alt="SJG" class="w-8 h-8 object-contain">
+                <div class="absolute inset-0 bg-gradient-to-t from-indigo-500/20 to-transparent"></div>
+            </div>
+            <div>
+                <h1 class="text-2xl font-black tracking-tighter text-white flex items-center gap-2">
+                    SJG <span class="gradient-text">COMMAND_CENTER</span>
+                </h1>
+                <nav class="flex gap-8 mt-4">
+                    <button onclick="switchTab('dashboard')" class="tab-btn active text-slate-500 text-xs font-black uppercase tracking-widest" id="btn-dashboard">Overview</button>
+                    <button onclick="switchTab('system')" class="tab-btn text-slate-500 text-xs font-black uppercase tracking-widest" id="btn-system">Infrastructure</button>
+                    <button onclick="switchTab('diagnostics')" class="tab-btn text-slate-500 text-xs font-black uppercase tracking-widest" id="btn-diagnostics">Diagnostics</button>
+                </nav>
+            </div>
+        </div>
+
+        <div id="global-status" class="flex items-center gap-4 bg-white/5 border border-white/10 px-6 py-3 rounded-[2rem]">
+            <span class="status-dot active"></span>
+            <span class="text-[10px] font-black text-white/60 uppercase tracking-[0.3em] mono">KERNEL::NOMINAL</span>
+        </div>
+    </header>
+
+    <!-- CONTENT AREA -->
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+        
+        <!-- DASHBOARD TAB -->
+        <div id="tab-dashboard" class="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-6 h-full tab-content">
+            <!-- Stats -->
+            <div class="lg:col-span-8 flex flex-col gap-6 min-h-0">
+                <div class="h-1/2 glass bento-card flex flex-col justify-end">
+                    <h2 class="text-5xl font-black text-white tracking-tighter leading-none mb-4 uppercase">Ops<br/><span class="gradient-text italic">Neural Overlay</span></h2>
+                    <p class="text-slate-400 max-w-sm text-sm font-medium">Monitoring distributed architecture, logistics telemetry, and secure payment orchestration in real-time.</p>
                 </div>
-                <div>
-                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">SJG <span class="text-indigo-300">Systems</span></h1>
-                    <p class="text-slate-400 text-xs font-medium uppercase tracking-widest">Operations Command Center</p>
+                <div class="h-1/2 glass bento-card flex flex-col min-h-0">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-[10px] font-black text-white uppercase tracking-[0.4em] mono">Signal_Stream.log</span>
+                        <div class="flex gap-1.5"><div class="w-2.5 h-2.5 rounded-full bg-slate-800"></div><div class="w-2.5 h-2.5 rounded-full bg-slate-800"></div></div>
+                    </div>
+                    <div id="terminal" class="flex-1 overflow-y-auto custom-scrollbar flex flex-col-reverse mono px-2">
+                        <div class="terminal-log"><span class="timestamp text-indigo-400">00:00:00</span> <span class="tag text-emerald-400 font-bold">[SYNC]</span> <span class="content">Secure channel verified. SJG Node Active.</span></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="glass border border-white/10 bg-slate-900/40 py-3 px-4 rounded-2xl shadow-lg flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                <div class="text-xs text-slate-400 uppercase tracking-widest">System Status</div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <div class="health-pill ok" id="global-health-pill">
-                        <span></span>
-                        <span id="global-health-text">HEALTH: 100% NOMINAL</span>
+            <!-- Side Cards -->
+            <div class="lg:col-span-4 grid grid-cols-1 gap-6">
+                <div class="glass bento-card bg-gradient-to-br from-indigo-500/10 to-transparent">
+                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 block">Aggregated Revenue</span>
+                    <div class="text-5xl font-black text-white tabular-nums tracking-[-4px]" id="stat-revenue">₹0</div>
+                </div>
+                <div class="grid grid-cols-2 gap-6 shrink-0">
+                    <div class="glass bento-card p-6 flex flex-col justify-between">
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Orders</span>
+                        <div class="text-3xl font-black text-white" id="stat-orders">0</div>
                     </div>
-                    <div class="health-pill ok" id="system-status-pill">
-                        <span></span>
-                        <span id="system-status-text">STATUS: OPERATIONAL</span>
+                    <div class="glass bento-card p-6 flex flex-col justify-between">
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Items</span>
+                        <div class="text-3xl font-black text-white" id="stat-products">0</div>
+                    </div>
+                </div>
+                <div class="glass bento-card flex-1 overflow-y-auto custom-scrollbar p-6">
+                    <span class="text-[10px] font-black text-white uppercase tracking-[0.3em] font-mono mb-6 block">Quick_Access_Gateways</span>
+                    <div class="space-y-3">
+                        <a href="/admin/" class="block p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-indigo-500/30 transition-all text-xs font-bold">Admin Control Panel</a>
+                        <a href="/api/products/" class="block p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-indigo-500/30 transition-all text-xs font-bold">Products API</a>
+                        <a href="/api/health/" class="block p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-indigo-500/30 transition-all text-xs font-bold">Health Heartbeat</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Main Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <!-- Hero -->
-            <div class="lg:col-span-8 glass bento-card relative overflow-hidden">
-                <div class="smoke"></div>
-                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.2),_transparent_55%)]"></div>
-                <div class="relative z-10">
-                    <h2 class="text-4xl md:text-5xl font-bold tracking-tight text-white">
-                        Precision orchestration for <span class="gradient-text">modern commerce</span>
-                    </h2>
-                    <p class="mt-4 text-slate-300 text-lg max-w-xl leading-relaxed font-light">
-                        Integrated backend infrastructure powering high-speed stationery retail and enterprise logistics.
-                    </p>
+        <!-- DIAGNOSTICS TAB -->
+        <div id="tab-diagnostics" class="lg:col-span-12 glass bento-card h-full hidden tab-content overflow-y-auto custom-scrollbar">
+            <div class="max-w-4xl mx-auto space-y-12 py-8">
+                <div class="flex items-center justify-between border-b border-white/10 pb-8">
+                    <div>
+                        <h3 class="text-3xl font-black text-white tracking-tighter uppercase italic gradient-text">Diagnostic Dashboard</h3>
+                        <p class="text-slate-500 text-sm mt-1 font-medium tracking-wide">Manual inspection and service probing protocols.</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button onclick="runDiagnostic('email')" class="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20 active:scale-95">Probe SMTP</button>
+                        <button onclick="runDiagnostic('health')" class="px-6 py-3 bg-white hover:bg-slate-100 text-slate-900 rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">Verify Health</button>
+                    </div>
+                </div>
 
-                    <div id="error-banner" class="hidden mt-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm font-medium flex items-center gap-3">
-                        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-red-500/20">
-                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 9v2m0 4h.01" />
-                                <path d="M21.43 16.89A9 9 0 1 0 4.22 5.47" />
-                            </svg>
-                        </span>
-                        <div>
-                            <div class="font-semibold">CRITICAL: Connectivity anomaly detected.</div>
-                            <div class="text-xs text-red-200 opacity-80">Check heartbeat logs for more details.</div>
+                <!-- Last result display -->
+                <div id="diag-results" class="bg-black/40 rounded-[2rem] border border-white/5 p-8 min-h-[300px] flex flex-col">
+                    {% if initial_view == 'diagnostic' %}
+                        <!-- Render results if passed from view -->
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-{{ result.status == 'success' ? 'emerald' : 'rose' }}-500 shadow-xl">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="{{ result.status == 'success' ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12' }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-black text-white uppercase italic tracking-tighter">{{ result.status == 'success' ? 'Transmission Successful' : 'Signal Failure Detected' }}</h4>
+                                <p class="text-{{ result.status == 'success' ? 'emerald' : 'rose' }}-400 text-xs font-bold tracking-widest">{{ result.message }}</p>
+                            </div>
+                        </div>
+
+                        {% if result.status == 'error' %}
+                        <div class="bg-rose-500/5 border border-rose-500/20 rounded-3xl p-6 mb-8">
+                            <span class="text-[10px] font-black text-rose-500 uppercase tracking-[0.3em] mb-3 block">Analysis_Hint</span>
+                            <p class="text-sm text-slate-200 font-bold leading-relaxed">{{ result.diagnostic_hint }}</p>
+                        </div>
+                        {% endif %}
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                            {% for key, val in result.config_diagnostics.items %}
+                            <div class="diagnostic-badge">
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">{{ key }}</span>
+                                <span class="text-xs font-bold text-white mono truncate block">{{ val }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="flex-1 mt-auto">
+                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4 block">Trace_Log</span>
+                            <pre class="bg-black/50 p-6 rounded-2xl text-[10px] text-slate-400 mono overflow-x-auto border border-white/5 custom-scrollbar">{{ result.details|default:"No trace data available for this operation." }}</pre>
+                        </div>
+                    {% else %}
+                        <div class="m-auto text-center space-y-4">
+                            <div class="w-20 h-20 mx-auto rounded-3xl bg-white/5 flex items-center justify-center text-slate-700 animate-pulse">
+                                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            </div>
+                            <p class="text-slate-500 text-xs font-black uppercase tracking-[0.5em]">Awaiting Instruction...</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- INFRASTRUCTURE TAB -->
+        <div id="tab-system" class="lg:col-span-12 glass bento-card hidden tab-content overflow-hidden">
+             <div class="h-full flex flex-col gap-12 p-8 overflow-y-auto custom-scrollbar">
+                <div class="flex flex-col md:flex-row gap-12">
+                    <div class="flex-1 space-y-12">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-end">
+                                <span class="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] font-mono">Telemetry.sys::Processor_Load</span>
+                                <span id="cpu-val" class="text-white text-xl font-black mono tracking-tighter">0%</span>
+                            </div>
+                            <div class="h-3 w-full bg-white/5 rounded-full p-[2px]">
+                                <div id="cpu-bar" class="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full transition-all duration-1000 shadow-[0_0_15px_#6366f1]" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-end">
+                                <span class="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] font-mono">Telemetry.sys::Heap_Allocation</span>
+                                <span id="mem-val" class="text-white text-xl font-black mono tracking-tighter">0 MB</span>
+                            </div>
+                            <div class="h-3 w-full bg-white/5 rounded-full p-[2px]">
+                                <div id="mem-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-400 rounded-full transition-all duration-1000 shadow-[0_0_15px_#a855f7]" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-80 space-y-12">
+                         <div class="space-y-4">
+                            <span class="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] font-mono">Latency Oscilloscope</span>
+                            <div class="glass rounded-3xl p-6 h-32 flex items-end justify-center gap-1.5" id="ping-oscilloscope">
+                                <div class="ping-bar h-[10%]"></div><div class="ping-bar h-[40%]"></div><div class="ping-bar h-[25%]"></div><div class="ping-bar h-[60%]"></div><div class="ping-bar h-[30%]"></div><div class="ping-bar h-[45%]"></div><div class="ping-bar h-[20%]"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Region Card -->
-            <div class="lg:col-span-4 glass bento-card flex flex-col justify-between items-center text-center">
-                <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Server Region</p>
-                    <h3 class="mt-3 text-3xl font-bold tracking-tight text-white">INDIA SOUTH</h3>
-                    <p class="text-indigo-300 font-medium text-sm">Cluster::OPERATIONAL</p>
-                </div>
-                <div id="digital-clock" class="mt-6 text-3xl mono text-slate-200 font-semibold">00:00:00</div>
-                <div class="mt-6 w-full bg-slate-800/40 rounded-2xl p-4">
-                    <p class="text-xs text-slate-500 uppercase tracking-widest">Server Tick</p>
-                    <p class="mt-1 text-sm font-semibold text-slate-200">Stable · 24/7</p>
-                </div>
-            </div>
-
-            <!-- Metrics panels -->
-            <div class="lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="glass bento-card flex flex-col gap-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                            Network Latency
-                        </span>
-                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M13 10V3L4 14h7v7l9-11h-7z"
-                            />
-                        </svg>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="diagnostic-badge flex items-center justify-between">
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global Latency</span> 
+                        <span id="ping-summary" class="text-white font-black mono">-- MS</span>
                     </div>
-                    <div class="flex items-baseline gap-2">
-                        <span id="ping" class="text-3xl font-bold tabular-nums">--</span>
-                        <span class="text-slate-500 text-xs font-bold uppercase">ms</span>
+                    <div class="diagnostic-badge flex items-center justify-between">
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Database Node</span> 
+                        <span class="text-emerald-400 font-black mono uppercase">SYNCED</span>
                     </div>
-                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
-                        <div id="ping-bar" class="h-full bg-indigo-500 transition-all duration-500" style="width: 0%"></div>
+                    <div class="diagnostic-badge flex items-center justify-between">
+                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Uptime Record</span> 
+                        <span class="text-white font-black mono">99.9997%</span>
                     </div>
                 </div>
-
-                <div class="glass bento-card flex flex-col gap-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                            Database Persistence
-                        </span>
-                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
-                            />
-                        </svg>
-                    </div>
-                    <div id="db-status-container" class="flex items-center gap-3">
-                        <div id="db-indicator" class="w-3 h-3 rounded-full bg-slate-700"></div>
-                        <span id="db-status-text" class="text-sm font-bold text-slate-400 uppercase tracking-wider italic">
-                            Synchronizing...
-                        </span>
-                    </div>
-                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
-                        <div id="db-bar" class="h-full bg-emerald-500" style="width: 100%"></div>
-                    </div>
-                </div>
-
-                <div class="glass bento-card flex flex-col gap-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                            Traffic Load
-                        </span>
-                        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                        </svg>
-                    </div>
-                    <div class="flex items-baseline gap-2">
-                        <span id="transfer" class="text-3xl font-bold tabular-nums">0.00</span>
-                        <span class="text-slate-500 text-xs font-bold uppercase">Req/s</span>
-                    </div>
-                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
-                        <div id="transfer-bar" class="h-full bg-purple-500 transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                </div>
-
-                <div class="glass bento-card flex flex-col gap-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                            Uptime Precision
-                        </span>
-                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                            />
-                        </svg>
-                    </div>
-                    <div class="flex items-baseline gap-2">
-                        <span id="uptime" class="text-3xl font-bold tabular-nums">99.999</span>
-                        <span class="text-slate-500 text-xs font-bold uppercase">%</span>
-                    </div>
-                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden flex gap-1">
-                        <div class="h-full bg-amber-500 grow rounded-full"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Summary cards -->
-            <div class="md:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                <div class="glass bento-card flex flex-col gap-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Latency</span>
-                        <span class="text-xs font-semibold text-indigo-400">Live</span>
-                    </div>
-                    <div class="text-3xl font-bold" id="summary-latency">-- ms</div>
-                </div>
-                <div class="glass bento-card flex flex-col gap-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Network Speed</span>
-                        <span class="text-xs font-semibold text-purple-400">Est.</span>
-                    </div>
-                    <div class="text-3xl font-bold" id="summary-speed">-- Mbps</div>
-                </div>
-                <div class="glass bento-card flex flex-col gap-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">DB Connected</span>
-                        <span class="text-xs font-semibold text-emerald-400">Status</span>
-                    </div>
-                    <div class="text-3xl font-bold" id="summary-db">---</div>
-                </div>
-                <div class="glass bento-card flex flex-col gap-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Data Transfer</span>
-                        <span class="text-xs font-semibold text-pink-400">Recent</span>
-                    </div>
-                    <div class="text-3xl font-bold" id="summary-transfer">-- MB/s</div>
-                </div>
-                <div class="glass bento-card flex flex-col gap-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Server Uptime</span>
-                        <span class="text-xs font-semibold text-amber-400">Since</span>
-                    </div>
-                    <div class="text-3xl font-bold" id="summary-uptime">--d --h</div>
-                </div>
-            </div>
-
-            <!-- Runtime logs + Endpoints -->
-            <div class="md:col-span-7 glass bento-card overflow-hidden">
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                            Runtime Intelligence Logs
-                        </span>
-                    </div>
-                    <div class="px-3 py-1 bg-slate-800 rounded-lg text-[10px] mono text-slate-400">
-                        SESSION::STABLE
-                    </div>
-                </div>
-
-                <div id="log-console" class="mono log-stream h-64 overflow-y-auto space-y-2 px-2 custom-scrollbar">
-                    <div class="log-info">[SYSMON] Core telemetry stream initialized.</div>
-                    <div class="log-success">[READY] SJG Backend ready for production handshake.</div>
-                </div>
-            </div>
-
-            <div class="md:col-span-5 glass bento-card">
-                <div class="flex items-center gap-2 mb-8">
-                    <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-                        Operational Endpoints
-                    </span>
-                </div>
-                <div class="space-y-3">
-                    <a
-                        href="/api/products/"
-                        class="group flex items-center justify-between p-4 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-indigo-500/10 hover:border-indigo-500/40 transition-all"
-                    >
-                        <span class="text-sm font-medium text-slate-300 group-hover:text-white">Product Collection</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-indigo-500/10 text-indigo-400">GET</span>
-                    </a>
-                    <a
-                        href="/api/orders/"
-                        class="group flex items-center justify-between p-4 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-purple-500/10 hover:border-purple-500/40 transition-all"
-                    >
-                        <span class="text-sm font-medium text-slate-300 group-hover:text-white">Orders Pipeline</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-purple-500/10 text-purple-400">POST</span>
-                    </a>
-                    <a
-                        href="/admin/"
-                        class="group flex items-center justify-between p-4 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-rose-500/10 hover:border-rose-500/40 transition-all"
-                    >
-                        <span class="text-sm font-medium text-slate-300 group-hover:text-white">Admin Terminal</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-rose-500/10 text-rose-400">SECURE</span>
-                    </a>
-                    <a
-                        href="/api/health/"
-                        class="group flex items-center justify-between p-4 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all"
-                    >
-                        <span class="text-sm font-medium text-slate-300 group-hover:text-white">System Heartbeat</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-emerald-500/10 text-emerald-400">INFO</span>
-                    </a>
-                    <a
-                        href="/api/test-email/"
-                        class="group flex items-center justify-between p-4 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-amber-500/10 hover:border-amber-500/40 transition-all"
-                    >
-                        <span class="text-sm font-medium text-slate-300 group-hover:text-white">Mail Logic Monitor</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-amber-500/10 text-amber-400">DEBUG</span>
-                    </a>
-                    <a
-                        href="#"
-                        class="group flex items-center justify-between p-4 rounded-xl border border-white/5 bg-slate-900/40 hover:bg-cyan-500/10 hover:border-cyan-500/40 transition-all"
-                    >
-                        <span class="text-sm font-medium text-slate-300 group-hover:text-white">Desktop Application</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] mono font-bold bg-cyan-500/10 text-cyan-400">CLIENT</span>
-                    </a>
-                </div>
-            </div>
+             </div>
         </div>
+    </main>
 
-        <footer class="pt-12 pb-8 flex flex-col items-center gap-4">
-            <div class="h-px w-24 bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
-            <p class="text-slate-600 text-[10px] font-bold uppercase tracking-[0.5em]">
-                SJG Core Infrastructure • &copy; {{ year }} Virtual Operations
-            </p>
-        </footer>
-    </div>
+    <footer class="flex justify-between items-center py-4 border-t border-white/5 mt-auto shrink-0">
+        <div class="text-[10px] font-black text-slate-600 uppercase tracking-[0.8em]">SJG Infrastructure v2.5.0-STABLE</div>
+        <div class="text-[9px] font-bold text-slate-500 uppercase tracking-widest border border-white/5 px-4 py-1.5 rounded-full">&copy; {{ year }} SJG Stationery Group</div>
+        <div id="digital-clock" class="text-xl font-black text-white mono opacity-80">00:00:00</div>
+    </footer>
 
-    <script>
+    <script shadow="true">
+        const initialTab = "{{ initial_view|default:'dashboard' }}";
+        
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.getElementById('btn-' + tabId).classList.add('active');
+            
+            // If tab is diagnostics, make sure results container is clean if it was just a manual switch
+            // But we keep it if was an initial load with results
+        }
+
+        function runDiagnostic(type) {
+            if (type === 'email') window.location.href = '/api/test-email/?format=html';
+            if (type === 'health') window.location.href = '/api/health/?format=html';
+        }
+
         function updateClock() {
             const now = new Date();
-            const time = now.toLocaleTimeString('en-US', {
-                hour12: false,
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-            document.getElementById('digital-clock').innerText = time;
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('digital-clock').innerText = `${h}:${m}:${s}`;
         }
-
-        let serverStartTime = Date.now();
-
-        function setStatusPill(pillId, text, type) {
-            const pill = document.getElementById(pillId);
-            if (!pill) return;
-            pill.className = `health-pill ${type}`;
-            pill.querySelector('span:last-child').innerText = text;
-        }
-
-        function updateMetrics() {
-            const start = Date.now();
-            fetch('/api/health/')
-                .then(response => response.json())
-                .then(data => {
-                    const latency = Date.now() - start;
-                    document.getElementById('ping').innerText = latency;
-                    document.getElementById('summary-latency').innerText = `${latency} ms`;
-
-                    const pingPercentage = Math.min(100, (latency / 400) * 100);
-                    document.getElementById('ping-bar').style.width = `${pingPercentage}%`;
-
-                    const dbText = document.getElementById('db-status-text');
-                    const dbInd = document.getElementById('db-indicator');
-                    const dbSummary = document.getElementById('summary-db');
-                    const errorBanner = document.getElementById('error-banner');
-
-                    const isHealthy = data.mongodb === 'connected' && data.status === 'healthy';
-
-                    if (isHealthy) {
-                        dbText.innerText = 'DATABASE OPTIMIZED';
-                        dbText.className = 'text-sm font-bold text-emerald-400 tracking-wide';
-                        dbInd.className = 'w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_18px_rgba(16,185,129,0.35)]';
-                        dbSummary.innerText = 'Connected';
-                        errorBanner.classList.add('hidden');
-                        setStatusPill('system-status-pill', 'STATUS: OPERATIONAL', 'ok');
-                        setStatusPill('global-health-pill', 'HEALTH: 100% NOMINAL', 'ok');
-                    } else {
-                        dbText.innerText = 'LINK DISRUPTED';
-                        dbText.className = 'text-sm font-bold text-red-500 tracking-wide';
-                        dbInd.className = 'w-3 h-3 rounded-full bg-red-500 shadow-[0_0_18px_rgba(239,68,68,0.35)]';
-                        dbSummary.innerText = 'Disconnected';
-                        errorBanner.classList.remove('hidden');
-                        setStatusPill('system-status-pill', 'STATUS: DEGRADED', 'alert');
-                        setStatusPill('global-health-pill', 'HEALTH: DEGRADED', 'alert');
-                    }
-
-                    const serverUptime = Math.max(0, Date.now() - serverStartTime);
-                    const uptimeHours = Math.floor(serverUptime / 36e5);
-                    const uptimeMinutes = Math.floor((serverUptime % 36e5) / 60000);
-                    document.getElementById('summary-uptime').innerText = `${uptimeHours}h ${uptimeMinutes}m`;
-
-                    const transfer = (Math.random() * 3 + 0.8).toFixed(2);
-                    const speed = (Math.random() * 40 + 70).toFixed(1);
-                    document.getElementById('summary-transfer').innerText = `${transfer} MB/s`;
-                    document.getElementById('summary-speed').innerText = `${speed} Mbps`;
-                })
-                .catch(() => {
-                    document.getElementById('error-banner').classList.remove('hidden');
-                    setStatusPill('system-status-pill', 'STATUS: OFFLINE', 'alert');
-                    setStatusPill('global-health-pill', 'HEALTH: UNKNOWN', 'alert');
-                });
-        }
-
-        updateClock();
         setInterval(updateClock, 1000);
-        updateMetrics();
-        setInterval(updateMetrics, 8000);
+        updateClock();
+
+        const terminal = document.getElementById('terminal');
+        function addLog(msg, type = 'info') {
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            const tags = { 'info': '[SYS]', 'success': '[SIGN]', 'error': '[ALRT]', 'warn': '[PULS]' };
+            const colors = { 'info': 'text-indigo-400', 'success': 'text-emerald-400', 'error': 'text-rose-500', 'warn': 'text-amber-500' };
+
+            const log = document.createElement('div');
+            log.className = 'terminal-log';
+            log.innerHTML = `<span class="timestamp text-indigo-400/60">${timeStr}</span> <span class="tag ${colors[type]} font-bold">${tags[type]}</span> <span class="content">${msg}</span>`;
+            terminal.insertBefore(log, terminal.firstChild);
+            if (terminal.children.length > 40) terminal.lastChild.remove();
+        }
+
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            if(!obj) return;
+            let current = start;
+            const range = end - start;
+            const increment = range / (duration / 30);
+            const timer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    current = end; clearInterval(timer);
+                }
+                obj.innerText = id.includes('revenue') ? '₹' + Math.round(current).toLocaleString() : Math.round(current).toLocaleString();
+            }, 30);
+        }
+
+        let prev = { products: 0, orders: 0, revenue: 0 };
+        async function fetchStats() {
+            const start = Date.now();
+            try {
+                const res = await fetch('/api/system/stats/');
+                const data = await res.json();
+                
+                document.getElementById('ping-summary').innerText = (Date.now() - start) + ' MS';
+                animateValue('stat-products', prev.products, data.counts.products, 400);
+                animateValue('stat-orders', prev.orders, data.counts.orders, 400);
+                animateValue('stat-revenue', prev.revenue, data.revenue, 400);
+                prev = { products: data.counts.products, orders: data.counts.orders, revenue: data.revenue };
+
+                document.getElementById('cpu-bar').style.width = data.cpu;
+                document.getElementById('cpu-val').innerText = data.cpu;
+                document.getElementById('mem-bar').style.width = ((parseInt(data.memory) / 150) * 100) + '%';
+                document.getElementById('mem-val').innerText = data.memory;
+
+                document.querySelectorAll('.ping-bar').forEach(b => b.style.height = (Math.random() * 80 + 10) + '%');
+                
+                if (data.logs) data.logs.forEach(l => {
+                    if (!Array.from(terminal.querySelectorAll('.content')).some(c => c.innerText === l.msg)) addLog(l.msg, l.type);
+                });
+            } catch (e) { addLog('FEED_INTERRUPTED: Connection lost.', 'error'); }
+        }
+
+        fetchStats();
+        setInterval(fetchStats, 6000);
+        switchTab(initialTab);
+        addLog('Operations Kernel v2.5.0 Initialized.', 'success');
     </script>
 </body>
 </html>

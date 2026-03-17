@@ -21,6 +21,10 @@ from django.core.mail import EmailMultiAlternatives, send_mail
 from django.utils.html import strip_tags
 from django.conf import settings
 import threading
+import time
+
+# Store server start time for uptime tracking
+START_TIME = time.time()
 
 # ReportLab is used to generate PDF invoice attachments
 try:
@@ -1371,14 +1375,20 @@ class NotificationView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class HealthCheckView(APIView):
-    """Simple health check endpoint"""
+    """Simple health check endpoint with HTML support"""
     def get(self, request):
         try:
             # Check MongoDB connection
             mongo_client.get_collection('health').find_one()
-            return Response({"status": "healthy", "mongodb": "connected", "timestamp": datetime.now()})
+            status_data = {"status": "healthy", "mongodb": "connected", "timestamp": datetime.now()}
         except Exception as e:
-            return Response({"status": "degraded", "error": str(e)}, status=status.HTTP_200_OK)
+            status_data = {"status": "degraded", "error": str(e), "timestamp": datetime.now()}
+
+        # Return HTML for browser, JSON for API
+        if request.query_params.get('format') != 'json' and 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'api_root.html', {'initial_view': 'health', 'status': status_data, 'year': datetime.now().year})
+        
+        return Response(status_data, status=status.HTTP_200_OK if status_data['status'] == 'healthy' else status.HTTP_200_OK)
 
 class AppSettingsView(APIView):
     """Get and update global application settings"""
@@ -1428,7 +1438,7 @@ class AppSettingsView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TestEmailView(APIView):
-    """Enhanced diagnostic view to test SMTP settings"""
+    """Enhanced diagnostic view to test SMTP settings with HTML fallback"""
     def get(self, request):
         import traceback
         from django.core.mail import send_mail
@@ -1446,7 +1456,6 @@ class TestEmailView(APIView):
         }
 
         try:
-            # Get target email from query params or use the account user
             target = request.query_params.get('email', settings.DEFAULT_FROM_EMAIL)
             subject = "SJG SMTP Diagnostic Test"
             message = f"This is a diagnostic test from the SJG Backend Command Center.\n\nAccount Used: {settings.EMAIL_HOST_USER}\nTarget: {target}\n\nIf you see this, your SMTP settings are working correctly!"
@@ -1459,30 +1468,36 @@ class TestEmailView(APIView):
                 fail_silently=False,
             )
             
-            return Response({
+            result = {
                 "status": "success",
                 "message": f"Test email successfully DISPATCHED to {target}",
                 "count": sent,
                 "config_diagnostics": diag
-            })
+            }
         except Exception as e:
             error_msg = str(e)
             hint = "Unknown connection error."
-            
             if "BadCredentials" in error_msg or "535" in error_msg:
-                hint = "Gmail AUTHENTICATION FAILED. You MUST use a 16-character 'App Password', not your main account password. Ensure 2FA is enabled on your Google account."
+                hint = "Gmail AUTHENTICATION FAILED. Use 16-character 'App Password'."
             elif "ConnectionRefused" in error_msg or "timeout" in error_msg.lower():
-                hint = f"CONNECTION REFUSED or TIMEOUT. Port {settings.EMAIL_PORT} might be blocked by your host (Render/Cloud)."
-            elif "SMTPRecipientsRefused" in error_msg:
-                hint = "Recipients refused. Check if the recipient email address is valid."
+                hint = f"CONNECTION REFUSED on port {settings.EMAIL_PORT}. Likely blocked by Render/Host."
 
-            return Response({
+            result = {
                 "status": "error",
                 "message": error_msg,
                 "diagnostic_hint": hint,
                 "details": traceback.format_exc(),
                 "config_diagnostics": diag
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            }
+
+        if request.query_params.get('format') != 'json' and 'text/html' in request.META.get('HTTP_ACCEPT', ''):
+            return render(request, 'api_root.html', {
+                'initial_view': 'diagnostic', 
+                'result': result, 
+                'year': datetime.now().year
+            })
+
+        return Response(result, status=status.HTTP_200_OK if result['status'] == 'success' else status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class UserOrdersView(APIView):
     """Retrieve all orders for a specific user email"""
@@ -1523,6 +1538,57 @@ class OrderInvoiceView(APIView):
             return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SystemStatsView(APIView):
+    """Internal diagnostic endpoint for real-time dashboard statistics."""
+    def get(self, request):
+        try:
+            # 1. Basic Stats from MongoDB
+            products_count = mongo_client.get_collection('products').count_documents({})
+            orders_count = mongo_client.get_collection('orders').count_documents({})
+            users_count = mongo_client.get_collection('users').count_documents({})
+            msg_count = mongo_client.get_collection('contact_messages').count_documents({})
+            
+            # 2. Revenue Calculation
+            orders = list(mongo_client.get_collection('orders').find({}, {'total_amount': 1}))
+            total_revenue = sum(float(o.get('total_amount', 0)) for o in orders)
+            
+            # 3. Server Uptime
+            uptime_seconds = int(time.time() - START_TIME)
+            
+            # 4. Recent Logs (Simulated for Now, pulling latest events)
+            recent_orders = list(mongo_client.get_collection('orders').find().sort('created_at', -1).limit(3))
+            recent_msgs = list(mongo_client.get_collection('contact_messages').find().sort('created_at', -1).limit(2))
+            
+            logs = []
+            for o in recent_orders:
+                logs.append({
+                    "time": o.get('created_at', datetime.now()).strftime('%H:%M:%S'),
+                    "msg": f"ORDER INGRESS: ID {str(o.get('order_id', '...'))} processed.",
+                    "type": "success"
+                })
+            for m in recent_msgs:
+                logs.append({
+                    "time": m.get('created_at', datetime.now()).strftime('%H:%M:%S'),
+                    "msg": f"LOGIC SIGNAL: Message from {m.get('name', 'User')} received.",
+                    "type": "info"
+                })
+                
+            return Response({
+                "counts": {
+                    "products": products_count,
+                    "orders": orders_count,
+                    "users": users_count,
+                    "messages": msg_count
+                },
+                "revenue": round(total_revenue, 2),
+                "uptime": uptime_seconds,
+                "logs": sorted(logs, key=lambda x: x['time'], reverse=True),
+                "memory": f"{random.randint(45, 120)} MB", # Simulated
+                "cpu": f"{random.randint(2, 15)}%", # Simulated
+            })
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def api_root_view(request):
     """Render a modern status dashboard for the SJG backend API."""

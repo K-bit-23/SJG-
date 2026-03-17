@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    body { background-color: #020617 !important; color: #f8fafc !important; font-family: 'Outfit', sans-serif !important; }
+    #header { background: #0f172a !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important; padding: 1.5rem !important; }
+    #branding h1 { color: #818cf8 !important; font-weight: 900 !important; letter-spacing: -1px !important; }
+    .module h2, .module caption, .inline-group h2 { background: #1e293b !important; color: #94a3b8 !important; text-transform: uppercase !important; font-size: 11px !important; letter-spacing: 2px !important; }
+    div.breadcrumbs { background: #020617 !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important; color: #64748b !important; }
+    .module th, .module td { border-bottom: 1px solid rgba(255,255,255,0.02) !important; }
+    a:link, a:visited { color: #818cf8 !important; }
+    .button, input[type=submit], input[type=button], .submit-row input, a.button { background: #4f46e5 !important; border-radius: 12px !important; padding: 10px 20px !important; font-weight: bold !important; text-transform: uppercase !important; font-size: 11px !important; border: none !important; }
+    #content-main { background: transparent !important; }
+    .colMS { background: transparent !important; }
+    input[type=text], input[type=password], input[type=email], input[type=url], input[type=number], input[type=tel], textarea, select {
+        background: #1e293b !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; border-radius: 8px !important;
+    }
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">SJG <span style="color:white; opacity:0.5; font-style: italic;">CORE_ENGINE</span></a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

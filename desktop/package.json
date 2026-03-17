@@ -3,12 +3,30 @@
   "version": "1.0.0",
   "description": "Desktop application for SJG",
   "main": "main.js",
+  "author": "SJG",
   "scripts": {
     "start": "electron .",
-    "package": "electron-builder"
+    "build": "electron-builder build --win --portable"
   },
   "devDependencies": {
-    "electron": "^31.0.0",
-    "electron-builder": "^24.13.3"
+    "electron": "31.0.0",
+    "electron-builder": "24.13.3"
+  },
+  "build": {
+    "appId": "com.sjg.desktop",
+    "productName": "SJG Stationery",
+    "win": {
+      "target": "portable",
+      "icon": "assets/icon.png"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "assets/**/*",
+      "frontend/build/**/*"
+    ],
+    "directories": {
+      "output": "dist-final"
+    }
   }
 }
