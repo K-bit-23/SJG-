@@ -35,9 +35,24 @@ const Navbar = () => {
     const [adminCredentials, setAdminCredentials] = useState({ email: '', password: '' });
     const [showAdminPassword, setShowAdminPassword] = useState(false);
 
-    // Bumping states for cart/wishlist
     const [isCartBumping, setIsCartBumping] = useState(false);
     const [isWishlistBumping, setIsWishlistBumping] = useState(false);
+
+    const [shopStatus, setShopStatus] = useState(true);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const { data } = await api.get('/settings/');
+                if (data && data.is_shop_open !== undefined) {
+                    setShopStatus(data.is_shop_open);
+                }
+            } catch (err) {
+                console.error("Failed to fetch shop settings", err);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     useEffect(() => {
         setIsWishlistBumping(true);
@@ -454,6 +469,33 @@ const Navbar = () => {
 
                 </div>
             </nav>
+
+            {/* Secondary Navbar (Shop Status & Quick Info) */}
+            <div className={`fixed left-0 w-full z-40 transition-all duration-300 border-b border-gray-200 bg-slate-50 flex items-center justify-between px-4 lg:px-6 shadow-sm`} style={{ top: '64px', height: '36px' }}>
+                <div className="max-w-7xl mx-auto w-full flex items-center justify-between text-xs font-semibold text-gray-600">
+                    <div className="flex items-center gap-6">
+                        <span className="flex items-center gap-1.5 hidden sm:flex">
+                            <span className="text-primary">🖨️</span> Xerox & Printing Services Available
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <span className="text-primary">📦</span> Fast Delivery & Pickup
+                        </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        Shop Status: 
+                        {shopStatus ? (
+                            <span className="flex items-center gap-1.5 text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full ring-1 ring-emerald-200">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Open
+                            </span>
+                        ) : (
+                            <span className="flex items-center gap-1.5 text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full ring-1 ring-rose-200">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Closed
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
             <style>
                 {`@keyframes wiggle {
                     0%, 100% { transform: rotate(0deg); }

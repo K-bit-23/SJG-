@@ -1461,7 +1461,8 @@ class AppSettingsView(APIView):
                     'is_online_payment_enabled': True,
                     'is_cod_enabled': True,
                     'free_shipping_threshold': 999,
-                    'shipping_fee': 50
+                    'shipping_fee': 50,
+                    'is_shop_open': True
                 })
             settings['id'] = str(settings.pop('_id'))
             return Response(settings)

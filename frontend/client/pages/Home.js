@@ -118,13 +118,13 @@ const Home = () => {
                             />
                         </div>
                     ))}
-                    {/* Light Gradient overlay for dark text */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-gray-50 via-gray-50/90 to-transparent md:w-[60%]" />
+                    {/* Semi-transparent light gradient overlay so image connects visibly with status bar */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/70 to-transparent md:w-[70%]" />
                 </div>
 
                 {/* Content */}
                 <div className="relative z-10 h-full flex items-center">
-                    <div className="max-w-7xl mx-auto px-6 md:px-12 w-full pt-8">
+                    <div className="max-w-7xl mx-auto px-6 md:px-12 w-full pt-[80px] sm:pt-[100px]">
                         <div className="max-w-lg">
 
                             {/* Tag */}

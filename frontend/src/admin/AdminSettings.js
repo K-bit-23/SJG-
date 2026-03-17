@@ -20,6 +20,7 @@ const AdminSettings = () => {
         isCodEnabled: true,
         freeShippingThreshold: 999,
         shippingFee: 50,
+        isShopOpen: true,
         adminPassword: "",
         adminName: "Administrator",
         adminAvatar: ""
@@ -43,6 +44,7 @@ const AdminSettings = () => {
                         isCodEnabled: data.is_cod_enabled !== undefined ? data.is_cod_enabled : true,
                         freeShippingThreshold: data.free_shipping_threshold !== undefined ? data.free_shipping_threshold : 999,
                         shippingFee: data.shipping_fee !== undefined ? data.shipping_fee : 50,
+                        isShopOpen: data.is_shop_open !== undefined ? data.is_shop_open : true,
                         adminPassword: "",
                         adminName: data.admin_name || "Administrator",
                         adminAvatar: data.admin_avatar || ""
@@ -72,6 +74,7 @@ const AdminSettings = () => {
                 is_cod_enabled: settings.isCodEnabled,
                 free_shipping_threshold: Number(settings.freeShippingThreshold),
                 shipping_fee: Number(settings.shippingFee),
+                is_shop_open: settings.isShopOpen,
                 admin_name: settings.adminName,
                 admin_avatar: settings.adminAvatar,
                 ...(settings.adminPassword && { password: settings.adminPassword })
@@ -168,6 +171,19 @@ const AdminSettings = () => {
                                         className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 ring-indigo-500/10 outline-none transition-all font-bold" 
                                     />
                                 </div>
+                            </div>
+
+                            <div className="p-5 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center justify-between">
+                                <div>
+                                    <p className="font-bold text-slate-900 flex items-center gap-2">Shop Availability {settings.isShopOpen ? <span className="bg-emerald-500 w-2 h-2 rounded-full animate-pulse"></span> : <span className="bg-rose-500 w-2 h-2 rounded-full"></span>}</p>
+                                    <p className="text-xs text-slate-500 font-medium mt-0.5">Toggle to show the shop as Open or Closed on the public site.</p>
+                                </div>
+                                <button
+                                    onClick={() => setSettings({ ...settings, isShopOpen: !settings.isShopOpen })}
+                                    className={`relative w-14 h-8 transition-colors rounded-full shrink-0 flex items-center border ${settings.isShopOpen ? 'bg-emerald-500 border-emerald-600' : 'bg-slate-300 border-slate-400'}`}
+                                >
+                                    <span className={`absolute top-[3px] left-1 w-6 h-6 bg-white rounded-full transition-transform shadow-md ${settings.isShopOpen ? 'translate-x-6' : 'translate-x-0'}`} />
+                                </button>
                             </div>
 
                             <div className="space-y-2">
