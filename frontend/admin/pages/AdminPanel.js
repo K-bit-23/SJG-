@@ -40,7 +40,7 @@ const AdminPanel = () => {
     const [products, setProducts] = useState([]);
     const [users, setUsers] = useState([]);
     const [chatMessages, setChatMessages] = useState([]);
-    const [homeContent, setHomeContent] = useState({ banners: [], services: [], trust_strip: [] });
+    const [homeContent, setHomeContent] = useState({ banners: [], services: [], categories: [], trust_strip: [] });
 
     // ── Inventory modal state ──
     const [showProductModal, setShowProductModal] = useState(false);
@@ -167,23 +167,51 @@ const AdminPanel = () => {
     };
 
     const openHomeItemEditor = (item, type) => {
-        setEditingHomeItem({ item, type, index: item ? (type === 'banner' ? homeContent.banners.indexOf(item) : homeContent.services.indexOf(item)) : -1 });
-        setHomeItemForm(type === 'banner' ? (item || { title: '', subtitle: '', img: '', description: '', btnText: 'Shop Now', btnLink: '/products' }) : (item || { name: '', desc: '', icon: 'Sparkles', color: 'from-blue-500 to-blue-600', price: 'Free' }));
+        let index = -1;
+        if (item) {
+            if (type === 'banner') index = homeContent.banners.indexOf(item);
+            else if (type === 'service') index = homeContent.services.indexOf(item);
+            else if (type === 'category') index = homeContent.categories.indexOf(item);
+        }
+        setEditingHomeItem({ item, type, index });
+        
+        if (type === 'banner') {
+            setHomeItemForm(item || { title: '', subtitle: '', img: '', description: '', btnText: 'Shop Now', btnLink: '/products' });
+        } else if (type === 'service') {
+            setHomeItemForm(item || { name: '', desc: '', icon: 'Sparkles', color: 'from-blue-500 to-blue-600', price: 'Free' });
+        } else if (type === 'category') {
+            setHomeItemForm(item || { name: '', img: '', count: '100+ Products' });
+        }
         setShowHomeModal(true);
     };
 
     const handleSaveHomeItem = async () => {
         const { type, index } = editingHomeItem;
         const updated = { ...homeContent };
-        if (type === 'banner') { if (index > -1) updated.banners[index] = homeItemForm; else updated.banners.push({ ...homeItemForm, id: Date.now() }); }
-        else { if (index > -1) updated.services[index] = homeItemForm; else updated.services.push(homeItemForm); }
+        if (!updated.banners) updated.banners = [];
+        if (!updated.services) updated.services = [];
+        if (!updated.categories) updated.categories = [];
+
+        if (type === 'banner') { 
+            if (index > -1) updated.banners[index] = homeItemForm; 
+            else updated.banners.push({ ...homeItemForm, id: Date.now() }); 
+        } else if (type === 'service') { 
+            if (index > -1) updated.services[index] = homeItemForm; 
+            else updated.services.push(homeItemForm); 
+        } else if (type === 'category') {
+            if (index > -1) updated.categories[index] = homeItemForm;
+            else updated.categories.push(homeItemForm);
+        }
+
         if (await saveHomeContent(updated)) setShowHomeModal(false);
     };
 
     const deleteHomeItem = async (type, index) => {
-        if (!window.confirm('Delete?')) return;
+        if (!window.confirm('Delete this item?')) return;
         const updated = { ...homeContent };
-        if (type === 'banner') updated.banners.splice(index, 1); else updated.services.splice(index, 1);
+        if (type === 'banner') updated.banners.splice(index, 1); 
+        else if (type === 'service') updated.services.splice(index, 1);
+        else if (type === 'category') updated.categories.splice(index, 1);
         saveHomeContent(updated);
     };
 

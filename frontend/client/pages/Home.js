@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import api from '../../src/utils/api';
 
 // Categories with modern icons/images
-const CATEGORIES = [
+// Default categories if backend is empty
+const DEFAULT_CATEGORIES = [
     { name: "Notebooks", count: "120+ Products", img: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=300&q=80" },
     { name: "Pens & Writing", count: "80+ Products", img: "https://images.unsplash.com/photo-1585336261022-680e295ce3fe?auto=format&fit=crop&w=300&q=80" },
     { name: "Art Supplies", count: "200+ Products", img: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=300&q=80" },
@@ -63,6 +64,8 @@ const Home = () => {
     const [bannerContent, setBannerContent] = useState(null);
     const [currentBanner, setCurrentBanner] = useState(0);
     const [banners, setBanners] = useState(DEFAULT_BANNERS);
+    const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+    const [error, setError] = useState(null);
 
 
     useEffect(() => {
@@ -71,6 +74,9 @@ const Home = () => {
                 setBannerContent(res.data);
                 if (res.data?.banners?.length) {
                     setBanners(res.data.banners);
+                }
+                if (res.data?.categories?.length) {
+                    setCategories(res.data.categories);
                 }
 
             })
@@ -189,7 +195,7 @@ const Home = () => {
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    {CATEGORIES.map((cat, idx) => (
+                    {categories.map((cat, idx) => (
                         <Link to={`/products?category=${cat.name}`} key={idx} className="group relative overflow-hidden rounded-xl cursor-pointer h-44 lg:h-52 hover-scale hover-glow">
                             <img src={cat.img} alt={cat.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-4 text-white">

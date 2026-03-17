@@ -3,6 +3,7 @@ import { Receipt, Copy, Printer, Layers, Globe, Box, Trash2, X } from 'lucide-re
 
 const AdminBilling = ({
     products, billingItems, billingCustomer, setBillingCustomer,
+    handleBillingPhoneChange,
     billingProductSearch, setBillingProductSearch,
     addToBill, addServiceItem, removeFromBill, updateBillQuantity, updateItemPrice,
     calculateBillTotal, generateInvoice,
@@ -110,7 +111,7 @@ const AdminBilling = ({
                             <div className="p-8">
                                 <div className="flex justify-between items-start mb-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-yellow-500 rounded-lg flex items-center justify-center text-white shadow-lg"><span className="font-bold text-2xl">SJG</span></div>
+                                        <img src="/logo.png" alt="SJG Logo" className="w-16 h-16 object-contain" />
                                         <div><h1 className="text-2xl font-bold text-gray-800">SJG Stationery</h1><p className="text-gray-500 text-sm">Your One-Stop Shop</p></div>
                                     </div>
                                     <div className="text-right"><h2 className="text-2xl font-bold text-gray-800">INVOICE</h2><p className="text-gray-500 font-medium">Tax Invoice</p></div>
