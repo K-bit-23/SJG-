@@ -1,46 +1,297 @@
-{% extends "admin/base_site.html" %}
-{% load i18n static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SJG Admin — Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-{% block extrastyle %}{{ block.super }}
-<style>
-    body {
-        margin: 0;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        overflow: hidden;
-        background: #020617 radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.1), transparent 70%) !important;
-    }
-    #content { margin: 0 !important; width: 100% !important; padding: 0 !important; }
-    .login #header, .login #branding, .login #user-tools, .login .breadcrumbs { display: none !important; }
-    .login #container { background: transparent !important; width: 100% !important; border: none !important; }
-    #content-main { margin: 0 auto !important; width: 400px !important; }
-    
-    .login .module {
-        background: rgba(15, 23, 42, 0.8) !important;
-        backdrop-filter: blur(20px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        border-radius: 40px !important;
-        padding: 40px !important;
-        box-shadow: 0 50px 100px rgba(0,0,0,0.5) !important;
-    }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-    .login .form-row { border: none !important; padding: 15px 0 !important; }
-    .login label { color: #94a3b8 !important; font-size: 11px !important; text-transform: uppercase !important; font-weight: 900 !important; letter-spacing: 2px !important; margin-bottom: 10px !important; display: block !important; }
-    .login .submit-row { padding: 30px 0 0 0 !important; text-align: center !important; }
-    .login .submit-row input { width: 100% !important; height: 60px !important; font-size: 14px !important; letter-spacing: 4px !important; box-shadow: 0 20px 40px rgba(79, 70, 229, 0.3) !important; cursor: pointer !important; }
-    
-    .login-logo { text-align: center; margin-bottom: 40px; }
-    .login-logo h1 { font-size: 40px; font-weight: 900; letter-spacing: -2px; color: white; margin: 0; }
-    .login-logo span { color: #6366f1; font-style: italic; }
-</style>
-{% endblock %}
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
 
-{% block content %}
-<div class="login-logo">
-    <h1>SJG <span>CORE</span></h1>
-    <p style="color: #64748b; font-size: 10px; font-weight: 900; letter-spacing: 4px; margin-top: 10px; text-transform: uppercase;">Nexus Authentication</p>
+        .logo-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .logo-box {
+            width: 44px;
+            height: 44px;
+            background: #4f46e5;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .logo-text h1 { font-size: 18px; font-weight: 800; color: #0f172a; }
+        .logo-text p  { font-size: 12px; color: #94a3b8; margin-top: 1px; }
+
+        /* Tab switcher */
+        .tabs {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #4f46e5;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #0f172a;
+            outline: none;
+            transition: border-color 0.2s;
+            margin-bottom: 16px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        input:focus { border-color: #4f46e5; }
+
+        .btn {
+            width: 100%;
+            padding: 11px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background: #4338ca; }
+
+        .otp-input-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .otp-digit {
+            width: 56px;
+            height: 56px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 22px;
+            font-weight: 800;
+            text-align: center;
+            color: #0f172a;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .otp-digit:focus { border-color: #4f46e5; }
+
+        .hint {
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 12px;
+        }
+
+        .hint span { color: #4f46e5; font-weight: 700; }
+
+        .error-msg {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .success-msg {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .hidden { display: none; }
+
+        .divider {
+            text-align: center;
+            font-size: 11px;
+            color: #cbd5e1;
+            margin: 4px 0 16px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="logo-row">
+        <div class="logo-box">S</div>
+        <div class="logo-text">
+            <h1>SJG Admin</h1>
+            <p>Management Portal</p>
+        </div>
+    </div>
+
+    <!-- Tab switcher -->
+    <div class="tabs">
+        <button class="tab-btn active" id="tab-creds" onclick="switchTab('creds')">Username & Password</button>
+        <button class="tab-btn" id="tab-otp" onclick="switchTab('otp')">OTP Access</button>
+    </div>
+
+    <!-- Error from Django -->
+    {% if form.errors %}
+    <div class="error-msg">Wrong username or password. Please try again.</div>
+    {% endif %}
+
+    <!-- Credentials Form (Django default) -->
+    <div id="panel-creds">
+        <form method="post" action="{{ request.get_full_path }}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <label>Username</label>
+            <input type="text" name="username" id="id_username" autofocus autocomplete="username">
+            <label>Password</label>
+            <input type="password" name="password" id="id_password" autocomplete="current-password">
+            <button type="submit" class="btn">Log In</button>
+        </form>
+    </div>
+
+    <!-- OTP Panel -->
+    <div id="panel-otp" class="hidden">
+        <div id="otp-error" class="error-msg hidden"></div>
+        <div id="otp-success" class="success-msg hidden"></div>
+
+        <label style="text-align:center; display:block; margin-bottom:14px;">Enter 4-digit OTP</label>
+        <div class="otp-input-row">
+            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" id="d1">
+            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" id="d2">
+            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" id="d3">
+            <input type="text" class="otp-digit" maxlength="1" inputmode="numeric" id="d4">
+        </div>
+
+        <button class="btn" onclick="verifyOtp()">Verify OTP</button>
+        <p class="hint">Default OTP: <span>0707</span> &nbsp;·&nbsp; Set in Admin Settings</p>
+    </div>
 </div>
-{{ block.super }}
-{% endblock %}
+
+<script>
+    // OTP digit auto-advance
+    ['d1','d2','d3','d4'].forEach((id, i, arr) => {
+        const el = document.getElementById(id);
+        el.addEventListener('input', () => {
+            el.value = el.value.replace(/\D/g,'');
+            if (el.value && i < arr.length - 1)
+                document.getElementById(arr[i+1]).focus();
+        });
+        el.addEventListener('keydown', e => {
+            if (e.key === 'Backspace' && !el.value && i > 0)
+                document.getElementById(arr[i-1]).focus();
+            if (e.key === 'Enter') verifyOtp();
+        });
+    });
+
+    function switchTab(tab) {
+        document.getElementById('panel-creds').classList.toggle('hidden', tab !== 'creds');
+        document.getElementById('panel-otp').classList.toggle('hidden',  tab !== 'otp');
+        document.getElementById('tab-creds').classList.toggle('active',  tab === 'creds');
+        document.getElementById('tab-otp').classList.toggle('active',   tab === 'otp');
+        if (tab === 'otp') document.getElementById('d1').focus();
+        if (tab === 'creds') document.getElementById('id_username').focus();
+    }
+
+    async function verifyOtp() {
+        const otp = ['d1','d2','d3','d4'].map(id => document.getElementById(id).value).join('');
+        const errEl = document.getElementById('otp-error');
+        const sucEl = document.getElementById('otp-success');
+        errEl.classList.add('hidden'); sucEl.classList.add('hidden');
+
+        if (otp.length < 4) {
+            errEl.textContent = 'Please enter all 4 digits.';
+            errEl.classList.remove('hidden');
+            return;
+        }
+        try {
+            const res = await fetch('/api/otp/verify/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ otp })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                sucEl.textContent = '✓ OTP verified! Redirecting...';
+                sucEl.classList.remove('hidden');
+                setTimeout(() => { window.location.href = '/api/root/'; }, 1200);
+            } else {
+                errEl.textContent = '✗ ' + (data.message || 'Invalid OTP. Default is 0707.');
+                errEl.classList.remove('hidden');
+            }
+        } catch(e) {
+            errEl.textContent = 'Connection error. Is the server running?';
+            errEl.classList.remove('hidden');
+        }
+    }
+</script>
+</body>
+</html>

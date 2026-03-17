@@ -94,7 +94,7 @@ const Home = () => {
     const activeBanner = banners[currentBanner] || DEFAULT_BANNERS[0];
 
     return (
-        <div className="bg-background min-h-screen text-primary overflow-x-hidden mt-16">
+        <div className="bg-background min-h-screen text-primary overflow-x-hidden">
 
             {/* ── Hero Banner ── */}
             <section className="relative h-[65vh] min-h-[420px] max-h-[640px] flex items-center overflow-hidden">
