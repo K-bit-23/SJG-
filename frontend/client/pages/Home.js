@@ -16,14 +16,14 @@ const DEFAULT_CATEGORIES = [
     { name: "Office Desk", count: "50+ Products", img: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=300&q=80" },
 ];
 
-// Default banners
+// Default banners — using higher-quality, reliable image sources
 const DEFAULT_BANNERS = [
     {
         id: 1,
         title: "Crafting Your Creative Vision",
         subtitle: "The 2024 Collection",
         description: "Experience the fusion of artisan precision and modern design in our latest stationery series.",
-        img: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?auto=format&fit=crop&w=1600&q=80",
+        img: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1600&q=80&auto=format&fit=crop",
         btnText: "Explore Collection",
         btnLink: "/products"
     },
@@ -32,16 +32,16 @@ const DEFAULT_BANNERS = [
         title: "Back to School, Redefined",
         subtitle: "Exclusive Academic Sale",
         description: "Empower your learning journey with professional-grade notebooks and organizational tools.",
-        img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1600&q=80",
+        img: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1600&q=80&auto=format&fit=crop",
         btnText: "Claim Your Discount",
         btnLink: "/products?category=notebooks"
     },
     {
         id: 3,
-        title: "The Artist's Master Sanctuary",
+        title: "The Artist's Sanctuary",
         subtitle: "Professional Grade Tools",
         description: "Professional pigments and precision edges designed for those who dream in color.",
-        img: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=1600&q=80",
+        img: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1600&q=80&auto=format&fit=crop",
         btnText: "Discover Fine Art",
         btnLink: "/products?category=art"
     }
@@ -95,45 +95,53 @@ const Home = () => {
 
     return (
         <div className="bg-background min-h-screen text-primary overflow-x-hidden">
-            {/* Hero Section with Parallax-style transition */}
-            <section className="relative h-[600px] md:h-[700px] flex items-center overflow-hidden">
-                <div className="absolute inset-0 z-0">
+            {/* Hero Section */}
+            <section className="relative h-[85vh] min-h-[500px] max-h-[800px] flex items-center overflow-hidden">
+                {/* Background images */}
+                <div className="absolute inset-0 z-0 bg-slate-900">
                     {banners.map((banner, idx) => (
                         <div 
                             key={banner.id || idx}
                             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentBanner ? 'opacity-100' : 'opacity-0'}`}
                         >
-                            <img src={banner.img} alt="" className="w-full h-full object-cover scale-105" />
-                            <div className="absolute inset-0 bg-gradient-to-tr from-slate-900/60 via-slate-900/40 to-transparent"></div>
+                            <img 
+                                src={banner.img} 
+                                alt=""
+                                crossOrigin="anonymous"
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                                className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/50 to-slate-900/20"></div>
                         </div>
                     ))}
                 </div>
 
-                <div className="max-w-7xl mx-auto px-6 relative z-10 w-full animate-fade-in-up">
-                    <div className="max-w-xl glass-morphism p-10 md:p-14 rounded-[3rem] border-white/30">
-                        <div className="flex items-center gap-2 mb-4">
-                            <Zap size={14} className="text-secondary animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-secondary">
+                {/* Text content — left-aligned, compact */}
+                <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 w-full">
+                    <div className="max-w-lg">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Zap size={12} className="text-secondary animate-pulse" />
+                            <span className="text-[9px] font-black uppercase tracking-[0.35em] text-secondary/90">
                                 {activeBanner.subtitle}
                             </span>
                         </div>
-                        <h1 className="text-4xl md:text-5xl lg:text-7xl font-black leading-[1.1] mb-6 tracking-tight text-white drop-shadow-sm">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.08] mb-5 tracking-tight text-white">
                             {activeBanner.title}
                         </h1>
-                        <p className="text-base md:text-lg text-white/80 mb-10 leading-relaxed font-medium">
+                        <p className="text-sm md:text-base text-white/70 mb-8 leading-relaxed font-medium max-w-sm">
                             {activeBanner.description}
                         </p>
-                        <div className="flex flex-wrap gap-4">
+                        <div className="flex flex-wrap gap-3">
                             <Link
                                 to={activeBanner.btnLink || "/products"}
-                                className="group inline-flex items-center gap-3 bg-white text-secondary hover:bg-secondary hover:text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-black/20"
+                                className="group inline-flex items-center gap-2 bg-white text-secondary hover:bg-secondary hover:text-white px-7 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-black/20"
                             >
                                 {activeBanner.btnText || "Shop Now"} 
-                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
                             </Link>
                             <Link 
                                 to="/products"
-                                className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
+                                className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white border border-white/20 hover:bg-white/20 px-7 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
                             >
                                 View Gallery
                             </Link>
@@ -141,25 +149,23 @@ const Home = () => {
                     </div>
                 </div>
 
-                {/* Carousel Navigation Elements */}
-                <div className="absolute bottom-12 right-12 z-20 flex items-center gap-6">
+                {/* Carousel indicators — bottom center */}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-6">
+                    <button onClick={prevBanner} className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/10 transition-all">
+                        <ChevronLeft size={16} />
+                    </button>
                     <div className="flex gap-2">
                         {banners.map((_, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => setCurrentBanner(idx)}
-                                className={`h-1 rounded-full transition-all duration-500 ${idx === currentBanner ? 'bg-white w-12' : 'bg-white/30 w-4'}`}
+                                className={`h-1 rounded-full transition-all duration-500 ${idx === currentBanner ? 'bg-white w-10' : 'bg-white/30 w-3'}`}
                             />
                         ))}
                     </div>
-                    <div className="flex gap-2">
-                        <button onClick={prevBanner} className="p-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl border border-white/10 transition-all">
-                            <ChevronLeft size={20} />
-                        </button>
-                        <button onClick={nextBanner} className="p-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl border border-white/10 transition-all">
-                            <ChevronRightIcon size={20} />
-                        </button>
-                    </div>
+                    <button onClick={nextBanner} className="p-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl border border-white/10 transition-all">
+                        <ChevronRightIcon size={16} />
+                    </button>
                 </div>
             </section>
 
