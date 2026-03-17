@@ -94,10 +94,10 @@ const Home = () => {
     const activeBanner = banners[currentBanner] || DEFAULT_BANNERS[0];
 
     return (
-        <div className="bg-background min-h-screen text-primary overflow-x-hidden">
+        <div className="min-h-screen text-primary overflow-x-hidden">
 
-            {/* ── Hero Banner ── */}
-            <section className="relative h-[65vh] min-h-[420px] max-h-[640px] flex items-center overflow-hidden">
+            {/* ── Hero Banner — starts at y=0, fills behind navbar ── */}
+            <section className="relative h-[calc(65vh+4rem)] min-h-[480px] max-h-[700px] flex items-end overflow-hidden">
                 <div className="absolute inset-0 z-0 bg-slate-900">
                     {banners.map((banner, idx) => (
                         <div key={banner.id || idx} className={`absolute inset-0 transition-opacity duration-1000 ${idx === currentBanner ? 'opacity-100' : 'opacity-0'}`}>
@@ -107,7 +107,7 @@ const Home = () => {
                     ))}
                 </div>
 
-                <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 w-full">
+                <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10 w-full pb-12 pt-20">
                     <div className="max-w-md">
                         <div className="flex items-center gap-2 mb-2">
                             <Zap size={11} className="text-secondary animate-pulse" />
@@ -143,7 +143,7 @@ const Home = () => {
             </section>
 
             {/* ── Services ── */}
-            <section className="py-12 max-w-7xl mx-auto px-6">
+            <section className="py-12 max-w-7xl mx-auto px-6 bg-background">
                 <div className="flex items-end justify-between mb-8">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
