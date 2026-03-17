@@ -64,7 +64,7 @@ const Layout = ({ children }) => {
       <main className={isAdminPage ? '' : 'flex-grow'}>
         {children}
       </main>
-      {isHomePage && <Footer />}
+      {!isAdminPage && <Footer />}
     </div>
   );
 };
