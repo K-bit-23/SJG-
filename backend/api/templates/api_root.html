@@ -266,12 +266,12 @@
                     {% if initial_view == 'diagnostic' %}
                         <!-- Render results if passed from view -->
                         <div class="flex items-center gap-4 mb-8">
-                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-{{ result.status == 'success' ? 'emerald' : 'rose' }}-500 shadow-xl">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="{{ result.status == 'success' ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12' }}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-{% if result.status == 'success' %}emerald{% else %}rose{% endif %}-500 shadow-xl">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="{% if result.status == 'success' %}M5 13l4 4L19 7{% else %}M6 18L18 6M6 6l12 12{% endif %}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </div>
                             <div>
-                                <h4 class="text-xl font-black text-white uppercase italic tracking-tighter">{{ result.status == 'success' ? 'Transmission Successful' : 'Signal Failure Detected' }}</h4>
-                                <p class="text-{{ result.status == 'success' ? 'emerald' : 'rose' }}-400 text-xs font-bold tracking-widest">{{ result.message }}</p>
+                                <h4 class="text-xl font-black text-white uppercase italic tracking-tighter">{% if result.status == 'success' %}Transmission Successful{% else %}Signal Failure Detected{% endif %}</h4>
+                                <p class="text-{% if result.status == 'success' %}emerald{% else %}rose{% endif %}-400 text-xs font-bold tracking-widest">{{ result.message }}</p>
                             </div>
                         </div>
 
