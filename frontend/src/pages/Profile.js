@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../utils/api';
 import {
     User, Package, LogOut, Clock, Settings, MapPin, Phone, Mail, Save, CheckCircle,
     Camera, Bell, MapPinned, Moon, MessageSquare, Shield, Calendar, ChevronRight,
@@ -71,7 +71,7 @@ const Profile = () => {
         // Fetch profile from backend
         const fetchProfile = async () => {
             try {
-                const res = await axios.get(`/api/profile/${encodeURIComponent(user.email)}/`);
+                const res = await api.get(`/profile/${encodeURIComponent(user.email)}/`);
                 const data = res.data;
 
                 setProfileData({
@@ -102,7 +102,7 @@ const Profile = () => {
         // Fetch user settings from separate endpoint
         const fetchUserSettings = async () => {
             try {
-                const res = await axios.get(`/api/user-settings/${encodeURIComponent(user.email)}/`);
+                const res = await api.get(`/user-settings/${encodeURIComponent(user.email)}/`);
                 setAppSettings(res.data);
             } catch (error) {
                 console.error("Error fetching user settings:", error);
@@ -117,11 +117,11 @@ const Profile = () => {
         setSaving(true);
         try {
             await Promise.all([
-                axios.post(`/api/profile/${encodeURIComponent(user.email)}/`, {
+                api.post(`/profile/${encodeURIComponent(user.email)}/`, {
                     ...profileData,
                     addresses: addresses
                 }),
-                axios.post(`/api/user-settings/${encodeURIComponent(user.email)}/`, appSettings)
+                api.post(`/user-settings/${encodeURIComponent(user.email)}/`, appSettings)
             ]);
             setSaveSuccess(true);
             showToast("Profile and settings updated", "success");
