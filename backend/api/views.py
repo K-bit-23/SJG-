@@ -222,7 +222,7 @@ def get_logo_base64():
 
 
 def generate_invoice_pdf(order_data):
-    """Generate a premium PDF invoice bytes for the order."""
+    """Generate a clean minimalist PDF invoice bytes for the order matching the new template."""
     if not REPORTLAB_AVAILABLE:
         return None
 
@@ -233,109 +233,107 @@ def generate_invoice_pdf(order_data):
         margin = 50
         
         # Colors
-        primary_color = colors.HexColor('#0f172a') # Slate-900 (Deep/Premium)
-        accent_color = colors.HexColor('#4f46e5')  # Indio-600
-        text_main = colors.HexColor('#1e293b')     # Slate-800
-        text_muted = colors.HexColor('#64748b')    # Slate-500
-        bg_light = colors.HexColor('#f8fafc')      # Slate-50
+        text_main = colors.black
+        text_muted = colors.HexColor('#4b5563') # gray-600
+        line_color = colors.HexColor('#e5e7eb') # gray-200
+        bg_highlight = colors.HexColor('#f3f4f6') # gray-100
 
         # Pre-fetch Global Settings
-        store_name = "SJG STATIONERY"
-        store_address = "Sakthi Nagar, Thindal, Erode - 638012."
+        store_name = "SJG Stationery"
+        store_address_1 = "Sakthi Nagar, Thindal"
+        store_address_2 = "Erode - 638012"
         store_phone = "+91 93600 24821"
         store_email = "sjgvxerox@gmail.com"
-        currency_sym = "₹"
+        currency_sym = "INR " # Rupee symbol can have font issues in reportlab default fonts, fallback to INR
         gst_rate = 18
 
         try:
             collection = mongo_client.get_collection('admin_data')
             settings_data = collection.find_one({'type': 'settings'})
             if settings_data:
-                store_name = settings_data.get('store_name', store_name).upper()
-                store_address = settings_data.get('address', store_address)
+                store_name = settings_data.get('store_name', store_name)
+                # Split address into two lines if long
+                full_add = settings_data.get('address', "Sakthi Nagar, Thindal, Erode - 638012.")
+                store_address_1 = full_add
+                store_address_2 = ""
                 store_phone = settings_data.get('whatsapp', store_phone)
                 store_email = settings_data.get('email', store_email)
-                currency_sym = settings_data.get('currency', 'INR (₹)').split(' ')[-1].replace('(', '').replace(')', '')
                 gst_rate = float(settings_data.get('gst_percentage', 18))
         except: pass
 
-        # 1. Header & Logo
-        # Header strip
-        c.setFillColor(primary_color)
-        c.rect(0, height - 120, width, 120, fill=1, stroke=0)
-        
-        # Logo
-        # Try build folder logo first as requested, then public
+        # 1. Logo Centered Top
         logo_path = os.path.join(settings.BASE_DIR, '..', 'frontend', 'build', 'logo.png')
         if not os.path.exists(logo_path):
             logo_path = os.path.join(settings.BASE_DIR, '..', 'frontend', 'public', 'logo.png')
             
+        logo_y = height - 90
+        logo_size = 48
         if os.path.exists(logo_path):
-            c.drawImage(logo_path, margin, height - 90, width=32*mm, preserveAspectRatio=True, mask='auto')
-        else:
-            c.setFont('Helvetica-Bold', 28)
+            # Draw a faint circle behind logo
+            c.setStrokeColor(line_color)
             c.setFillColor(colors.white)
-            c.drawString(margin, height - 75, "SJG.")
+            c.circle(width/2, logo_y + (logo_size/2), logo_size/2 + 10, fill=1, stroke=1)
+            c.drawImage(logo_path, (width - logo_size)/2, logo_y, width=logo_size, height=logo_size, preserveAspectRatio=True, mask='auto')
+        else:
+            c.setFont('Helvetica-Bold', 24)
+            c.setFillColor(text_main)
+            c.drawCentredString(width/2, logo_y + 15, "SJG")
 
-        # Invoice Text
-        c.setFillColor(colors.white)
-        c.setFont('Helvetica-Bold', 32)
-        c.drawRightString(width - margin, height - 65, "INVOICE")
-        c.setFont('Helvetica', 9)
-        c.drawRightString(width - margin, height - 85, "REGULAR TAX INVOICE")
-
-        # 2. Information Block
-        info_y = height - 170
-        c.setFillColor(primary_color)
-        c.setFont('Helvetica-Bold', 11)
-        c.drawString(margin, info_y, "CUSTOMER DETAILS")
-        c.drawString(width/2 + 20, info_y, "INVOICE DETAILS")
+        # 2. Informational Block (TO & INVOICE)
+        info_y = logo_y - 60
         
-        c.setStrokeColor(bg_light)
-        c.setLineWidth(1)
-        c.line(margin, info_y - 5, width - margin, info_y - 5)
-
-        # Customer Info
+        # Left Side (TO)
+        c.setFillColor(text_muted)
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(margin, info_y, "TO")
+        
         c.setFillColor(text_main)
-        c.setFont('Helvetica-Bold', 13)
-        cust_name = str(order_data.get('user_name', 'Walk-in Customer'))
-        c.drawString(margin, info_y - 25, cust_name)
+        c.setFont('Helvetica-Bold', 11)
+        cust_name = str(order_data.get('user_name', 'Customer Name'))
+        c.drawString(margin, info_y - 20, cust_name)
         
         c.setFont('Helvetica', 10)
-        c.setFillColor(text_muted)
-        c.drawString(margin, info_y - 42, str(order_data.get('user_phone', '')))
-        c.drawString(margin, info_y - 57, str(order_data.get('user_email', '')))
-
-        # Invoice Info
-        c.setFillColor(text_main)
+        c.drawString(margin, info_y - 35, str(order_data.get('user_phone', '')))
+        
+        # Right Side (INVOICE Details)
+        invoice_x = width/2 + 50
+        c.setFont('Helvetica-Bold', 12)
+        c.drawString(invoice_x, info_y, "Invoice")
+        
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(invoice_x, info_y - 20, "Invoice No:")
+        c.drawString(invoice_x, info_y - 35, "Issue Date:")
+        c.drawString(invoice_x, info_y - 50, "Due Date:")
+        
         c.setFont('Helvetica', 10)
         order_id = order_data.get('order_id', 'N/A')
         created_at = order_data.get('created_at')
         if not created_at: created_at = datetime.now()
-        date_str = created_at.strftime('%d %B %Y') if hasattr(created_at, 'strftime') else str(created_at)
+        date_str = created_at.strftime('%d.%m.%Y') if hasattr(created_at, 'strftime') else str(created_at)
         
-        c.drawString(width/2 + 20, info_y - 25, f"Invoice No: {order_id}")
-        c.drawString(width/2 + 20, info_y - 42, f"Issue Date: {date_str}")
-        c.drawString(width/2 + 20, info_y - 57, f"Payment: {str(order_data.get('payment_method', 'Offline')).capitalize()}")
+        c.drawRightString(width - margin, info_y - 20, order_id)
+        c.drawRightString(width - margin, info_y - 35, date_str)
+        c.drawRightString(width - margin, info_y - 50, date_str) # Due date same as issue date for receipt
 
         # 3. Items Table
-        table_y = info_y - 120
-        # Header BG
-        c.setFillColor(bg_light)
-        c.rect(margin, table_y, width - (margin * 2), 25, fill=1, stroke=0)
+        table_y = info_y - 100
         
-        c.setFillColor(primary_color)
-        c.setFont('Helvetica-Bold', 9)
-        c.drawString(margin + 10, table_y + 8, "ITEM DESCRIPTION")
-        c.drawCentredString(width - margin - 140, table_y + 8, "QTY")
-        c.drawRightString(width - margin - 80, table_y + 8, "UNIT PRICE")
-        c.drawRightString(width - margin - 10, table_y + 8, "AMOUNT")
+        # Table Header
+        c.setStrokeColor(text_main)
+        c.setLineWidth(1.5)
+        c.line(margin, table_y, width - margin, table_y)
+        c.line(margin, table_y - 25, width - margin, table_y - 25)
+        
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(margin, table_y - 17, "Description")
+        c.drawCentredString(width/2 + 20, table_y - 17, "Quantity")
+        c.drawRightString(width - margin - 80, table_y - 17, "Unit Price")
+        c.drawRightString(width - margin, table_y - 17, "Amount")
 
         # Rows
         items = order_data.get('items', [])
-        row_y = table_y - 25
+        row_y = table_y - 45
         c.setFont('Helvetica', 10)
-        c.setFillColor(text_main)
         
         subtotal = 0
         for item in items:
@@ -345,70 +343,88 @@ def generate_invoice_pdf(order_data):
             line_total = qty * price
             subtotal += line_total
             
-            c.drawString(margin + 10, row_y, name[:50])
-            c.drawCentredString(width - margin - 140, row_y, str(qty))
+            c.drawString(margin, row_y, name[:45])
+            c.drawCentredString(width/2 + 20, row_y, str(qty))
             c.drawRightString(width - margin - 80, row_y, f"{currency_sym}{price:,.2f}")
-            c.drawRightString(width - margin - 10, row_y, f"{currency_sym}{line_total:,.2f}")
+            c.drawRightString(width - margin, row_y, f"{currency_sym}{line_total:,.2f}")
             
-            c.setStrokeColor(bg_light)
-            c.line(margin, row_y - 8, width - margin, row_y - 8)
+            c.setStrokeColor(line_color)
+            c.setLineWidth(0.5)
+            c.line(margin, row_y - 10, width - margin, row_y - 10)
             row_y -= 25
             
-            # Simple page break
-            if row_y < 150:
+            if row_y < 200:
                 c.showPage()
                 row_y = height - 100
 
-        # 4. Calculation Summary
-        summary_y = row_y - 30
-        c.setFont('Helvetica-Bold', 10)
-        
+        # 4. Calculations Right Aligned
+        summary_y = row_y - 20
         total_amt = float(order_data.get('total_amount', subtotal))
-        # If order_data total doesn't match sum of items, use the higher one or trust provided total
-        # We'll assume the provided total includes everything
         actual_subtotal = total_amt / (1 + (gst_rate/100))
         gst_amt = total_amt - actual_subtotal
 
-        c.drawRightString(width - margin - 100, summary_y, "Subtotal")
-        c.drawRightString(width - margin - 10, summary_y, f"{currency_sym}{actual_subtotal:,.2f}")
-        
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(width/2 + 20, summary_y, "Subtotal")
         c.setFont('Helvetica', 10)
-        c.setFillColor(text_muted)
-        c.drawRightString(width - margin - 100, summary_y - 20, f"Tax (GST {gst_rate}%)")
-        c.drawRightString(width - margin - 10, summary_y - 20, f"{currency_sym}{gst_amt:,.2f}")
-        
-        c.setFillColor(primary_color)
-        c.setFont('Helvetica-Bold', 16)
-        c.drawRightString(width - margin - 100, summary_y - 50, "GRAND TOTAL")
-        c.drawRightString(width - margin - 10, summary_y - 50, f"{currency_sym}{total_amt:,.2f}")
+        c.drawRightString(width - margin, summary_y, f"{currency_sym}{actual_subtotal:,.2f}")
 
-        # 5. Footer & Terms
-        c.setStrokeColor(primary_color)
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(width/2 + 20, summary_y - 20, f"Tax ({gst_rate}% GST)")
+        c.setFont('Helvetica', 10)
+        c.drawRightString(width - margin, summary_y - 20, f"{currency_sym}{gst_amt:,.2f}")
+        
+        c.setStrokeColor(text_main)
         c.setLineWidth(1.5)
-        c.line(margin, 120, width - margin, 120)
-        
+        c.line(width/2 + 20, summary_y - 30, width - margin, summary_y - 30)
+
         c.setFont('Helvetica-Bold', 10)
-        c.drawString(margin, 100, store_name)
-        c.setFont('Helvetica', 8)
-        c.setFillColor(text_muted)
-        c.drawString(margin, 88, store_address)
-        c.drawString(margin, 78, f"WhatsApp: {store_phone}  |  Email: {store_email}")
-        
+        c.drawString(width/2 + 20, summary_y - 45, "Total")
+        c.drawRightString(width - margin, summary_y - 45, f"{currency_sym}{total_amt:,.2f}")
+
+        # Note Badge
+        badge_y = summary_y - 85
+        c.setFillColor(bg_highlight)
+        c.rect(width - margin - 150, badge_y - 12, 150, 22, fill=1, stroke=0)
+        c.setFillColor(text_main)
+        c.setFont('Helvetica-Bold', 9)
+        c.drawCentredString(width - margin - 75, badge_y - 5, "Please pay within 7 days. Thanks!")
+
+        # 5. Footer Left/Right Info
+        footer_y = 100
+        c.setStrokeColor(line_color)
+        c.setLineWidth(1)
+        c.line(margin, footer_y + 20, width - margin, footer_y + 20)
+
+        c.setFillColor(text_main)
         c.setFont('Helvetica-Bold', 10)
-        c.setFillColor(primary_color)
-        c.drawRightString(width - margin, 100, "Store Manager")
-        c.setFont('Helvetica', 8)
-        c.drawRightString(width - margin, 88, "(Authorized Signatory)")
         
-        c.setFont('Helvetica-Oblique', 8)
-        c.drawCentredString(width/2, 40, "Thank you for your business! Please visit again.")
+        # Left
+        c.drawString(margin, footer_y, store_name)
+        c.setFont('Helvetica', 10)
+        c.drawString(margin, footer_y - 15, store_address_1)
+        if store_address_2:
+            c.drawString(margin, footer_y - 30, store_address_2)
+            c.drawString(margin, footer_y - 45, "VAT ID: 12345678")
+        else:
+            c.drawString(margin, footer_y - 30, "VAT ID: 12345678")
+
+        # Right
+        c.setFont('Helvetica-Bold', 10)
+        c.drawString(invoice_x, footer_y, "Contact")
+        c.setFont('Helvetica', 10)
+        c.drawString(invoice_x, footer_y - 15, store_email)
+        c.drawString(invoice_x, footer_y - 30, store_phone)
+        
+        c.setFillColor(colors.HexColor('#4f46e5')) # Indigo-600
+        c.drawString(invoice_x, footer_y - 45, "sjg-ecom.web.app")
 
         c.showPage()
         c.save()
         buffer.seek(0)
         return buffer.getvalue()
     except Exception as e:
-        print(f"PDF Error: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 

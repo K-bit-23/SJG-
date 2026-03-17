@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../src/context/AuthContext';
+import { useNotifications } from '../../src/context/NotificationContext';
 import { Package, Clock, Download, FileText, Truck, Search, ChevronRight, ShoppingBag, ArrowRight } from 'lucide-react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -9,6 +10,7 @@ import AccountLayout from '../../src/components/AccountLayout';
 
 const Orders = () => {
     const { user } = useAuth();
+    const { showToast } = useNotifications();
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -65,7 +67,7 @@ const Orders = () => {
             window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error("Failed to download invoice:", error);
-            alert("Could not retrieve the invoice. Please try again later.");
+            showToast("Could not retrieve the invoice. Please try again later.", "error");
         }
     };
 

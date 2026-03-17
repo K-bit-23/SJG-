@@ -51,7 +51,7 @@ const Settings = () => {
                 }
             );
         } else {
-            alert("Geolocation is not supported by this browser.");
+            showToast("Geolocation is not supported by this browser.", 'error');
         }
     };
 

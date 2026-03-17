@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useCart } from '../../src/context/CartContext';
 import { useAuth } from '../../src/context/AuthContext';
+import { useNotifications } from '../../src/context/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, CreditCard, Truck, CheckCircle, Smartphone, ExternalLink } from 'lucide-react';
 import api from '../../src/utils/api';
 
 const Checkout = () => {
     const { cart } = useCart();
+    const { showToast } = useNotifications();
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const shipping = subtotal > 999 ? 0 : 50;
     const total = subtotal + shipping;
@@ -94,7 +96,7 @@ const Checkout = () => {
 
     const useCurrentLocation = () => {
         if (!navigator.geolocation) {
-            alert('Geolocation is not supported by your browser.');
+            showToast('Geolocation is not supported by your browser.', 'error');
             return;
         }
 
@@ -115,7 +117,7 @@ const Checkout = () => {
                 setMapUrl(`https://www.google.com/maps?q=${latitude},${longitude}&z=16&output=embed`);
             },
             (err) => {
-                alert('Unable to retrieve location. Please allow location access or try again.');
+                showToast('Unable to retrieve location. Please allow location access or try again.', 'error');
                 console.error('Geolocation error:', err);
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
@@ -160,17 +162,17 @@ const Checkout = () => {
                     window.location.href = url;
                 } else if (paymentMethod === 'UPI') {
                     // Save UTR if needed (we could send it in order creation too, but for now just mock success)
-                    alert('Order Placed Successfully via UPI! Order ID: ' + orderId + '\nUTR: ' + formData.utr);
+                    showToast('Order Placed Successfully via UPI! Order ID: ' + orderId, 'success');
                     navigate('/');
                 } else {
                     // Local COD
-                    alert('Order Placed Successfully! Order ID: ' + orderId);
+                    showToast('Order Placed Successfully! Order ID: ' + orderId, 'success');
                     navigate('/');
                 }
             }
         } catch (error) {
             console.error("Order Error:", error);
-            alert("Failed to place order. Please try again.");
+            showToast("Failed to place order. Please try again.", "error");
         } finally {
             setLoading(false);
         }

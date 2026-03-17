@@ -90,7 +90,7 @@ const Cart = () => {
                             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                                 <div className="divide-y divide-gray-100">
                                     {cart.map((item, index) => (
-                                        <div key={item.id} className="p-4 lg:p-5 hover:bg-white hover:shadow-md hover-scale hover-glow rounded-xl transition-all m-2 border border-transparent">
+                                        <div key={item._id || item.id} className="p-4 lg:p-5 hover:bg-white hover:shadow-md hover-scale hover-glow rounded-xl transition-all m-2 border border-transparent">
                                             <div className="flex gap-4">
                                                 {/* Product Image */}
                                                 <div className="w-24 h-24 lg:w-28 lg:h-28 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
@@ -109,7 +109,7 @@ const Cart = () => {
                                                             <h3 className="font-semibold text-gray-800 line-clamp-2">{item.name}</h3>
                                                         </div>
                                                         <button
-                                                            onClick={() => removeFromCart(item.id)}
+                                                            onClick={() => removeFromCart(item._id || item.id)}
                                                             className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
                                                         >
                                                             <Trash2 size={16} />
@@ -120,7 +120,7 @@ const Cart = () => {
                                                         {/* Quantity Controls */}
                                                         <div className="flex items-center bg-gray-100 rounded-full">
                                                             <button
-                                                                onClick={() => decrementFromCart(item.id)}
+                                                                onClick={() => decrementFromCart(item._id || item.id)}
                                                                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
                                                             >
                                                                 <Minus size={14} className="text-gray-600" />

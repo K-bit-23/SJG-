@@ -8,6 +8,7 @@ import ChatBot from './components/ChatBot';
 import FloatingShortcut from './components/FloatingShortcut';
 import PageLoader from './components/PageLoader';
 import Home from '../client/pages/Home';
+import NotificationBar from './components/NotificationBar';
 
 // Check if running in Electron
 const isElectron = /electron/i.test(navigator.userAgent);
@@ -54,6 +55,7 @@ const Layout = ({ children }) => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[var(--background)] transition-colors duration-300">
+      <NotificationBar />
       {!isAdminPage && <Navbar />}
       {!isAdminPage && <WhatsAppButton />}
       {!isAdminPage && <ChatBot />}
