@@ -33,16 +33,15 @@ const AuthModal = ({ isOpen, onClose }) => {
                             <SignIn 
                                 routing="hash" 
                                 signUpUrl="#"
-                                fallbackRedirectUrl="/admin"
-                                forceRedirectUrl="/admin"
-                                initialValues={{
-                                    identifier: 'admin@sjg.com'
-                                }}
+                                fallbackRedirectUrl={window.location.pathname === '/checkout' ? '/checkout' : '/admin'}
+                                forceRedirectUrl={window.location.pathname === '/checkout' ? '/checkout' : '/admin'}
                             />
-                            <div className="mt-4 text-center">
-                                <p className="text-[10px] text-white/40 uppercase tracking-widest font-black">Dev: Direct Admin Login Mode</p>
-                                <p className="text-[9px] text-white/20 mt-1 italic">Note: If another account is pre-filled, please sign out first.</p>
-                            </div>
+                            {window.location.pathname.startsWith('/admin') && (
+                                <div className="mt-4 text-center">
+                                    <p className="text-[10px] text-white/40 uppercase tracking-widest font-black">Dev: Direct Admin Login Mode</p>
+                                    <p className="text-[9px] text-white/20 mt-1 italic">Note: If another account is pre-filled, please sign out first.</p>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <SignUp 

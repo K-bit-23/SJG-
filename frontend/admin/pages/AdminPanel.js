@@ -265,7 +265,16 @@ const AdminPanel = () => {
         { id: 'settings', label: 'Settings', icon: Settings },
     ];
 
-    if (!user && localStorage.getItem('admin_session') !== 'true') return null;
+    if (!user && localStorage.getItem('admin_session') !== 'true') {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                <div className="text-center">
+                    <h2 className="text-xl font-bold mb-4 text-slate-700">Checking Authorization...</h2>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-100 flex">
@@ -284,7 +293,7 @@ const AdminPanel = () => {
                 </nav>
                 <div className="p-4 border-t border-white/10 flex items-center gap-3 min-w-[256px]">
                     <div className="w-10 h-10 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-400"><UserCircle size={20} /></div>
-                    <div><p className="text-sm font-medium">{user.name}</p></div>
+                    <div><p className="text-sm font-medium">{user?.fullName || user?.name || 'Admin'}</p></div>
                 </div>
             </aside>
 
