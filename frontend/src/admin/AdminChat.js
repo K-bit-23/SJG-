@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { MessageCircle, Search, Trash2, CheckCircle, Clock, User, Reply, X } from 'lucide-react';
-import api from '../utils/api';
+import { MessageCircle, Search, Trash2, CheckCircle, Clock, User, Reply, X, Command, Activity } from 'lucide-react';
+import api from '../../src/utils/api';
 
 const AdminChat = ({ chatMessages, setChatMessages, fetchData }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedMessage, setSelectedMessage] = useState(null);
     const [replyText, setReplyText] = useState('');
 
-    const filteredMessages = chatMessages.filter(m => 
+    const filteredMessages = (chatMessages || []).filter(m => 
         (m.sender_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (m.message?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     const deleteMessage = async (id) => {
-        if (!window.confirm('Delete this message?')) return;
+        if (!window.confirm('Delete this signal?')) return;
         try {
             await api.delete(`messages/${id}/`);
             setChatMessages(chatMessages.filter(m => (m.id || m._id) !== id));
@@ -21,145 +21,161 @@ const AdminChat = ({ chatMessages, setChatMessages, fetchData }) => {
                 setSelectedMessage(null);
             }
         } catch {
-            alert('Failed to delete message');
+            console.error('Failed to delete message');
         }
     };
 
     const handleReply = async () => {
         if (!replyText.trim()) return;
-        alert('Reply feature linked to notification stream. Implementation pending SMTP link.');
+        alert('Reply stream offline. SMTP integration required for external communication.');
         setReplyText('');
     };
 
     return (
-        <div className="flex gap-6 h-[calc(100vh-180px)]">
-            {/* Messages List */}
-            <div className="w-1/3 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
-                <div className="p-4 border-b border-gray-50">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+        <div className="flex gap-10 h-[calc(100vh-220px)] animate-fade-in-up">
+            
+            {/* Signal Stream List */}
+            <div className="w-[380px] bg-white dark:bg-[#0f172a] rounded-[3rem] shadow-sm border border-slate-100 dark:border-white/5 flex flex-col overflow-hidden">
+                <div className="p-8 border-b border-slate-50 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3 tracking-tighter mb-6">
+                        <Activity size={20} className="text-indigo-600" /> 
+                        Signal Ingress
+                    </h3>
+                    <div className="relative group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-indigo-500 transition-colors" size={16} />
                         <input 
                             type="text" 
-                            placeholder="Search messages..." 
-                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
+                            placeholder="Query signals..." 
+                            className="w-full pl-12 pr-6 py-3.5 bg-white dark:bg-slate-800 border-none rounded-2xl text-xs font-black text-slate-900 dark:text-white outline-none focus:ring-1 ring-indigo-500/50 shadow-inner"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
                     {filteredMessages.length > 0 ? filteredMessages.map((msg) => (
                         <button 
                             key={msg.id || msg._id}
                             onClick={() => setSelectedMessage(msg)}
-                            className={`w-full text-left p-4 hover:bg-indigo-50/50 transition-all border-b border-gray-50 flex gap-3 items-start ${selectedMessage && (selectedMessage.id || selectedMessage._id) === (msg.id || msg._id) ? 'bg-indigo-50 border-l-4 border-l-indigo-500' : ''}`}
+                            className={`w-full text-left p-6 rounded-[2rem] transition-all duration-300 flex gap-4 items-start group ${selectedMessage && (selectedMessage.id || selectedMessage._id) === (msg.id || msg._id) ? 'bg-indigo-600 shadow-xl shadow-indigo-600/20 translate-x-1' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}
                         >
-                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 flex-shrink-0">
-                                <User size={18} />
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${selectedMessage && (selectedMessage.id || selectedMessage._id) === (msg.id || msg._id) ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                                <User size={20} />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-center mb-1">
-                                    <h4 className="text-sm font-bold text-slate-800 truncate">{msg.sender_name || 'Anonymous'}</h4>
-                                    <span className="text-[10px] text-gray-400 font-medium">
-                                        {new Date(msg.created_at).toLocaleDateString()}
+                                    <h4 className={`text-sm font-black tracking-tight truncate ${selectedMessage && (selectedMessage.id || selectedMessage._id) === (msg.id || msg._id) ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                                        {msg.sender_name || 'Anonymous Entity'}
+                                    </h4>
+                                    <span className={`text-[9px] font-bold uppercase tracking-widest ${selectedMessage && (selectedMessage.id || selectedMessage._id) === (msg.id || msg._id) ? 'text-white/60' : 'text-slate-400'}`}>
+                                        {msg.created_at ? new Date(msg.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : 'N/A'}
                                     </span>
                                 </div>
-                                <p className="text-xs text-slate-500 truncate leading-relaxed">{msg.message}</p>
+                                <p className={`text-[11px] font-medium truncate leading-relaxed ${selectedMessage && (selectedMessage.id || selectedMessage._id) === (msg.id || msg._id) ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>
+                                    {msg.message}
+                                </p>
                             </div>
                         </button>
                     )) : (
                         <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-                            <MessageCircle className="text-gray-200 mb-3" size={40} />
-                            <p className="text-sm text-gray-400 font-medium">No messages found.</p>
+                            <div className="w-16 h-16 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center mb-6 opacity-30">
+                                <MessageCircle className="text-slate-400" size={32} />
+                            </div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">No Signal Data</p>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Message Detail View */}
-            <div className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden">
+            {/* Signal Terminal View */}
+            <div className="flex-1 bg-white dark:bg-[#0f172a] rounded-[3.5rem] shadow-sm border border-slate-100 dark:border-white/5 flex flex-col overflow-hidden relative">
                 {selectedMessage ? (
                     <>
-                        <div className="p-6 border-b border-gray-50 flex justify-between items-center">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-100">
-                                    <User size={22} />
+                        <div className="p-10 border-b border-slate-50 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-transparent backdrop-blur-md">
+                            <div className="flex items-center gap-6">
+                                <div className="w-16 h-16 rounded-3xl bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-600/20 group hover:scale-105 transition-transform duration-500">
+                                    <User size={28} className="group-hover:rotate-6 transition-transform" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-slate-800">{selectedMessage.sender_name || 'Guest User'}</h3>
-                                    <p className="text-xs text-indigo-500 font-medium">{selectedMessage.email || 'No email provided'}</p>
+                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">{selectedMessage.sender_name || 'Guest Identity'}</h3>
+                                    <p className="text-[11px] text-indigo-600 font-bold uppercase tracking-[0.2em] mt-2 italic">{selectedMessage.email || 'Communication address not verified'}</p>
                                 </div>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-4">
                                 <button 
                                     onClick={() => deleteMessage(selectedMessage.id || selectedMessage._id)}
-                                    className="p-2.5 text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                    className="w-12 h-12 flex items-center justify-center text-rose-500 bg-rose-50 dark:bg-rose-500/10 rounded-2xl hover:bg-rose-500 hover:text-white shadow-sm transition-all duration-300"
                                 >
-                                    <Trash2 size={18} />
+                                    <Trash2 size={20} />
                                 </button>
                                 <button 
                                     onClick={() => setSelectedMessage(null)}
-                                    className="p-2.5 text-gray-400 hover:bg-gray-100 rounded-xl transition-all"
+                                    className="w-12 h-12 flex items-center justify-center text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-2xl hover:bg-slate-900 hover:text-white shadow-sm transition-all"
                                 >
-                                    <X size={18} />
+                                    <X size={20} />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
-                            <div className="bg-slate-50 rounded-3xl p-6 mb-8 text-slate-700 leading-relaxed relative border border-slate-100">
-                                <div className="absolute -top-3 left-6 px-3 py-1 bg-white border border-slate-100 rounded-full text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
-                                    <Clock size={10} /> {new Date(selectedMessage.created_at).toLocaleString()}
+                        <div className="flex-1 p-12 overflow-y-auto custom-scrollbar bg-slate-50/30 dark:bg-transparent">
+                            <div className="max-w-3xl">
+                                <div className="bg-white dark:bg-slate-800 p-10 rounded-[2.5rem] mb-10 text-slate-700 dark:text-slate-200 text-lg font-medium leading-[1.8] relative border border-slate-100 dark:border-white/5 shadow-sm">
+                                    <div className="absolute -top-4 left-10 px-5 py-2 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2 shadow-lg">
+                                        <Clock size={12} /> {new Date(selectedMessage.created_at).toLocaleString()}
+                                    </div>
+                                    <p className="first-letter:text-4xl first-letter:font-black first-letter:text-indigo-600 first-letter:mr-1 first-letter:float-left">{selectedMessage.message}</p>
                                 </div>
-                                {selectedMessage.message}
-                            </div>
 
-                            {/* Info Cards */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
-                                    <div className="flex items-center gap-2 text-emerald-600 mb-2">
-                                        <CheckCircle size={14} />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">Source</span>
+                                {/* Meta Data Grid */}
+                                <div className="grid grid-cols-2 gap-8">
+                                    <div className="p-6 rounded-3xl bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/10 group transition-all hover:shadow-lg hover:shadow-emerald-500/5">
+                                        <div className="flex items-center gap-3 text-emerald-600 mb-3">
+                                            <CheckCircle size={16} />
+                                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-700 dark:text-emerald-500">Telemetry Origin</span>
+                                        </div>
+                                        <p className="text-lg font-black text-emerald-900 dark:text-emerald-400 tracking-tight">Support Ingress</p>
                                     </div>
-                                    <p className="text-sm font-bold text-emerald-800">Support Request</p>
-                                </div>
-                                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100">
-                                    <div className="flex items-center gap-2 text-amber-600 mb-2">
-                                        <Clock size={14} />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Urgency</span>
+                                    <div className="p-6 rounded-3xl bg-amber-50 dark:bg-amber-500/5 border border-amber-100 dark:border-amber-500/10 group transition-all hover:shadow-lg hover:shadow-amber-500/5">
+                                        <div className="flex items-center gap-3 text-amber-600 mb-3">
+                                            <Command size={16} />
+                                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-700 dark:text-amber-500">Urgency Protocol</span>
+                                        </div>
+                                        <p className="text-lg font-black text-amber-900 dark:text-amber-400 tracking-tight">Standard Priority</p>
                                     </div>
-                                    <p className="text-sm font-bold text-amber-800">Normal</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Reply Input */}
-                        <div className="p-6 bg-slate-50 border-t border-gray-100">
+                        {/* Reply Terminal */}
+                        <div className="p-10 bg-white dark:bg-slate-800/50 border-t border-slate-100 dark:border-white/5 backdrop-blur-md">
                             <div className="relative group">
                                 <textarea 
-                                    rows="3" 
-                                    className="w-full p-4 pr-16 rounded-2xl bg-white border border-gray-200 outline-none focus:ring-2 focus:ring-indigo-100 transition-all text-sm resize-none shadow-sm"
-                                    placeholder="Type your response here..."
+                                    rows="4" 
+                                    className="w-full p-8 pr-24 rounded-[2rem] bg-slate-50 dark:bg-slate-900 border border-transparent focus:border-indigo-500/30 outline-none transition-all text-sm font-medium text-slate-800 dark:text-white resize-none shadow-inner scrollbar-none"
+                                    placeholder="Type tactical response..."
                                     value={replyText}
                                     onChange={(e) => setReplyText(e.target.value)}
                                 />
                                 <button 
                                     onClick={handleReply}
-                                    className="absolute right-3 bottom-3 p-3 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all group-hover:scale-105 active:scale-95"
+                                    className="absolute right-6 bottom-6 w-14 h-14 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-600/30 hover:bg-slate-950 transition-all flex items-center justify-center group-hover:scale-105 active:scale-95"
                                 >
-                                    <Reply size={20} />
+                                    <Reply size={24} />
                                 </button>
+                                <div className="absolute left-8 bottom-6 flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-widest opacity-40">
+                                    <Command size={10} /> Shift + Enter to transmit
+                                </div>
                             </div>
                         </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center p-10 text-center">
-                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6 border border-slate-100">
-                            <MessageCircle className="text-slate-300" size={32} />
+                    <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                        <div className="w-24 h-24 bg-slate-50 dark:bg-white/5 rounded-[2.5rem] flex items-center justify-center mb-8 border border-slate-100 dark:border-white/5 group hover:rotate-6 transition-transform duration-700">
+                            <MessageCircle className="text-slate-300 dark:text-slate-600" size={40} />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-800 mb-2">Select a Conversation</h3>
-                        <p className="text-sm text-slate-400 max-w-xs leading-relaxed">Choose a message from the list on the left to view details and send replies.</p>
+                        <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 tracking-tighter">Signal Selection Required</h3>
+                        <p className="text-xs text-slate-400 max-w-xs leading-relaxed font-bold uppercase tracking-widest opacity-60">Awaiting user-entity interaction trace</p>
                     </div>
                 )}
             </div>

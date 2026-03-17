@@ -6,6 +6,8 @@ import { ShieldCheck, CreditCard, Truck, CheckCircle, Smartphone, ExternalLink }
 import api from '../../src/utils/api';
 import SuccessModal from '../../src/components/SuccessModal';
 import { useNotifications } from '../../src/context/NotificationContext';
+import AuthModal from '../../src/components/AuthModal';
+import { LogIn, ShoppingCart as CartIcon, ArrowLeft } from 'lucide-react';
 
 const Checkout = () => {
     const { cart } = useCart();
@@ -23,6 +25,7 @@ const Checkout = () => {
     const [savedAddresses, setSavedAddresses] = useState([]);
     const [selectedAddressId, setSelectedAddressId] = useState(null);
     const [mapUrl, setMapUrl] = useState('');
+    const [showAuthModal, setShowAuthModal] = useState(false);
 
     // Address State
     const [formData, setFormData] = useState({
@@ -209,6 +212,47 @@ const Checkout = () => {
             setLoading(false);
         }
     };
+
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+                <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-8 text-center border border-gray-100 animate-fade-in">
+                    <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <LogIn size={40} className="text-secondary" />
+                    </div>
+                    <h2 className="text-2xl font-black text-gray-800 mb-2">Sign In Required</h2>
+                    <p className="text-gray-500 mb-8 font-medium">Please sign in to your account to provide shipping details and complete your order.</p>
+                    
+                    <div className="space-y-4">
+                        <button 
+                            onClick={() => setShowAuthModal(true)}
+                            className="w-full bg-secondary text-white py-4 rounded-xl font-bold hover:bg-indigo-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-secondary/20"
+                        >
+                            <LogIn size={20} /> Sign In to Continue
+                        </button>
+                        <button 
+                            onClick={() => navigate('/cart')}
+                            className="w-full bg-gray-100 text-gray-600 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
+                        >
+                            <ArrowLeft size={20} /> Back to Cart
+                        </button>
+                    </div>
+
+                    <div className="mt-8 pt-8 border-t border-gray-100 grid grid-cols-2 gap-4">
+                        <div className="text-left">
+                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Your Cart</p>
+                            <p className="text-lg font-bold text-gray-800">{cart.length} Items</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Total</p>
+                            <p className="text-lg font-bold text-secondary">₹{total}</p>
+                        </div>
+                    </div>
+                </div>
+                <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 py-12">
