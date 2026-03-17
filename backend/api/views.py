@@ -206,7 +206,11 @@ class OfflineOrderView(APIView):
 def get_logo_base64():
     """Load the project logo as a base64 string for email embedding."""
     try:
-        logo_path = Path(settings.BASE_DIR) / '..' / 'frontend' / 'public' / 'logo.png'
+        # Try build first, then public
+        logo_path = Path(settings.BASE_DIR) / '..' / 'frontend' / 'build' / 'logo.png'
+        if not logo_path.exists():
+            logo_path = Path(settings.BASE_DIR) / '..' / 'frontend' / 'public' / 'logo.png'
+            
         logo_path = logo_path.resolve()
         if not logo_path.exists():
             return None
@@ -260,7 +264,11 @@ def generate_invoice_pdf(order_data):
         c.rect(0, height - 120, width, 120, fill=1, stroke=0)
         
         # Logo
-        logo_path = os.path.join(settings.BASE_DIR, '..', 'frontend', 'public', 'logo.png')
+        # Try build folder logo first as requested, then public
+        logo_path = os.path.join(settings.BASE_DIR, '..', 'frontend', 'build', 'logo.png')
+        if not os.path.exists(logo_path):
+            logo_path = os.path.join(settings.BASE_DIR, '..', 'frontend', 'public', 'logo.png')
+            
         if os.path.exists(logo_path):
             c.drawImage(logo_path, margin, height - 90, width=32*mm, preserveAspectRatio=True, mask='auto')
         else:
