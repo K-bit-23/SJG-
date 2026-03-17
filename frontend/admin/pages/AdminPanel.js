@@ -42,7 +42,9 @@ const AdminPanel = () => {
     const [adminOtp, setAdminOtp] = useState('0707');
     const [adminUsername, setAdminUsername] = useState('');
     const [adminPassword, setAdminPassword] = useState('');
-    const [loginType, setLoginType] = useState('otp'); // 'otp' or 'credentials'
+    const [loginType, setLoginType] = useState('credentials'); // 'otp' or 'credentials'
+    const [otpError, setOtpError] = useState('');
+    const [loginError, setLoginError] = useState('');
     const dropdownRef = useRef(null);
 
 
@@ -99,7 +101,9 @@ const AdminPanel = () => {
         fetchData(); 
         // Fetch current OTP from settings if it exists
         api.get('/settings/').then(res => {
-            if (res.data?.admin_otp) setAdminOtp(res.data.admin_otp);
+            // Check multiple possible field names
+            const otp = res.data?.admin_otp || res.data?.adminOtp || res.data?.otp;
+            if (otp) setAdminOtp(String(otp));
         }).catch(() => {});
     }, [activeTab]);
 
@@ -351,18 +355,22 @@ const AdminPanel = () => {
     const handleLogout = async () => { localStorage.removeItem('admin_session'); await logout(); navigate('/'); };
 
     const handleOTPLogin = () => {
-        if (otpCode === adminOtp) {
+        const enteredOtp = otpCode.trim();
+        const storedOtp = String(adminOtp).trim();
+        if (enteredOtp === storedOtp) {
             localStorage.setItem('admin_session', 'true');
             setShowOTPModal(false);
             setOtpCode('');
+            setOtpError('');
             navigate('/admin/dashboard');
         } else {
-            console.error('Invalid OTP Access Key');
+            setOtpError(`Invalid OTP. Hint: default is 0707`);
         }
     };
 
     const handleAdminLogin = async () => {
         setLoading(true);
+        setLoginError('');
         try {
             const res = await api.post('/admin-login/', { 
                 username: adminUsername, 
@@ -371,9 +379,11 @@ const AdminPanel = () => {
             if (res.data.status === 'success') {
                 localStorage.setItem('admin_session', 'true');
                 navigate('/admin/dashboard');
+            } else {
+                setLoginError('Authentication rejected. Check credentials.');
             }
         } catch (err) {
-            console.error('Login failed:', err.response?.data?.message || err.message);
+            setLoginError(err.response?.data?.message || 'Login failed. Try username: admin / password: admin123');
         } finally {
             setLoading(false);
         }
@@ -411,14 +421,21 @@ const AdminPanel = () => {
                                 value={adminUsername}
                                 onChange={(e) => setAdminUsername(e.target.value)}
                                 className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-indigo-500 transition-all font-bold text-sm"
+                                autoFocus
                             />
                             <input 
                                 type="password" 
                                 placeholder="Password"
                                 value={adminPassword}
                                 onChange={(e) => setAdminPassword(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleAdminLogin()}
                                 className="w-full bg-slate-950 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-indigo-500 transition-all font-bold text-sm shadow-inner"
                             />
+                            {loginError && (
+                                <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 text-rose-400 text-xs font-bold">
+                                    {loginError}
+                                </div>
+                            )}
                             <button 
                                 onClick={handleAdminLogin}
                                 disabled={loading}
@@ -427,7 +444,7 @@ const AdminPanel = () => {
                                 {loading ? 'Authenticating...' : 'Authorize Login'}
                             </button>
                             <button 
-                                onClick={() => setLoginType('otp')}
+                                onClick={() => { setLoginType('otp'); setLoginError(''); }}
                                 className="w-full py-2 text-slate-500 hover:text-white transition-all text-xs font-bold"
                             >
                                 Switch to Emergency OTP
@@ -442,7 +459,7 @@ const AdminPanel = () => {
                                 Emergency OTP Access
                             </button>
                             <button 
-                                onClick={() => setLoginType('credentials')}
+                                onClick={() => { setLoginType('credentials'); setOtpError(''); }}
                                 className="w-full py-4 bg-slate-800 rounded-xl text-slate-300 font-bold hover:bg-slate-700 transition-all text-sm"
                             >
                                 Admin Credentials Login
@@ -465,20 +482,29 @@ const AdminPanel = () => {
                 {showOTPModal && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-xl">
                         <div className="bg-slate-900 border border-white/10 p-10 rounded-[2.5rem] w-full max-w-sm">
-                            <h3 className="text-2xl font-black text-white mb-2">Internal Override</h3>
-                            <p className="text-slate-400 text-xs mb-8 uppercase tracking-widest font-bold">Secure OTP Protocol 2.5</p>
+                            <h3 className="text-2xl font-black text-white mb-2">Emergency OTP</h3>
+                            <p className="text-slate-400 text-xs mb-8 uppercase tracking-widest font-bold">Enter your 4-digit security key</p>
                             <input 
-                                type="password" 
-                                placeholder="Enter Access Key"
+                                type="text"
+                                inputMode="numeric"
+                                maxLength={4}
+                                placeholder="0 0 0 0"
                                 value={otpCode}
-                                onChange={(e) => setOtpCode(e.target.value)}
-                                className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white text-center text-2xl tracking-[1em] mb-6 focus:border-indigo-500 outline-none transition-all"
+                                onChange={(e) => { setOtpCode(e.target.value.replace(/\D/g, '')); setOtpError(''); }}
+                                onKeyDown={(e) => e.key === 'Enter' && handleOTPLogin()}
+                                className="w-full bg-slate-950 border border-white/10 rounded-2xl p-4 text-white text-center text-3xl font-black tracking-[0.6em] mb-3 focus:border-indigo-500 outline-none transition-all"
                                 autoFocus
                             />
-                            <div className="flex gap-4">
-                                <button onClick={() => setShowOTPModal(false)} className="flex-1 py-4 bg-white/5 text-white font-bold rounded-2xl">Cancel</button>
-                                <button onClick={handleOTPLogin} className="flex-1 py-4 bg-indigo-600 text-white font-black rounded-2xl">Verify</button>
+                            {otpError && (
+                                <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 mb-4 text-rose-400 text-xs font-bold text-center">
+                                    ❌ {otpError}
+                                </div>
+                            )}
+                            <div className="flex gap-4 mt-2">
+                                <button onClick={() => { setShowOTPModal(false); setOtpError(''); setOtpCode(''); }} className="flex-1 py-4 bg-white/5 text-white font-bold rounded-2xl hover:bg-white/10 transition-all">Cancel</button>
+                                <button onClick={handleOTPLogin} className="flex-1 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all">Verify</button>
                             </div>
+                            <p className="text-center text-slate-600 text-[10px] font-bold mt-4 uppercase tracking-widest">Default OTP: 0707</p>
                         </div>
                     </div>
                 )}

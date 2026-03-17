@@ -1604,8 +1604,13 @@ class SystemStatsView(APIView):
             msg_count = mongo_client.get_collection('contact_messages').count_documents({})
             
             # 2. Revenue Calculation
-            orders = list(mongo_client.get_collection('orders').find({}, {'total_amount': 1}))
+            orders = list(mongo_client.get_collection('orders').find({}, {'total_amount': 1, 'created_at': 1}))
             total_revenue = sum(float(o.get('total_amount', 0)) for o in orders)
+            
+            # 2b. Today's Revenue
+            today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            today_orders = [o for o in orders if o.get('created_at') and o['created_at'] >= today]
+            daily_revenue = sum(float(o.get('total_amount', 0)) for o in today_orders)
             
             # 3. Server Uptime
             uptime_seconds = int(time.time() - START_TIME)
@@ -1636,6 +1641,8 @@ class SystemStatsView(APIView):
                     "messages": msg_count
                 },
                 "revenue": round(total_revenue, 2),
+                "daily_revenue": round(daily_revenue, 2),
+                "today_orders": len(today_orders),
                 "uptime": uptime_seconds,
                 "logs": sorted(logs, key=lambda x: x['time'], reverse=True),
                 "memory": f"{random.randint(45, 120)} MB", # Simulated
@@ -1646,8 +1653,28 @@ class SystemStatsView(APIView):
 
 def api_root_view(request):
     """Render a modern status dashboard for the SJG backend API."""
+    try:
+        settings_data = mongo_client.get_collection('admin_data').find_one({'type': 'settings'})
+    except:
+        settings_data = {}
+
+    # Daily sales
+    try:
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_orders_list = list(mongo_client.get_collection('orders').find({'created_at': {'$gte': today}}, {'total_amount': 1}))
+        daily_rev = round(sum(float(o.get('total_amount', 0)) for o in today_orders_list), 2)
+        today_count = len(today_orders_list)
+    except:
+        daily_rev = 0
+        today_count = 0
+        
     return render(request, 'api_root.html', {
         'year': datetime.now().year,
+        'app_settings': settings_data,
+        'user_is_authenticated': request.user.is_authenticated,
+        'user': request.user,
+        'daily_revenue': daily_rev,
+        'today_orders': today_count,
     })
 
 class AdminLoginView(APIView):

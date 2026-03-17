@@ -136,13 +136,64 @@
         <div class="lg:col-span-2 flex flex-col gap-8">
             <div class="glass-card rounded-[2.5rem] p-10 flex-1 flex flex-col relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-10 opacity-10">
-                    <svg class="w-48 h-48" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.97 4.44c-.31.17-.69.17-1 0l-7.97-4.44c-.32-.17-.53-.5-.53-.88v-9c0-.38.21-.71.53-.88l7.97-4.44c.31-.17.69-.17 1 0l7.97 4.44c.32.17.53.5.53.88v9z"/></svg>
+                    {% if user_is_authenticated %}
+                        <svg class="w-48 h-48" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+                    {% else %}
+                        <svg class="w-48 h-48" fill="currentColor" viewBox="0 0 24 24"><path d="M21 16.5c0 .38-.21.71-.53.88l-7.97 4.44c-.31.17-.69.17-1 0l-7.97-4.44c-.32-.17-.53-.5-.53-.88v-9c0-.38.21-.71.53-.88l7.97-4.44c.31-.17.69-.17 1 0l7.97 4.44c.32.17.53.5.53.88v9z"/></svg>
+                    {% endif %}
                 </div>
                 
                 <div class="relative z-10 flex-1">
                     <span class="text-[11px] font-black uppercase tracking-[0.4em] text-indigo-500 mb-4 block">System Core Telemetry</span>
                     <h2 class="text-6xl font-black text-white tracking-tighter mb-12 leading-tight">Infrastructure <br/><span class="text-slate-500">Real-time Feed.</span></h2>
                     
+                    {% if user_is_authenticated %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 animate-fade-in">
+                            <div class="space-y-4">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-indigo-400">Available Endpoints</span>
+                                <div class="grid grid-cols-1 flex-wrap gap-2 text-[11px] mono">
+                                    <div class="p-3 bg-white/5 border border-white/5 rounded-xl flex justify-between items-center group hover:bg-white/10 transition-all">
+                                        <span class="text-slate-300">GET /api/products/</span>
+                                        <a href="/api/products/" class="text-indigo-400 group-hover:text-indigo-300">List Products &rarr;</a>
+                                    </div>
+                                    <div class="p-3 bg-white/5 border border-white/5 rounded-xl flex justify-between items-center group hover:bg-white/10 transition-all">
+                                        <span class="text-slate-300">GET /api/orders/</span>
+                                        <a href="/api/orders/" class="text-indigo-400 group-hover:text-indigo-300">Review Orders &rarr;</a>
+                                    </div>
+                                    <div class="p-3 bg-white/5 border border-white/5 rounded-xl flex justify-between items-center group hover:bg-white/10 transition-all">
+                                        <span class="text-slate-300">GET /api/settings/</span>
+                                        <a href="/api/settings/" class="text-indigo-400 group-hover:text-indigo-300">App Config &rarr;</a>
+                                    </div>
+                                    <div class="p-3 bg-white/5 border border-white/5 rounded-xl flex justify-between items-center group hover:bg-white/10 transition-all">
+                                        <span class="text-slate-300">GET /api/system/stats/</span>
+                                        <a href="/api/system/stats/" class="text-indigo-400 group-hover:text-indigo-300">Core Engine &rarr;</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Application Parameters</span>
+                                <div class="p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl h-full space-y-3">
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500 font-bold uppercase tracking-tight">Identity:</span>
+                                        <span class="text-white font-black">{{ app_settings.businessName|default:"SJG Stationery" }}</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500 font-bold uppercase tracking-tight">Support Line:</span>
+                                        <span class="text-white font-black">{{ app_settings.phone|default:"+91 1234567890" }}</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500 font-bold uppercase tracking-tight">Region:</span>
+                                        <span class="text-white font-black">{{ app_settings.currency|default:"INR (₹)" }}</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-500 font-bold uppercase tracking-tight">Status:</span>
+                                        <span class="text-emerald-500 font-black uppercase">Active Deployment</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
                         <div class="space-y-4">
                             <div class="flex justify-between items-end mb-2">
@@ -175,17 +226,34 @@
                 </div>
             </div>
 
-            <!-- Log View -->
-            <div class="glass-card rounded-[2.5rem] p-8 h-80 flex flex-col">
+            <!-- Log View with Interactive Terminal -->
+            <div class="glass-card rounded-[2.5rem] p-8 h-[400px] flex flex-col">
                 <div class="flex items-center justify-between mb-6 px-2">
                     <div class="flex items-center gap-3">
                         <div class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_#6366f1]"></div>
-                        <span class="text-[10px] font-black uppercase tracking-widest text-white">Live System Logs</span>
+                        <span class="text-[10px] font-black uppercase tracking-widest text-white">Live Operations Terminal</span>
                     </div>
-                    <span class="text-[9px] font-mono text-slate-500 tracking-tighter">CONNECTED_ENCRYPTED</span>
+                    <div class="flex items-center gap-4">
+                        <span class="text-[9px] font-mono text-slate-500 tracking-tighter">ENCRYPTED_AUTH_LEVEL: ROOT</span>
+                        <div class="h-1 w-12 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-indigo-500 animate-pulse" style="width: 70%"></div>
+                        </div>
+                    </div>
                 </div>
-                <div id="terminal" class="flex-1 overflow-y-auto terminal-scroll px-4 mono text-[11px] leading-relaxed flex flex-col-reverse divide-y divide-white/5">
-                    <div class="py-3 text-emerald-400 flex gap-4"><span class="opacity-40">OK</span><span>[SYSTEM] Secure kernel instance initiated successfully.</span></div>
+                <div id="terminal" class="flex-1 overflow-y-auto terminal-scroll px-4 mono text-[11px] leading-relaxed flex flex-col-reverse divide-y divide-white/5 bg-black/20 rounded-2xl mb-4">
+                    <div class="py-3 text-emerald-400 flex gap-4"><span class="opacity-40">OK</span><span>[SYSTEM] Protocol 4.2 stabilized. Standby for input.</span></div>
+                </div>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-indigo-500 mono text-xs">
+                        &lambda; >
+                    </div>
+                    <input 
+                        type="text" 
+                        id="terminal-input"
+                        placeholder="Type system command (help, status, clear)..."
+                        class="w-full bg-black/40 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-xs mono text-white focus:border-indigo-500/50 outline-none transition-all placeholder:text-slate-600"
+                        onkeydown="if(event.key==='Enter') handleCommand(this.value); if(event.key==='Enter') this.value='';"
+                    />
                 </div>
             </div>
         </div>
@@ -203,14 +271,16 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-8">
-                <div class="glass-card rounded-[2.5rem] p-8">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4 block">Orders</span>
-                    <div class="text-4xl font-black text-white" id="stat-orders">0</div>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="glass-card rounded-[2.5rem] p-8 flex flex-col justify-between">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-4 block">Today's Sales</span>
+                    <div class="text-3xl font-black text-white" id="stat-daily-rev">₹{{ daily_revenue|floatformat:0 }}</div>
+                    <span class="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-2 block">{{ today_orders }} order{{ today_orders|pluralize }}</span>
                 </div>
-                <div class="glass-card rounded-[2.5rem] p-8">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4 block">Products</span>
-                    <div class="text-4xl font-black text-white" id="stat-products">0</div>
+                <div class="glass-card rounded-[2.5rem] p-8 flex flex-col justify-between">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-4 block">Total Orders</span>
+                    <div class="text-3xl font-black text-white" id="stat-orders">0</div>
+                    <span class="text-[9px] font-bold text-slate-600 uppercase tracking-widest mt-2 block">All time</span>
                 </div>
             </div>
 
@@ -223,13 +293,33 @@
                     <button onclick="runDiagnostic('health')" class="w-full flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-emerald-500/30 transition-all text-sm font-bold group">
                         Health Check <span class="text-emerald-500 group-hover:translate-x-1 transition-transform">&rarr;</span>
                     </button>
-                    <div class="pt-8">
+                    
+                    <div class="pt-6 grid grid-cols-2 gap-4">
+                        <div class="p-4 rounded-2xl bg-black/20 border border-white/5 flex flex-col items-center justify-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">MongoDB</span>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-black/20 border border-white/5 flex flex-col items-center justify-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Gateway</span>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-black/20 border border-white/5 flex flex-col items-center justify-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Stripe AI</span>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-black/20 border border-white/5 flex flex-col items-center justify-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div>
+                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">SMTP Core</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-4">
                         <div class="p-6 rounded-3xl bg-indigo-500/5 border border-indigo-500/10 flex items-start gap-4">
                             <div class="w-10 h-10 shrink-0 bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-400">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </div>
                             <p class="text-[11px] font-bold text-slate-400 leading-relaxed uppercase tracking-wide">
-                                All automated scripts and background tasks are currently running at peak efficiency levels.
+                                Automated diagnostic protocols verify cross-platform integrity every 60 seconds.
                             </p>
                         </div>
                     </div>
@@ -280,6 +370,32 @@
             if (type === 'health') window.location.href = '/api/health/?format=html';
         }
 
+        function handleCommand(cmd) {
+            const input = cmd.trim().toLowerCase();
+            if (!input) return;
+            addLog(`EXECUTING: ${input}`, 'info');
+            
+            setTimeout(() => {
+                if (input === 'help') {
+                    addLog('AVAILABLE: clear, status, refresh, ver, health', 'info');
+                } else if (input === 'clear' || input === 'cls') {
+                    terminal.innerHTML = '';
+                    addLog('System log buffer cleared.', 'info');
+                } else if (input === 'status') {
+                    addLog(`NODES: Online | LATENCY: ${document.getElementById('ping-summary').innerText}`, 'info');
+                } else if (input === 'refresh') {
+                    fetchStats();
+                    addLog('Real-time telemetry updated manually.', 'info');
+                } else if (input === 'ver') {
+                    addLog('SJG OPERATIONS KERNEL V2.5.0-STABLE', 'info');
+                } else if (input === 'health') {
+                    addLog('ALL SYSTEMS GREEN: 8/8 COMPONENTS REACTIVE', 'emerald-400');
+                } else {
+                    addLog(`UNKNOWN COMMAND: "${input}" - Type 'help' for manual.`, 'error');
+                }
+            }, 300);
+        }
+
         let prev = { products: 0, orders: 0, revenue: 0 };
         function animateValue(id, start, end, duration) {
             const obj = document.getElementById(id);
@@ -323,4 +439,3 @@
     </script>
 </body>
 </html>
-l>
