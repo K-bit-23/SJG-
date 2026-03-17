@@ -17,6 +17,7 @@ import AdminDelivery from '../../src/admin/AdminDelivery';
 import AdminUsers from '../../src/admin/AdminUsers';
 import AdminContent from '../../src/admin/AdminContent';
 import AdminSettings from '../../src/admin/AdminSettings';
+import AdminChat from '../../src/admin/AdminChat';
 
 const AdminPanel = () => {
     const { user, logout } = useAuth();
@@ -60,7 +61,7 @@ const AdminPanel = () => {
     const [currentInvoice, setCurrentInvoice] = useState(null);
 
     useEffect(() => {
-        const isAdmin = (user && user.role === 'admin') || localStorage.getItem('admin_session') === 'true';
+        const isAdmin = (user && (user.role === 'admin' || user.publicMetadata?.role === 'admin')) || localStorage.getItem('admin_session') === 'true';
         if (!isAdmin) navigate('/');
     }, [user, navigate]);
 
@@ -186,9 +187,19 @@ const AdminPanel = () => {
         saveHomeContent(updated);
     };
 
+    const handleBillingPhoneChange = async (phone) => {
+        setBillingCustomer(prev => ({ ...prev, phone }));
+        if (phone.length === 10) {
+            try {
+                const res = await api.get(`customers/find/?phone=${phone}`);
+                if (res.data) setBillingCustomer({ name: res.data.name, phone: res.data.phone, email: res.data.email || '' });
+            } catch (err) { console.error("Customer search failed", err); }
+        }
+    };
+
     const addToBill = (product) => {
-        const existing = billingItems.find(i => i.id === (product.id || product._id));
-        if (existing) setBillingItems(billingItems.map(i => i.id === existing.id ? { ...i, quantity: i.quantity + 1 } : i));
+        const existing = billingItems.find(i => (i.id || i._id) === (product.id || product._id));
+        if (existing) setBillingItems(billingItems.map(i => (i.id || i._id) === existing.id ? { ...i, quantity: i.quantity + 1 } : i));
         else setBillingItems([...billingItems, { id: product.id || product._id, name: product.name, price: parseFloat(product.price), quantity: 1 }]);
     };
     const addServiceItem = (name) => {
@@ -199,11 +210,43 @@ const AdminPanel = () => {
     const updateBillQuantity = (id, qty) => { if (qty < 1) return; setBillingItems(billingItems.map(i => i.id === id ? { ...i, quantity: qty } : i)); };
     const updateItemPrice = (id, price) => setBillingItems(billingItems.map(i => i.id === id ? { ...i, price: parseFloat(price) || 0 } : i));
     const calculateBillTotal = () => billingItems.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-    const generateInvoice = () => {
+    const generateInvoice = async () => {
         if (!billingItems.length || !billingCustomer.name) return alert('Enter customer details and items');
+        const adminSettings = JSON.parse(localStorage.getItem('admin_settings') || '{}');
         const subTotal = calculateBillTotal();
-        setCurrentInvoice({ id: `INV-${Date.now().toString().slice(-6)}`, date: new Date().toLocaleDateString(), customer: billingCustomer, items: billingItems, total: subTotal, tax: subTotal * 0.18, grandTotal: subTotal * 1.18 });
-        setShowInvoiceModal(true);
+        const taxRate = adminSettings.gst_percentage || 18;
+        const tax = subTotal * (taxRate / 100);
+        const grandTotal = subTotal + tax;
+
+        const invoiceData = {
+            id: `INV-${Date.now().toString().slice(-6)}`,
+            date: new Date().toLocaleDateString(),
+            customer: billingCustomer,
+            items: billingItems,
+            total: subTotal,
+            tax,
+            grandTotal,
+            settings: adminSettings
+        };
+
+        try {
+            await api.post('orders/offline/', {
+                customer_name: billingCustomer.name,
+                customer_phone: billingCustomer.phone,
+                customer_email: billingCustomer.email,
+                items: billingItems.map(i => ({ product_id: i.id, product_name: i.name, quantity: i.quantity, price: i.price })),
+                total_amount: grandTotal,
+                payment_status: 'paid',
+                status: 'completed'
+            });
+            setCurrentInvoice(invoiceData);
+            setShowInvoiceModal(true);
+            setBillingItems([]);
+            setBillingCustomer({ name: '', phone: '', email: '' });
+            fetchData();
+        } catch (err) {
+            alert('Failed to save offline order');
+        }
     };
     const printInvoice = () => { const c = document.getElementById('invoice-template').innerHTML, orig = document.body.innerHTML; document.body.innerHTML = c; window.print(); document.body.innerHTML = orig; window.location.reload(); };
 
@@ -222,7 +265,7 @@ const AdminPanel = () => {
         { id: 'settings', label: 'Settings', icon: Settings },
     ];
 
-    if (!user || user.role !== 'admin') return null;
+    if (!user && localStorage.getItem('admin_session') !== 'true') return null;
 
     return (
         <div className="min-h-screen bg-gray-100 flex">
@@ -269,6 +312,7 @@ const AdminPanel = () => {
                 {activeTab === 'billing' && (
                     <AdminBilling
                         products={products} billingItems={billingItems} billingCustomer={billingCustomer} setBillingCustomer={setBillingCustomer}
+                        handleBillingPhoneChange={handleBillingPhoneChange}
                         billingProductSearch={billingProductSearch} setBillingProductSearch={setBillingProductSearch}
                         addToBill={addToBill} addServiceItem={addServiceItem} removeFromBill={removeFromBill} 
                         updateBillQuantity={updateBillQuantity} updateItemPrice={updateItemPrice} calculateBillTotal={calculateBillTotal}
@@ -294,6 +338,7 @@ const AdminPanel = () => {
                         homeItemForm={homeItemForm} setHomeItemForm={setHomeItemForm} handleSaveHomeItem={handleSaveHomeItem}
                     />
                 )}
+                {activeTab === 'chat' && <AdminChat messages={chatMessages} />}
                 {activeTab === 'settings' && <AdminSettings />}
             </main>
         </div>

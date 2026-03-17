@@ -60,7 +60,7 @@ const AdminBilling = ({
 
                     <div className="space-y-3 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
                         <input type="text" placeholder="Customer Name" className="w-full bg-transparent border-b border-gray-300 focus:border-secondary outline-none py-1 text-sm" value={billingCustomer.name} onChange={e => setBillingCustomer({ ...billingCustomer, name: e.target.value })} />
-                        <input type="text" placeholder="Phone Number" className="w-full bg-transparent border-b border-gray-300 focus:border-secondary outline-none py-1 text-sm" value={billingCustomer.phone} onChange={e => setBillingCustomer({ ...billingCustomer, phone: e.target.value })} />
+                        <input type="text" placeholder="Phone Number" className="w-full bg-transparent border-b border-gray-300 focus:border-secondary outline-none py-1 text-sm" value={billingCustomer.phone} onChange={e => handleBillingPhoneChange(e.target.value)} />
                     </div>
 
                     <div className="space-y-3 mb-6 max-h-[300px] overflow-y-auto">
