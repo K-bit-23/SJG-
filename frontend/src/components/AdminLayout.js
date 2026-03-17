@@ -35,8 +35,8 @@ const AdminLayout = ({ children }) => {
                     {/* Sidebar Header */}
                     <div className="p-6 border-b border-slate-800 flex items-center justify-between">
                         <Link to="/" className="flex items-center gap-3 group">
-                            <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform">
-                                <span className="text-white font-black text-xl">S</span>
+                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-12 transition-transform overflow-hidden p-1">
+                                <img src="/logo.png" alt="SJG" className="w-full h-full object-contain" />
                             </div>
                             <div>
                                 <h1 className="font-black text-xl tracking-tighter">SJG <span className="text-secondary">ADMIN</span></h1>
@@ -101,7 +101,8 @@ const AdminLayout = ({ children }) => {
                         <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
                             <Menu size={24} />
                         </button>
-                        <h2 className="text-xl font-black text-slate-800 tracking-tight">
+                        <h2 className="text-xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+                            {!sidebarOpen && <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" />}
                             {menuItems.find(item => location.pathname === item.path)?.label || 'Admin Panel'}
                         </h2>
                     </div>

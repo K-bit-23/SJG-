@@ -211,8 +211,11 @@ const Profile = () => {
             <div className="max-w-5xl mx-auto">
 
                 {/* User Header Card */}
-                <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-6 text-white mb-6">
-                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-6 text-white mb-6 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-20 hover:opacity-100 transition-opacity">
+                        <img src="/logo.png" alt="SJG" className="w-16 h-16 object-contain grayscale brightness-0 invert" />
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center gap-4 relative z-10">
                         <div className="relative">
                             {profileData.photoURL ? (
                                 <img src={profileData.photoURL} alt={profileData.fullName} className="w-20 h-20 rounded-full object-cover ring-4 ring-white/30" />

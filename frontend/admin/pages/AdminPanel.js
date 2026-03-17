@@ -329,8 +329,11 @@ const AdminPanel = () => {
         <div className="min-h-screen bg-gray-100 flex">
             {/* Sidebar */}
             <aside className={`${sidebarOpen ? 'w-64' : 'w-0'} bg-slate-900 text-white flex flex-col fixed h-screen transition-all duration-300 overflow-hidden z-40`}>
-                <div className="p-6 border-b border-white/10 flex justify-between items-center min-w-[256px]">
-                    <h1 className="text-xl font-bold">SJG Admin</h1>
+                <div className="p-6 border-b border-white/10 flex justify-between items-center min-w-[256px] gap-3">
+                    <div className="flex items-center gap-3">
+                        <img src="/logo.png" alt="SJG" className="w-10 h-10 object-contain bg-white rounded-lg p-1" />
+                        <h1 className="text-xl font-bold">SJG Admin</h1>
+                    </div>
                     <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-white/10 rounded-lg"><X size={18} /></button>
                 </div>
                 <nav className="flex-1 p-4 space-y-1 min-w-[256px]">

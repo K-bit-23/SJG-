@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { SignIn, SignUp } from '@clerk/clerk-react';
 
 const AuthModal = ({ isOpen, onClose }) => {

@@ -485,7 +485,10 @@ const Navbar = () => {
                 <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm lg:hidden" onClick={() => setMobileMenuOpen(false)}>
                     <div className="absolute top-0 right-0 w-4/5 max-w-xs h-full bg-white shadow-2xl" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center p-4 border-b">
-                            <span className="text-lg font-bold text-primary">Menu</span>
+                            <div className="flex items-center gap-2">
+                                <img src="/logo.png" alt="SJG" className="h-8 w-8 object-contain" />
+                                <span className="text-lg font-bold text-primary">Menu</span>
+                            </div>
                             <button onClick={() => setMobileMenuOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
                                 <X size={20} />
                             </button>
