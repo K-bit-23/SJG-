@@ -1703,3 +1703,40 @@ class AdminLoginView(APIView):
             })
         
         return Response({'status': 'error', 'message': 'Invalid admin credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+class OtpVerifyView(APIView):
+    """Verify OTP for backend dashboard access — stores in MongoDB settings"""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        """Generate and return a new OTP (stored in DB), for use in admin settings"""
+        try:
+            import random
+            new_otp = str(random.randint(1000, 9999))
+            mongo_client.get_collection('admin_data').update_one(
+                {'type': 'settings'},
+                {'$set': {'admin_otp': new_otp, 'otp_generated_at': datetime.now()}},
+                upsert=True
+            )
+            return Response({'status': 'success', 'otp': new_otp, 'message': 'New OTP generated and stored.'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def post(self, request):
+        """Verify submitted OTP against that stored in MongoDB"""
+        submitted = str(request.data.get('otp', '')).strip()
+        if not submitted:
+            return Response({'status': 'error', 'message': 'OTP is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            settings_doc = mongo_client.get_collection('admin_data').find_one({'type': 'settings'})
+            stored_otp = str(settings_doc.get('admin_otp', '0707')).strip() if settings_doc else '0707'
+            
+            if submitted == stored_otp:
+                request.session['dashboard_access'] = True
+                request.session.save()
+                return Response({'status': 'success', 'message': 'OTP verified. Access granted.'})
+            else:
+                return Response({'status': 'error', 'message': 'Invalid OTP code.'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

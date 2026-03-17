@@ -61,7 +61,7 @@ const Layout = ({ children }) => {
       {!isAdminPage && <ChatBot />}
       {!isAdminPage && <FloatingShortcut />}
       {!isAdminPage && <ScrollToTop />}
-      <main className={isAdminPage ? '' : 'flex-grow'}>
+      <main className={isAdminPage ? '' : 'flex-grow pt-16'}>
         {children}
       </main>
       {!isAdminPage && <Footer />}

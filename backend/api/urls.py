@@ -35,6 +35,7 @@ from .views import (
     OrderInvoiceView,
     SystemStatsView,
     AdminLoginView,
+    OtpVerifyView,
     api_root_view
 )
 from .payment_views import (
@@ -99,6 +100,7 @@ urlpatterns = [
     path('user-settings/<str:email>/', UserSettingsView.as_view(), name='user-settings'),
     path('system/stats/', SystemStatsView.as_view(), name='system-stats'),
     path('admin-login/', AdminLoginView.as_view(), name='admin-login'),
+    path('otp/verify/', OtpVerifyView.as_view(), name='otp-verify'),
     path('root/', api_root_view, name='api-root-html'),
 ]
 
