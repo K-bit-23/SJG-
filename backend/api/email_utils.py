@@ -237,6 +237,7 @@ Thank you for shopping at SJG Stationery!
 
 def _send_via_resend(recipients, subject, html_body, text_body):
     """Sends email via Resend's HTTP API (Bypasses port blocking)"""
+    import os
     import urllib.request
     import json
     
