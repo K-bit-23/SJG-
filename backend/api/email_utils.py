@@ -262,7 +262,8 @@ def _send_via_resend(recipients, subject, html_body, text_body):
             data=json.dumps(payload).encode(),
             headers={
                 "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
             }
         )
         with urllib.request.urlopen(req) as res:

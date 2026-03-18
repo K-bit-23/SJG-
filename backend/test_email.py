@@ -11,9 +11,9 @@ from api.email_utils import send_order_confirmation_after_delay
 
 # Create a mock order
 mock_order = {
-    'order_id': 'TEST-123456',
+    'order_id': 'TEST-RESEND',
     'user_name': 'Karthikeyan (Test)',
-    'user_email': 'dkarthideepak@gmail.com',
+    'user_email': 'karthikeyankarthikeyan64182@gmail.com',
     'items': [
         {'product_name': 'Test Notebook', 'quantity': 2, 'price': 50.0},
         {'product_name': 'Test Pen', 'quantity': 5, 'price': 10.0}
