@@ -237,6 +237,10 @@ Thank you for shopping at SJG Stationery!
 
 def _send(order: dict, delay_seconds: int, status_label: str):
     """Wait, then send the confirmation/update email."""
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+
     if delay_seconds > 0:
         time.sleep(delay_seconds)
 
@@ -244,8 +248,6 @@ def _send(order: dict, delay_seconds: int, status_label: str):
     customer_email = (order.get('user_email') or '').strip()
     order_id = order.get('order_id', 'N/A')
 
-    # By default, send confirmation only to the customer's email.
-    # If you want admin/owner copies, set EMAIL_SEND_TO_CUSTOMER_ONLY=False in your env.
     send_to_customer_only = getattr(settings, 'EMAIL_SEND_TO_CUSTOMER_ONLY', True)
 
     recipients = []
@@ -253,16 +255,10 @@ def _send(order: dict, delay_seconds: int, status_label: str):
         recipients.append(customer_email)
 
     if not send_to_customer_only:
-        # Add admin notification emails (if configured) as BCC-like recipients
         if isinstance(notify_emails, list):
             recipients.extend([e.strip() for e in notify_emails if e and e.strip()])
         elif notify_emails:
             recipients.append(str(notify_emails).strip())
-        elif not recipients:
-            # Fallback to sender if no other email is configured
-            fallback = getattr(settings, 'EMAIL_HOST_USER', '')
-            if fallback:
-                recipients.append(fallback)
 
     recipients = list({e for e in recipients if e})
 
@@ -275,16 +271,42 @@ def _send(order: dict, delay_seconds: int, status_label: str):
         html_body = _build_html(order, status_label)
         text_body = _build_text(order, status_label)
 
-        msg = EmailMultiAlternatives(
-            subject=subject,
-            body=text_body,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=recipients,
-        )
-        msg.attach_alternative(html_body, "text/html")
-        msg.send(fail_silently=False)
+        smtp_user = settings.EMAIL_HOST_USER
+        smtp_pass = settings.EMAIL_HOST_PASSWORD
+        from_email = settings.DEFAULT_FROM_EMAIL
 
-        print(f"[EMAIL] Notification sent: {status_label} for {order_id} -> {recipients}")
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = from_email
+        msg['To'] = ', '.join(recipients)
+        msg.attach(MIMEText(text_body, 'plain'))
+        msg.attach(MIMEText(html_body, 'html'))
+
+        # Try SSL (port 465) first, then TLS (port 587) as fallback
+        sent = False
+        errors = []
+
+        for attempt_ssl in [True, False]:
+            try:
+                if attempt_ssl:
+                    server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=15)
+                else:
+                    server = smtplib.SMTP('smtp.gmail.com', 587, timeout=15)
+                    server.ehlo()
+                    server.starttls()
+                    server.ehlo()
+
+                server.login(smtp_user, smtp_pass)
+                server.sendmail(from_email, recipients, msg.as_string())
+                server.quit()
+                sent = True
+                print(f"[EMAIL] Sent ({('SSL' if attempt_ssl else 'TLS')}): {status_label} for {order_id} -> {recipients}")
+                break
+            except Exception as e:
+                errors.append(str(e))
+
+        if not sent:
+            print(f"[EMAIL] All attempts failed for {order_id}: {errors}")
 
     except Exception as exc:
         print(f"[EMAIL] Failed to send for {order_id}: {exc}")
