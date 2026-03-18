@@ -235,8 +235,47 @@ Thank you for shopping at SJG Stationery!
 # Core send function (runs in a background thread)
 # ---------------------------------------------------------------------------
 
+def _send_via_resend(recipients, subject, html_body, text_body):
+    """Sends email via Resend's HTTP API (Bypasses port blocking)"""
+    import urllib.request
+    import json
+    
+    api_key = os.environ.get('RESEND_API_KEY')
+    if not api_key:
+        return False, "RESEND_API_KEY not configured"
+
+    from_email = os.environ.get('RESEND_FROM_EMAIL', 'onboarding@resend.dev')
+    # If using onboarding@resend.dev, it only sends to the verified account email.
+    
+    payload = {
+        "from": f"SJG Stationery <{from_email}>",
+        "to": recipients,
+        "subject": subject,
+        "html": html_body,
+        "text": text_body
+    }
+
+    try:
+        req = urllib.request.Request(
+            "https://api.resend.com/emails",
+            data=json.dumps(payload).encode(),
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            }
+        )
+        with urllib.request.urlopen(req) as res:
+            print(f"[RESEND] Successful dispatch: {res.read().decode()}")
+            return True, None
+    except Exception as e:
+        err_msg = str(e)
+        if hasattr(e, 'read'):
+            err_msg += f" | Details: {e.read().decode()}"
+        return False, err_msg
+
+
 def _send(order: dict, delay_seconds: int, status_label: str):
-    """Wait, then send the confirmation/update email."""
+    """Wait, then send via API (Cloud) or SMTP (Local)."""
     import smtplib
     from email.mime.multipart import MIMEMultipart
     from email.mime.text import MIMEText
@@ -244,73 +283,59 @@ def _send(order: dict, delay_seconds: int, status_label: str):
     if delay_seconds > 0:
         time.sleep(delay_seconds)
 
-    notify_emails = getattr(settings, 'ORDER_NOTIFY_EMAIL', None)
     customer_email = (order.get('user_email') or '').strip()
     order_id = order.get('order_id', 'N/A')
-
     send_to_customer_only = getattr(settings, 'EMAIL_SEND_TO_CUSTOMER_ONLY', True)
+    notify_emails = getattr(settings, 'ORDER_NOTIFY_EMAIL', [])
 
-    recipients = []
-    if customer_email:
-        recipients.append(customer_email)
+    recipients = [customer_email] if customer_email else []
+    if not send_to_customer_only and notify_emails:
+        recipients.extend(notify_emails if isinstance(notify_emails, list) else [str(notify_emails)])
 
-    if not send_to_customer_only:
-        if isinstance(notify_emails, list):
-            recipients.extend([e.strip() for e in notify_emails if e and e.strip()])
-        elif notify_emails:
-            recipients.append(str(notify_emails).strip())
-
-    recipients = list({e for e in recipients if e})
-
+    recipients = list({e.strip() for e in recipients if e})
     if not recipients:
-        print(f"[EMAIL] No recipients for order {order_id} — skipping")
         return
 
+    subject = f"{status_label}: {order_id} | SJG Stationery"
+    html_body = _build_html(order, status_label)
+    text_body = _build_text(order, status_label)
+
+    # 1. ALWAYS TRY THE HTTP API (RESEND) FIRST ON CLOUD HOSTS
+    api_success, api_error = _send_via_resend(recipients, subject, html_body, text_body)
+    if api_success:
+        print(f"[EMAIL] Sent via HTTP API for order {order_id}")
+        return
+
+    # 2. FALLBACK TO SMTP (FOR LOCAL DEV OR IF API IS MISSING)
+    print(f"[EMAIL] API failed ({api_error}). Falling back to SMTP...")
     try:
-        subject = f"{status_label}: {order_id} | SJG Stationery"
-        html_body = _build_html(order, status_label)
-        text_body = _build_text(order, status_label)
-
-        smtp_user = settings.EMAIL_HOST_USER
-        smtp_pass = settings.EMAIL_HOST_PASSWORD
-        from_email = settings.DEFAULT_FROM_EMAIL
-
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
-        msg['From'] = from_email
+        msg['From'] = settings.DEFAULT_FROM_EMAIL
         msg['To'] = ', '.join(recipients)
         msg.attach(MIMEText(text_body, 'plain'))
         msg.attach(MIMEText(html_body, 'html'))
 
-        # Try SSL (port 465) first, then TLS (port 587) as fallback
-        sent = False
-        errors = []
+        smtp_user = settings.EMAIL_HOST_USER
+        smtp_pass = settings.EMAIL_HOST_PASSWORD
 
-        for attempt_ssl in [True, False]:
+        # Attempt SSL then TLS
+        for use_ssl in [True, False]:
             try:
-                if attempt_ssl:
-                    server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=15)
+                if use_ssl:
+                    server = smtplib.SMTP_SSL(settings.EMAIL_HOST, 465, timeout=10)
                 else:
-                    server = smtplib.SMTP('smtp.gmail.com', 587, timeout=15)
-                    server.ehlo()
+                    server = smtplib.SMTP(settings.EMAIL_HOST, 587, timeout=10)
                     server.starttls()
-                    server.ehlo()
-
                 server.login(smtp_user, smtp_pass)
-                server.sendmail(from_email, recipients, msg.as_string())
+                server.sendmail(settings.DEFAULT_FROM_EMAIL, recipients, msg.as_string())
                 server.quit()
-                sent = True
-                print(f"[EMAIL] Sent ({('SSL' if attempt_ssl else 'TLS')}): {status_label} for {order_id} -> {recipients}")
-                break
-            except Exception as e:
-                errors.append(str(e))
-
-        if not sent:
-            print(f"[EMAIL] All attempts failed for {order_id}: {errors}")
-
+                print(f"[EMAIL] Sent via SMTP ({('SSL' if use_ssl else 'TLS')})")
+                return
+            except:
+                continue
     except Exception as exc:
-        print(f"[EMAIL] Failed to send for {order_id}: {exc}")
-        traceback.print_exc()
+        print(f"[EMAIL] Final fallback failed: {exc}")
 
 
 # ---------------------------------------------------------------------------
@@ -318,20 +343,13 @@ def _send(order: dict, delay_seconds: int, status_label: str):
 # ---------------------------------------------------------------------------
 
 def send_order_confirmation_after_delay(order: dict, delay_seconds: int = 0):
-    """
-    Send the confirmation email synchronously.
-    (Threading and delays are avoided to ensure it runs correctly in serverless deployments).
-    """
-    print(f"[EMAIL] Sending confirmation for order {order.get('order_id')} synchronously")
+    """Send confirmation email synchronously (No threads for cloud stability)."""
+    print(f"[EMAIL] Processing confirmation for {order.get('order_id')}")
     _send(order, 0, "Order Confirmed")
 
 
 def send_order_status_notification(order: dict):
-    """
-    Send an immediate status update notification (e.g. Processing, Shipped) synchronously.
-    """
+    """Send immediate status update notification synchronously."""
     status = order.get('status', 'Update').capitalize()
-    status_label = f"Order {status}"
-    
-    print(f"[EMAIL] Sending immediate status update: {status_label} for {order.get('order_id')}")
-    _send(order, 0, status_label)
+    print(f"[EMAIL] Processing status update: {status} for {order.get('order_id')}")
+    _send(order, 0, f"Order {status}")

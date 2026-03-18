@@ -47,3 +47,9 @@ db.sqlite3-journal
 # OS
 .DS_Store
 Thumbs.db
+.vercel
+.env*.local
+env_to_push.txt
+*_env.py
+project_details.txt
+push_error.txt
