@@ -1462,7 +1462,9 @@ class AppSettingsView(APIView):
                     'is_cod_enabled': True,
                     'free_shipping_threshold': 999,
                     'shipping_fee': 50,
-                    'is_shop_open': True
+                    'is_shop_open': True,
+                    'shop_opening_time': '09:00',
+                    'shop_closing_time': '20:00'
                 })
             settings['id'] = str(settings.pop('_id'))
             return Response(settings)
@@ -1489,6 +1491,89 @@ class AppSettingsView(APIView):
             updated_settings = collection.find_one({'type': 'settings'})
             updated_settings['id'] = str(updated_settings.pop('_id'))
             return Response(updated_settings)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CouponVerifyView(APIView):
+    """Verify a coupon code and return its discount details"""
+    permission_classes = [AllowAny]
+    
+    def post(self, request):
+        try:
+            code = request.data.get('code', '').strip().lower()
+            if not code:
+                return Response({'error': 'Coupon code is required'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            collection = mongo_client.get_collection('coupons')
+            coupon = collection.find_one({'code': code, 'is_active': True})
+            
+            if not coupon:
+                return Response({'error': 'Invalid or expired coupon code'}, status=status.HTTP_404_NOT_FOUND)
+                
+            # If valid, return discount details. Assume standard fields.
+            return Response({
+                'code': coupon['code'],
+                'discount_type': coupon.get('discount_type', 'percentage'), # 'percentage' or 'flat'
+                'discount_value': coupon.get('discount_value', 10),
+                'message': f"Coupon '{code}' applied successfully!"
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class AdminCouponsView(APIView):
+    """Admin CRUD for coupons"""
+    permission_classes = [AllowAny]
+    
+    def get(self, request):
+        try:
+            collection = mongo_client.get_collection('coupons')
+            coupons = list(collection.find())
+            for c in coupons:
+                c['id'] = str(c.pop('_id'))
+            return Response(coupons)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+    def post(self, request):
+        try:
+            data = request.data
+            collection = mongo_client.get_collection('coupons')
+            
+            # Formatting
+            data['code'] = data.get('code', '').strip().lower()
+            if not data['code']:
+                 return Response({'error': 'Code is required'}, status=status.HTTP_400_BAD_REQUEST)
+                 
+            data['discount_value'] = float(data.get('discount_value', 0))
+            data['is_active'] = data.get('is_active', True)
+            
+            # Upsert
+            collection.update_one(
+                {'code': data['code']},
+                {'$set': data},
+                upsert=True
+            )
+            
+            doc = collection.find_one({'code': data['code']})
+            doc['id'] = str(doc.pop('_id'))
+            return Response(doc)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class AdminCouponDetailView(APIView):
+    """Admin details/delete for coupons"""
+    permission_classes = [AllowAny]
+    
+    def delete(self, request, pk):
+        try:
+            collection = mongo_client.get_collection('coupons')
+            try:
+                query = {'_id': ObjectId(pk)}
+            except:
+                query = {'code': pk}
+                
+            collection.delete_one(query)
+            return Response({'success': True})
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

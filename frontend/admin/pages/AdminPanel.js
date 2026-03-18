@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
     Activity, Box, ShoppingCart, Users, MessageCircle, Edit, Settings, Menu, X, LogOut, 
     BarChart2, Receipt, Wifi, WifiOff, UserCircle, RefreshCw, Truck, ChevronDown, 
-    ShieldCheck, Key, User, Bell, Terminal, Palette, Database
+    ShieldCheck, Key, User, Bell, Terminal, Palette, Database, Tag
 } from 'lucide-react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import api from '../../src/utils/api';
@@ -19,6 +19,7 @@ import AdminUsers from '../../src/admin/AdminUsers';
 import AdminContent from '../../src/admin/AdminContent';
 import AdminSettings from '../../src/admin/AdminSettings';
 import AdminChat from '../../src/admin/AdminChat';
+import AdminCoupons from '../../src/admin/AdminCoupons';
 
 const AdminPanel = () => {
     const { user, logout } = useAuth();
@@ -29,7 +30,7 @@ const AdminPanel = () => {
 
     // Derive active tab from URL: /admin/orders → 'orders'
     const pathSegment = location.pathname.split('/').filter(Boolean)[1];
-    const validTabs = ['dashboard', 'business', 'billing', 'inventory', 'orders', 'delivery', 'users', 'chat', 'content', 'settings', 'console'];
+    const validTabs = ['dashboard', 'business', 'billing', 'inventory', 'orders', 'delivery', 'users', 'chat', 'content', 'coupons', 'settings', 'console'];
     const activeTab = validTabs.includes(pathSegment) ? pathSegment : 'dashboard';
 
     const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -432,6 +433,7 @@ const AdminPanel = () => {
         { id: 'users', label: 'Directory', icon: Users },
         { id: 'chat', label: 'Support', icon: MessageCircle },
         { id: 'content', label: 'Creative Studio', icon: Palette },
+        { id: 'coupons', label: 'Coupons', icon: Tag },
         { id: 'settings', label: 'Preferences', icon: Settings },
     ];
 
@@ -749,6 +751,7 @@ const AdminPanel = () => {
                             />
                         )}
                         {activeTab === 'chat' && <AdminChat messages={chatMessages} />}
+                        {activeTab === 'coupons' && <AdminCoupons />}
                         {activeTab === 'settings' && <AdminSettings />}
                         
                         {activeTab === 'console' && (

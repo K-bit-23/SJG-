@@ -1,0 +1,89 @@
+CHAPTER 5 SYSTEM TESTING
+
+5.1 SYSTEM TESTING
+
+5.1.1 Unit Testing
+Testing of individual software components or modules. The purpose of unit testing is to validate that each unit of the software coding performs as designed.
+
+Test Cases
+Case 1
+ Module          : Administrator login module
+ Test type       : Checking of valid admin user
+ Input           : Email and password
+ Expected Output : Administrator dashboard opens
+
+Test
+ Input           : Admin credentials (email, password)
+ Output          : Admin dashboard opens successfully
+ Analysis        : The expected output is same
+ Result          : Pass
+
+Case 2
+ Module          : User Authentication module
+ Test type       : User login/OTP
+ Input           : Mobile number and OTP
+ Expected Output : Show Success Notification and log user in
+
+Test
+ Input           : Mobile number
+ Output          : Success Notification Shown & User logged in
+ Analysis        : The expected output is same
+ Result          : Pass
+
+
+5.1.2 Integration Testing
+Testing is done for each module. After testing all the modules, the modules are integrated and testing of the final system is done with the test data, specially designed to show that the system will operate successfully in all its expected conditions. Thus, the system testing is a confirmation that all is correct and an opportunity to show the user that the system works.
+
+Test Cases
+Case 1
+ Module          : Administrator module
+ Test type       : Working of Dashboard, View Orders, View Settings
+ Input           : On clicking respective navigation buttons
+ Expected Output : Navigation between modules is completed accurately
+
+Test
+ Input           : On clicking Dashboard, View Orders, View Settings
+ Output          : Respective pages open correctly with loaded data
+ Analysis        : The expected output is same
+ Result          : Pass
+
+Case 2
+ Module          : Order Management module
+ Test type       : Add to cart, Checkout, and Generate Order
+ Input           : Navigation for purchasing products and placing an order
+ Expected Output : Order must be generated and visible in Admin Panel
+
+Test
+ Input           : Add product to cart, fill shipping, confirm COD order
+ Output          : Order is generated correctly and reflects in database
+ Analysis        : The expected output is same
+ Result          : Pass
+
+
+5.1.3 Validation testing
+The final step involves Validation testing, which determines whether the software function as the user expected. The end-user rather than the system developer conducts this test most software developers as a process called "Alpha and Beta Testing" to uncover defects that only the end user reasonably expects.
+
+Test Cases
+Case 1
+ Module          : User Details module (Checkout Form)
+ Test type       : Shipping details registration form
+ Input           : Input to all fields (Name, Address, Phone, Pincode)
+ Expected Output : Data type for all the fields should be validated
+
+Test
+ Input           : Enter Contact Number
+ Output          : Must contain exactly 10 digits, prevents alphabetical input
+ Analysis        : The expected output is same
+ Result          : Pass
+
+Case 2
+ Module          : Settings module
+ Test type       : Shop Availability Toggle
+ Input           : Toggle shop open/closed flag
+ Expected Output : Frontend UI restricts/allows cart checkout accordingly
+
+Test
+ Input           : Turn toggle to off (Closed)
+ Output          : Public UI shows "Closed" badge and prevents checkout
+ Analysis        : The expected output is same
+ Result          : Pass

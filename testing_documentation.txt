@@ -1,0 +1,26 @@
+# Software Testing Methodologies
+
+This document outlines three key testing methodologies used to ensure software quality and reliability, with examples tailored to the SJG eCommerce project.
+
+## 1. Unit Testing
+Unit testing focuses on testing individual components, functions, or modules of code in complete isolation from the rest of the application.
+* **Purpose:** To validate that each isolated piece of logic works exactly as intended under various conditions before it's integrated with other parts of the system. It helps catch bugs early in the development cycle.
+* **Examples context:** 
+  - **Frontend:** Testing that a React `Button` component correctly triggers an `onClick` event when clicked, or that a helper function like `formatCurrency(100)` correctly returns `₹100.00`.
+  - **Backend:** Testing the Python logic that calculates cart totals to ensure it correctly applies the GST percentage and shipping fees without actually connecting to the MongoDB database (using mocked data instead).
+
+## 2. Integration Testing
+Integration testing involves combining individual software modules and testing them as a group.
+* **Purpose:** To identify defects in the interaction and communication between integrated units. Even if units work perfectly on their own, they may fail when passing data to one another.
+* **Examples context:**
+  - **Database Integration:** Ensuring the Django backend can successfully establish a connection to MongoDB, insert a new order document, and retrieve it without data loss.
+  - **Frontend-Backend Integration:** Verifying that when the React frontend calls the `/api/login/` endpoint with valid credentials, the Django backend correctly responds with a JWT authorization token.
+  - **Third-Party Integration:** Testing that the application can successfully offload an online payment request to the Stripe API and process the webhook response upon completion.
+
+## 3. Validation Testing
+Validation testing evaluates the software during or at the end of the development process to determine whether it satisfies the specified business requirements and user needs. It answers the question: "Did we build the right product?"
+* **Purpose:** To ensure the system meets the actual goals of the stakeholders and provides a seamless, defect-free experience for the end-user.
+* **Examples context:**
+  - **End-to-End (E2E) Flow:** Simulating a real customer visiting the site, adding items to their cart, entering shipping details, placing a Cash on Delivery order, and verifying that the order appears instantly in the Admin Panel and a confirmation email is delivered.
+  - **Business Rules:** Testing that the recently added "Shop Availability" toggle in the admin settings reliably prevents new customers from checking out when the shop is set to "Closed", matching the business requirement.
+  - **User Acceptance Testing (UAT):** Having an actual administrator use the new dashboard layout to ensure the UI is intuitive, performs well, and accurately fulfills their day-to-day management tasks.

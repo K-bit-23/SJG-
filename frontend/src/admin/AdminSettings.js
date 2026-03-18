@@ -23,7 +23,9 @@ const AdminSettings = () => {
         isShopOpen: true,
         adminPassword: "",
         adminName: "Administrator",
-        adminAvatar: ""
+        adminAvatar: "",
+        shopOpeningTime: "09:00",
+        shopClosingTime: "20:00"
     });
 
     useEffect(() => {
@@ -47,7 +49,9 @@ const AdminSettings = () => {
                         isShopOpen: data.is_shop_open !== undefined ? data.is_shop_open : true,
                         adminPassword: "",
                         adminName: data.admin_name || "Administrator",
-                        adminAvatar: data.admin_avatar || ""
+                        adminAvatar: data.admin_avatar || "",
+                        shopOpeningTime: data.shop_opening_time || "09:00",
+                        shopClosingTime: data.shop_closing_time || "20:00"
                     });
                 }
             } catch (err) {
@@ -75,6 +79,8 @@ const AdminSettings = () => {
                 free_shipping_threshold: Number(settings.freeShippingThreshold),
                 shipping_fee: Number(settings.shippingFee),
                 is_shop_open: settings.isShopOpen,
+                shop_opening_time: settings.shopOpeningTime,
+                shop_closing_time: settings.shopClosingTime,
                 admin_name: settings.adminName,
                 admin_avatar: settings.adminAvatar,
                 ...(settings.adminPassword && { password: settings.adminPassword })
@@ -173,17 +179,39 @@ const AdminSettings = () => {
                                 </div>
                             </div>
 
-                            <div className="p-5 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-center justify-between">
-                                <div>
-                                    <p className="font-bold text-slate-900 flex items-center gap-2">Shop Availability {settings.isShopOpen ? <span className="bg-emerald-500 w-2 h-2 rounded-full animate-pulse"></span> : <span className="bg-rose-500 w-2 h-2 rounded-full"></span>}</p>
-                                    <p className="text-xs text-slate-500 font-medium mt-0.5">Toggle to show the shop as Open or Closed on the public site.</p>
+                            <div className="p-5 bg-indigo-50 border border-indigo-100 rounded-2xl flex flex-col gap-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-bold text-slate-900 flex items-center gap-2">Shop Availability {settings.isShopOpen ? <span className="bg-emerald-500 w-2 h-2 rounded-full animate-pulse"></span> : <span className="bg-rose-500 w-2 h-2 rounded-full"></span>}</p>
+                                        <p className="text-xs text-slate-500 font-medium mt-0.5">Toggle to show the shop as Open or Closed on the public site.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setSettings({ ...settings, isShopOpen: !settings.isShopOpen })}
+                                        className={`relative w-14 h-8 transition-colors rounded-full shrink-0 flex items-center border ${settings.isShopOpen ? 'bg-emerald-500 border-emerald-600' : 'bg-slate-300 border-slate-400'}`}
+                                    >
+                                        <span className={`absolute top-[3px] left-1 w-6 h-6 bg-white rounded-full transition-transform shadow-md ${settings.isShopOpen ? 'translate-x-6' : 'translate-x-0'}`} />
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={() => setSettings({ ...settings, isShopOpen: !settings.isShopOpen })}
-                                    className={`relative w-14 h-8 transition-colors rounded-full shrink-0 flex items-center border ${settings.isShopOpen ? 'bg-emerald-500 border-emerald-600' : 'bg-slate-300 border-slate-400'}`}
-                                >
-                                    <span className={`absolute top-[3px] left-1 w-6 h-6 bg-white rounded-full transition-transform shadow-md ${settings.isShopOpen ? 'translate-x-6' : 'translate-x-0'}`} />
-                                </button>
+                                <div className="grid grid-cols-2 gap-4 mt-2">
+                                    <div className="space-y-1 mt-2 lg:mt-0">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Opening Time</label>
+                                        <input 
+                                            type="time" 
+                                            value={settings.shopOpeningTime} 
+                                            onChange={(e) => setSettings({ ...settings, shopOpeningTime: e.target.value })}
+                                            className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 ring-indigo-500/20 outline-none font-bold" 
+                                        />
+                                    </div>
+                                    <div className="space-y-1 mt-2 lg:mt-0">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Closing Time</label>
+                                        <input 
+                                            type="time" 
+                                            value={settings.shopClosingTime} 
+                                            onChange={(e) => setSettings({ ...settings, shopClosingTime: e.target.value })}
+                                            className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:ring-2 ring-indigo-500/20 outline-none font-bold" 
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="space-y-2">

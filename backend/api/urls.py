@@ -36,7 +36,10 @@ from .views import (
     SystemStatsView,
     AdminLoginView,
     OtpVerifyView,
-    api_root_view
+    api_root_view,
+    CouponVerifyView,
+    AdminCouponsView,
+    AdminCouponDetailView
 )
 from .payment_views import (
     CreatePaymentIntentView, 
@@ -102,6 +105,9 @@ urlpatterns = [
     path('admin-login/', AdminLoginView.as_view(), name='admin-login'),
     path('otp/verify/', OtpVerifyView.as_view(), name='otp-verify'),
     path('root/', api_root_view, name='api-root-html'),
+    path('coupons/verify/', CouponVerifyView.as_view(), name='coupon-verify'),
+    path('admin/coupons/', AdminCouponsView.as_view(), name='admin-coupons'),
+    path('admin/coupons/<str:pk>/', AdminCouponDetailView.as_view(), name='admin-coupons-detail'),
 ]
 
 # ============================================================================

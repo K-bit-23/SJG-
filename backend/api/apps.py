@@ -21,6 +21,23 @@ class ApiConfig(AppConfig):
                 print(f"  Database     : {db.name}")
                 print(f"  Collections  : {', '.join(cols) if cols else '(empty)'}")
                 print("=" * 55 + "\n")
+                
+                # Seed gearsator coupon on startup
+                try:
+                    db['coupons'].update_one(
+                        {'code': 'gearsator'}, 
+                        {'$set': {
+                            'code': 'gearsator',
+                            'discount_type': 'percentage',
+                            'discount_value': 10,
+                            'is_active': True,
+                            'description': 'Special discount code for Gearsator'
+                        }}, 
+                        upsert=True
+                    )
+                    print("  [OK] Successfully configured 'gearsator' coupon")
+                except Exception as coupon_err:
+                    print(f"  [ERROR] Failed to setup coupon: {coupon_err}")
 
             except Exception as e:
                 short_err = str(e)[:150]

@@ -295,32 +295,21 @@ def _send(order: dict, delay_seconds: int, status_label: str):
 # Public API
 # ---------------------------------------------------------------------------
 
-def send_order_confirmation_after_delay(order: dict, delay_seconds: int = 30):
+def send_order_confirmation_after_delay(order: dict, delay_seconds: int = 0):
     """
-    Launch a daemon thread that waits `delay_seconds` then sends the email.
+    Send the confirmation email synchronously.
+    (Threading and delays are avoided to ensure it runs correctly in serverless deployments).
     """
-    t = threading.Thread(
-        target=_send,
-        args=(order, delay_seconds, "Order Confirmed"),
-        name=f"email-conf-{order.get('order_id','?')}",
-        daemon=True,
-    )
-    t.start()
-    print(f"[EMAIL] Scheduled confirmation for order {order.get('order_id')} in {delay_seconds}s")
+    print(f"[EMAIL] Sending confirmation for order {order.get('order_id')} synchronously")
+    _send(order, 0, "Order Confirmed")
 
 
 def send_order_status_notification(order: dict):
     """
-    Send an immediate status update notification (e.g. Processing, Shipped).
+    Send an immediate status update notification (e.g. Processing, Shipped) synchronously.
     """
     status = order.get('status', 'Update').capitalize()
     status_label = f"Order {status}"
     
-    t = threading.Thread(
-        target=_send,
-        args=(order, 0, status_label),
-        name=f"email-upd-{order.get('order_id','?')}",
-        daemon=True,
-    )
-    t.start()
     print(f"[EMAIL] Sending immediate status update: {status_label} for {order.get('order_id')}")
+    _send(order, 0, status_label)

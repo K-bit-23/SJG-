@@ -39,13 +39,22 @@ const Navbar = () => {
     const [isWishlistBumping, setIsWishlistBumping] = useState(false);
 
     const [shopStatus, setShopStatus] = useState(true);
+    const [shopTimings, setShopTimings] = useState({ open: '09:00', close: '20:00' });
 
     useEffect(() => {
         const fetchSettings = async () => {
             try {
                 const { data } = await api.get('/settings/');
-                if (data && data.is_shop_open !== undefined) {
-                    setShopStatus(data.is_shop_open);
+                if (data) {
+                    if (data.is_shop_open !== undefined) {
+                        setShopStatus(data.is_shop_open);
+                    }
+                    if (data.shop_opening_time || data.shop_closing_time) {
+                        setShopTimings({
+                            open: data.shop_opening_time || '09:00',
+                            close: data.shop_closing_time || '20:00'
+                        });
+                    }
                 }
             } catch (err) {
                 console.error("Failed to fetch shop settings", err);
@@ -483,9 +492,12 @@ const Navbar = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <span className="hidden sm:flex items-center gap-1.5 mr-2 text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded text-[10px] font-bold">
+                            <Clock size={12} /> {shopTimings.open} - {shopTimings.close}
+                        </span>
                         Shop Status: 
                         {shopStatus ? (
-                            <span className="flex items-center gap-1.5 text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full ring-1 ring-emerald-200">
+                            <span className="flex items-center gap-1.5 text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full ring-1 ring-emerald-200" title={`Open ${shopTimings.open} - ${shopTimings.close}`}>
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Open
                             </span>
                         ) : (

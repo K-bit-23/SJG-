@@ -1,0 +1,128 @@
+CHAPTER 5 SYSTEM TESTING
+
+5.1 SYSTEM TESTING
+
+5.1.1 Unit Testing
+Testing of individual software components or modules. The purpose of unit testing is to validate that each unit of the software coding performs as designed.
+
+Test Cases
+
+Case 1
+ Module          : Administrator login module
+ Test type       : Checking of admin user credentials
+ Input           : Email and password
+ Expected Output : Administrator page opens
+
+Test
+ Input           : Admin Email and password
+ Output          : Admin dashboard opens successfully
+ Analysis        : The expected output is same
+ Result          : Pass
+
+Case 2
+ Module          : User Authentication module
+ Test type       : Customer login via OTP
+ Input           : Mobile number
+ Expected Output : Show Success Notification
+
+Test
+ Input           : User mobile number
+ Output          : Success Notification Shown & User logged in
+ Analysis        : The expected output is same
+ Result          : Pass
+
+Case 3
+ Module          : Cart Management module
+ Test type       : Adding product to cart
+ Input           : Selected product and quantity
+ Expected Output : Product successfully added to cart
+
+Test
+ Input           : Click on "Add to Cart" button
+ Output          : Cart count increases and Success Notification Shown
+ Analysis        : The expected output is same
+ Result          : Pass
+
+
+5.1.2 Integration Testing
+Testing is done for each module. After testing all the modules, the modules are integrated and testing of the final system is done with the test data, specially designed to show that the system will operate successfully in all its expected conditions. Thus, the system testing is a confirmation that all is correct and an opportunity to show the user that the system works.
+
+Test Cases
+
+Case 1
+ Module          : Administrator module
+ Test type       : Working of Dashboard, View Orders, View Settings
+ Input           : On clicking respective buttons
+ Expected Output : Navigation between modules is completed
+
+Test
+ Input           : On clicking Dashboard, View Orders, View Products
+ Output          : Request redirects and opens pages correctly
+ Analysis        : The expected output is same
+ Result          : Pass
+
+Case 2
+ Module          : Order Management module
+ Test type       : Add to cart, Checkout, and Generate Order
+ Input           : Navigation for getting inputs and confirming order
+ Expected Output : Order must be generated and stored in database
+
+Test
+ Input           : Add product to cart, fill shipping details, click confirm
+ Output          : Order generated successfully and reflects in Admin Panel
+ Analysis        : The expected output is same
+ Result          : Pass
+
+Case 3
+ Module          : Admin settings module
+ Test type       : Add, edit and update system configurations (Shop Status)
+ Input           : Toggle changes and save settings
+ Expected Output : Frontend UI must immediately reflect the updated settings
+
+Test
+ Input           : Change Shop Availability toggle to Closed
+ Output          : Public UI updates to show "Closed" status correctly
+ Analysis        : The expected output is same
+ Result          : Pass
+
+
+5.1.3 Validation testing
+The final step involves Validation testing, which determines whether the software function as the user expected. The end-user rather than the system developer conducts this test most software developers as a process called "Alpha and Beta Testing" to uncover defects that only the end user reasonably expects.
+
+Test Cases
+
+Case 1
+ Module          : User Details module
+ Test type       : Shipping registration details form
+ Input           : Input to all fields (Name, Address, Phone, Pincode)
+ Expected Output : Data type for all the field should be validated
+
+Test
+ Input           : Enter Contact Number
+ Output          : Must contain only 10 digits, no alphabets allowed
+ Analysis        : The expected output is same
+ Result          : Pass
+
+Case 2
+ Module          : User Registration module
+ Test type       : User email format validation
+ Input           : Email ID details
+ Expected Output : Mail should be in correct format
+
+Test
+ Input           : Enter user email address
+ Output          : Verified user mail id format contains '@' and '.'
+ Analysis        : The expected output is same
+ Result          : Pass
+
+Case 3
+ Module          : Payment validation module
+ Test type       : Minimum free shipping threshold validation
+ Input           : Cart total value
+ Expected Output : Shipping fee is correctly applied or removed
+
+Test
+ Input           : Cart value below free shipping threshold (₹999)
+ Output          : Shipping fee of ₹50 is successfully added to the total
+ Analysis        : The expected output is same
+ Result          : Pass

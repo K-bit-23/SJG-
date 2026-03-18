@@ -3,6 +3,7 @@ import { useCart } from '../../src/context/CartContext';
 import { useAuth } from '../../src/context/AuthContext';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, ArrowLeft, Tag, Truck, ShieldCheck, Gift } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../../src/utils/api';
 
 const Cart = () => {
     const { cart, removeFromCart, addToCart, decrementFromCart, clearCart } = useCart();
@@ -13,16 +14,21 @@ const Cart = () => {
 
     // Calculate details
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const discount = appliedCoupon ? Math.round(subtotal * 0.1) : 0; // 10% off
+    const discount = appliedCoupon 
+        ? (appliedCoupon.discount_type === 'flat' 
+            ? appliedCoupon.discount_value 
+            : Math.round(subtotal * (appliedCoupon.discount_value / 100))) 
+        : 0;
     const shipping = subtotal > 999 ? 0 : 50;
     const total = subtotal - discount + shipping;
     const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-    const applyCoupon = () => {
-        if (couponCode.toLowerCase() === 'save10' || couponCode.toLowerCase() === 'discount') {
-            setAppliedCoupon(couponCode);
-        } else {
-            alert('Invalid coupon code');
+    const applyCoupon = async () => {
+        try {
+            const { data } = await api.post('/coupons/verify/', { code: couponCode });
+            setAppliedCoupon(data);
+        } catch (err) {
+            alert(err.response?.data?.error || 'Invalid coupon code');
         }
     };
 
@@ -188,7 +194,7 @@ const Cart = () => {
                                         </div>
                                         {appliedCoupon && (
                                             <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                                                <Gift size={12} /> Coupon "{appliedCoupon}" applied - 10% off!
+                                                <Gift size={12} /> Coupon "{appliedCoupon.code}" applied!
                                             </p>
                                         )}
                                     </div>
