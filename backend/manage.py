@@ -12,14 +12,6 @@ except ImportError:
 
 def main():
     """Run administrative tasks."""
-    import socket
-    # Force IPv4 to prevent [Errno 101] Network is unreachable on Render/Free tiers
-    old_getaddrinfo = socket.getaddrinfo
-    def new_getaddrinfo(*args, **kwargs):
-        responses = old_getaddrinfo(*args, **kwargs)
-        return [response for response in responses if response[0] == socket.AF_INET]
-    socket.getaddrinfo = new_getaddrinfo
-
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend_project.settings')
     try:
         from django.core.management import execute_from_command_line
