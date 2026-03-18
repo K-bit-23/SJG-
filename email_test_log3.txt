@@ -1,0 +1,5 @@
+Initiating test email send...
+[EMAIL] Processing confirmation for TEST-RESEND
+[RESEND] Successful dispatch: {"id":"e4d9488b-4e87-46fb-a15a-13df029df772"}
+[EMAIL] Sent via HTTP API for order TEST-RESEND
+Test finished. Please check the logs above to see if it sent via Resend API or SMTP fallback.

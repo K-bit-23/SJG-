@@ -1,0 +1,4 @@
+Sending POST request to: https://sjg-backend.onrender.com/api/orders/
+Status Code: 201
+Response: {"id":"69baa51bcdeb00177fb71b52","order_id":"ORD-20260318-AO5O","user_email":"karthikeyankarthikeyan64182@gmail.com","user_name":"Test User Backend","items":[{"product_id":null,"product_name":"Backend Test Item","name":null,"quantity":1,"price":"10.00","category":"General"}],"total_amount":"10.00","status":"pending","shipping_address":"Remote Test Address","payment_method":"COD","payment_status":"pending","transaction_id":"","delivery_date":"","delivery_partner":"","tracking_id":"","created_at":"2026-03-18T13:14:03.281678Z","updated_at":"2026-03-18T13:14:03.281679Z"}
+If successful, the remote server is now sending the email via Resend API!
