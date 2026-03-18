@@ -1,0 +1,270 @@
+================================================================
+      SJG STATIONERY — SOFTWARE REQUIREMENTS SPECIFICATION
+                        (SRS Document)
+================================================================
+  Project Name : SJG Stationery E-Commerce Platform
+  Version      : 2.0
+  Date         : March 2026
+  Author       : SJG Development Team
+================================================================
+
+
+1. PROJECT OVERVIEW
+----------------------------------------------------------------
+SJG Stationery is a full-stack, multi-platform e-commerce
+application designed to serve artisans, designers, and buyers.
+The platform enables seamless product browsing, order management,
+secure payments, and real-time delivery tracking through a modern,
+intuitive interface available on all major devices.
+
+The system comprises:
+  - A customer-facing storefront (React.js + Firebase Hosting)
+  - An admin control panel (React.js with role-based access)
+  - A REST API backend (Django + MongoDB on Render/Vercel)
+  - A cross-platform desktop client (Electron.js)
+  - A mobile-ready web application (React Native / PWA)
+
+
+================================================================
+2. USER INTERFACE (UI) REQUIREMENTS
+================================================================
+
+2.1 Responsive Design
+----------------------------------------------------------------
+- The platform must render correctly on desktops, laptops,
+  tablets (768px+), and mobile devices (320px+).
+- Layout adapts using a fluid grid system with CSS Flexbox
+  and Grid. Tailwind CSS utility classes enforce consistent
+  breakpoints: sm, md, lg, xl.
+- All interactive components (buttons, forms, cards) must
+  have touch-friendly sizing (minimum 44x44px tap targets).
+
+2.2 Navigation
+----------------------------------------------------------------
+- A persistent top Navbar includes: Logo, Search Bar,
+  Cart Icon (with badge count), Wishlist, and User Account.
+- A category sidebar or horizontal scroll strip allows
+  artisans, designers, and buyers to filter and browse
+  product types quickly (e.g., Pens, Papers, Art Supplies).
+- Breadcrumb navigation is provided on all product and
+  category pages for clarity.
+- The Admin Panel uses a collapsible left sidebar with
+  labelled icon tabs for: Dashboard, Orders, Inventory,
+  Billing, Users, Coupons, Settings, and more.
+
+2.3 Product Browsing
+----------------------------------------------------------------
+- Products display as responsive grid cards with:
+    * Product image (lazy-loaded)
+    * Title, Category, Price, Stock status
+    * Quick-Add to Cart and Wishlist buttons
+- Search with real-time filtering by name, category, price
+  range, and availability.
+- Individual product pages include image gallery, full
+  description, related items, and stock count.
+
+2.4 Customization Options
+----------------------------------------------------------------
+- Customers can apply discount coupon codes at checkout.
+- Administrators can toggle the shop Open/Closed status
+  and configure opening and closing hours dynamically.
+- Multi-language support is provided via the LanguageContext,
+  allowing the UI labels to be switched without page reload.
+- Dark mode support via CSS class toggling is planned.
+
+2.5 Accessibility & UX
+----------------------------------------------------------------
+- Semantic HTML5 elements used throughout for screen reader
+  compatibility (e.g., <nav>, <main>, <article>, <button>).
+- All form fields include labels and ARIA attributes.
+- Micro-animations (hover effects, loading spinners, success
+  badges) provide visual feedback for all user interactions.
+- Notification toasts confirm actions (e.g., "Added to cart",
+  "Order placed successfully").
+
+
+================================================================
+3. HARDWARE INTERFACE REQUIREMENTS
+================================================================
+
+3.1 Supported Devices
+----------------------------------------------------------------
+The platform must be fully accessible and functional on:
+  - Desktop PCs and Mac computers (Chrome, Firefox, Edge, Safari)
+  - Laptops (Windows, macOS, Linux)
+  - Tablets (iPad, Android tablets — Portrait and Landscape)
+  - Smartphones (iPhone iOS 14+, Android 10+)
+
+3.2 Input Methods
+----------------------------------------------------------------
+- Keyboard: Full keyboard navigation support including Tab
+  focus, Enter to submit, and Escape to close modals.
+- Mouse / Trackpad: Click, hover, and drag interactions for
+  sliders, quantity selectors, and image galleries.
+- Touchscreen: Swipe gestures for carousels and product
+  image galleries on mobile and tablet.
+- Voice Commands (Planned): Integration with Web Speech API
+  for voice-assisted product search ("Search for A4 notebook").
+
+3.3 Display Requirements
+----------------------------------------------------------------
+- Minimum supported screen width: 320px (iPhone SE)
+- Optimal experience at 1280px+ (desktop)
+- Images served in WebP format with appropriate srcSet for
+  high-DPI (Retina) displays.
+- Print-friendly invoice templates using @media print CSS.
+
+
+================================================================
+4. SOFTWARE INTERFACE REQUIREMENTS
+================================================================
+
+4.1 Payment Gateway Integrations
+----------------------------------------------------------------
+The platform integrates secure payment gateways to support
+multiple transaction methods:
+
+  a) Stripe (Currently Active)
+     - Status      : Integrated ✅
+     - Method      : Stripe.js + Django Stripe API (REST)
+     - Supports    : Credit/Debit Cards, Apple Pay, Google Pay
+     - Keys        : STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY
+     - Docs        : https://stripe.com/docs
+
+  b) Razorpay / UPI (Planned)
+     - Status      : Planned for Indian market transactions
+     - Method      : Razorpay Checkout Widget + Webhook
+     - Supports    : UPI, Net Banking, Wallets, Cards
+     - Variables   : RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET
+
+  c) PayPal (Planned)
+     - Status      : Planned for international buyers
+     - Method      : PayPal JS SDK + Server-side Order capture
+     - Supports    : PayPal Balance, Linked Bank/Card
+
+All payment data is handled server-side. No card numbers are
+stored in the SJG database; all sensitive data flows through
+the gateway's secure vault (PCI-DSS compliant).
+
+4.2 Email & SMS Notification Services
+----------------------------------------------------------------
+  a) Email — Gmail SMTP (Currently Active)
+     - Status      : Active ✅ (local), Issue on cloud hosting
+     - Provider    : Gmail via smtplib / Django Email Backend
+     - Events      : Order confirmation, Status updates, Admin
+                     notifications on new orders
+     - Config      : PRIMARY_EMAIL_HOST_USER,
+                     PRIMARY_EMAIL_HOST_PASSWORD
+     - Templates   : Rich HTML email with order summary, items
+                     table, total, and shipping address
+
+  b) Email — Resend API (Planned Cloud)
+     - Status      : Planned to fix cloud-host SMTP restrictions
+     - Provider    : https://resend.com (Free: 100 emails/day)
+     - Method      : HTTP POST to Resend REST API
+     - Benefit     : Works on Vercel/Render without SMTP ports
+
+  c) SMS Notifications (Planned)
+     - Status      : Planned
+     - Provider    : Twilio or MSG91 (India)
+     - Events      : Order dispatched, OTP for login, Delivery
+     - Variables   : TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN
+
+4.3 Shipping & Logistics API Integrations
+----------------------------------------------------------------
+Real-time delivery tracking to be integrated with:
+
+  a) Shiprocket (India — Recommended)
+     - Aggregates FedEx, Delhivery, DTDC, Blue Dart, etc.
+     - Provides tracking ID, estimated delivery date, and
+       real-time status webhooks.
+     - Integration: REST API with JWT auth token
+
+  b) FedEx / DHL (International)
+     - For international shipments from India.
+     - Provides AWB (Air Waybill) tracking numbers.
+     - Integration: SOAP/REST API with API key auth
+
+  c) Local Courier / Manual Entry
+     - Admin can manually enter a tracking URL or ID.
+     - Shown on the Order Details page for the customer.
+
+  Planned DB fields per order:
+     - tracking_id       : courier tracking number
+     - courier_name      : e.g. "Delhivery", "FedEx"
+     - tracking_url      : direct link to tracking page
+     - estimated_delivery: date string
+
+4.4 Social Media Integrations
+----------------------------------------------------------------
+  a) WhatsApp Sharing
+     - Status   : Planned
+     - Method   : wa.me deep link on product pages
+     - Feature  : "Share this product on WhatsApp" button
+
+  b) Instagram / Facebook
+     - Status   : Planned
+     - Method   : Open Graph meta tags on product pages
+                  for rich link previews when shared
+     - Allows   : Product images, titles, and prices to
+                  appear in social media post previews
+
+  c) Google Login / OAuth
+     - Status   : Active via Clerk ✅
+     - Allows   : Sign in with Google on storefront
+     - Config   : Clerk Publishable Key + allowed redirect URLs
+
+  d) Promotions & Discount Sharing
+     - Shareable coupon codes generated in admin panel
+     - WhatsApp / Email campaign links with ?promo=CODE
+       auto-apply the coupon at checkout on landing
+
+
+================================================================
+5. SECURITY REQUIREMENTS
+================================================================
+- All API routes validate requests using Django's CSRF
+  protection and CORS origin whitelisting.
+- Admin panel access requires OTP verification or
+  username+password credentials with server-side check.
+- Coupon codes are stored and validated solely on the backend
+  (MongoDB) — no client-side coupon logic.
+- Stripe keys and credentials are stored only in
+  environment variables, never in source code.
+- HTTPS enforced on all deployed endpoints (Firebase, Vercel).
+
+
+================================================================
+6. CURRENT DEPLOYMENT CONFIGURATION
+================================================================
+
+  Frontend  : Firebase Hosting — https://sjg-ecom.web.app
+  Backend   : Render          — https://sjg-backend.onrender.com
+              Vercel (new)    — https://backend-psi-one-86.vercel.app
+  Database  : MongoDB Atlas   — Cluster0 (sjg_db)
+  Desktop   : Electron.js     — Windows .exe build
+
+
+================================================================
+7. ENVIRONMENT VARIABLES REFERENCE
+================================================================
+
+  SECRET_KEY                   Django secret key
+  DEBUG                        True (dev) / False (prod)
+  MONGODB_URI                  MongoDB Atlas connection string
+  MONGODB_NAME                 Database name (sjg_db)
+  STRIPE_SECRET_KEY            Stripe server-side key
+  STRIPE_PUBLISHABLE_KEY       Stripe client-side key
+  EMAIL_ACCOUNT                primary / secondary
+  PRIMARY_EMAIL_HOST_USER      Gmail address (primary)
+  PRIMARY_EMAIL_HOST_PASSWORD  Gmail App Password (primary)
+  SECONDARY_EMAIL_HOST_USER    Gmail address (secondary)
+  SECONDARY_EMAIL_HOST_PASSWORD Gmail App Password (secondary)
+  DEFAULT_FROM_EMAIL           Sender email address
+  ORDER_NOTIFY_EMAIL           Comma-separated admin emails
+  FRONTEND_URL                 https://sjg-ecom.web.app
+
+
+================================================================
+              END OF SRS DOCUMENT — SJG STATIONERY
+================================================================
