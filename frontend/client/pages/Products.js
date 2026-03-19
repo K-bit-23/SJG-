@@ -6,9 +6,11 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../src/context/CartContext';
 import { useWishlist } from '../../src/context/WishlistContext';
+import { useLanguage } from '../../src/context/LanguageContext';
 import api from '../../src/utils/api';
 
 const Products = () => {
+    const { t } = useLanguage();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchParams, setSearchParams] = useSearchParams();
@@ -129,7 +131,7 @@ const Products = () => {
                             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search products..."
+                                placeholder={t('searchplaceholder')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-11 pr-4 py-2.5 bg-gray-100 rounded-full text-sm outline-none focus:bg-white focus:ring-2 ring-secondary/20 transition-all"
@@ -141,7 +143,7 @@ const Products = () => {
                             onClick={() => setShowMobileFilter(true)}
                             className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 rounded-full text-sm font-medium hover:bg-gray-200 lg:hidden"
                         >
-                            <Filter size={16} /> Filter
+                            <Filter size={16} /> {t('filters')}
                         </button>
 
                         {/* Sort */}
@@ -151,9 +153,9 @@ const Products = () => {
                                 onChange={(e) => setSortBy(e.target.value)}
                                 className="appearance-none pl-3 pr-8 py-2.5 bg-gray-100 rounded-full text-sm font-medium cursor-pointer hover:bg-gray-200 outline-none"
                             >
-                                <option value="featured">Featured</option>
-                                <option value="price-low">Price: Low-High</option>
-                                <option value="price-high">Price: High-Low</option>
+                                <option value="featured">{t('featured')}</option>
+                                <option value="price-low">{t('price_low_high')}</option>
+                                <option value="price-high">{t('price_high_low')}</option>
                                 <option value="name-asc">A-Z</option>
                             </select>
                             <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
@@ -187,7 +189,7 @@ const Products = () => {
                                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
-                                {cat === 'all' ? 'All Products' : cat}
+                                {cat === 'all' ? t('allproducts') : cat}
                             </button>
                         ))}
                     </div>
@@ -199,11 +201,11 @@ const Products = () => {
                 {/* Results Count */}
                 <div className="flex items-center justify-between mb-4">
                     <p className="text-sm text-gray-500">
-                        Showing <span className="font-bold text-gray-800">{filteredProducts.length}</span> products
+                        {t('search')} <span className="font-bold text-gray-800">{filteredProducts.length}</span> {t('products').toLowerCase()}
                         {selectedCategory !== 'all' && <span> in <span className="text-secondary font-medium">{selectedCategory}</span></span>}
                     </p>
                     {(selectedCategory !== 'all' || searchTerm) && (
-                        <button onClick={clearFilters} className="text-sm text-red-500 hover:underline">Clear filters</button>
+                        <button onClick={clearFilters} className="text-sm text-red-500 hover:underline">{t('clearfilters')}</button>
                     )}
                 </div>
 
@@ -248,13 +250,13 @@ const Products = () => {
                                                 onClick={(e) => { e.stopPropagation(); setQuickViewProduct(product); }}
                                                 className="w-full py-2 bg-white/20 backdrop-blur-md text-white border border-white/40 rounded-xl text-xs font-bold hover:bg-white hover:text-primary transition-all flex items-center justify-center gap-2"
                                             >
-                                                View Details
+                                                {t('viewdetails')}
                                             </button>
                                             <button
                                                 onClick={(e) => handleAddToCart(product, e)}
                                                 className="w-full py-2.5 bg-white text-primary rounded-xl text-sm font-bold hover:bg-secondary hover:text-white transition-all flex items-center justify-center gap-2"
                                             >
-                                                <ShoppingBag size={16} /> Add to Cart
+                                                <ShoppingBag size={16} /> {t('addtocart')}
                                             </button>
                                         </div>
                                         {/* Wishlist */}
@@ -280,7 +282,7 @@ const Products = () => {
                                         {/* Stock Indicator */}
                                         <div className="mb-3">
                                             {product.stock <= 0 ? (
-                                                <span className="text-[10px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Out of Stock</span>
+                                                <span className="text-[10px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full uppercase tracking-wider">{t('outofstock')}</span>
                                             ) : product.stock < 10 ? (
                                                 <span className="text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full uppercase tracking-wider">Only {product.stock} Left</span>
                                             ) : (
@@ -296,7 +298,7 @@ const Products = () => {
                                                 onClick={(e) => handleAddToCart(product, e)}
                                                 disabled={product.stock <= 0}
                                                 className={`p-2 rounded-full transition-all hover-scale shadow-lg ${product.stock <= 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' : 'bg-secondary text-white hover:bg-indigo-600 shadow-secondary/20'}`}
-                                                title={product.stock <= 0 ? "Out of Stock" : "Add to Cart"}
+                                                title={product.stock <= 0 ? t('outofstock') : t('addtocart')}
                                             >
                                                 <ShoppingBag size={18} />
                                             </button>
@@ -358,10 +360,10 @@ const Products = () => {
                         <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <ShoppingBag size={32} className="text-gray-300" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-400 mb-2">No products found</h3>
-                        <p className="text-gray-400 mb-4">Try adjusting your filters</p>
+                        <h3 className="text-xl font-bold text-gray-400 mb-2">{t('noproductsfound')}</h3>
+                        <p className="text-gray-400 mb-4">{t('tryadjustingfilters')}</p>
                         <button onClick={clearFilters} className="px-6 py-2 bg-secondary text-white rounded-full text-sm font-medium">
-                            Clear Filters
+                            {t('clearfilters')}
                         </button>
                     </div>
                 )}
@@ -373,13 +375,13 @@ const Products = () => {
                     <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowMobileFilter(false)}></div>
                     <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[70vh] overflow-y-auto animate-slide-up">
                         <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
-                            <h2 className="text-lg font-bold">Filters</h2>
+                            <h2 className="text-lg font-bold">{t('filters')}</h2>
                             <button onClick={() => setShowMobileFilter(false)} className="p-2 hover:bg-gray-100 rounded-full">
                                 <X size={20} />
                             </button>
                         </div>
                         <div className="p-4">
-                            <h3 className="font-bold text-gray-800 mb-3">Categories</h3>
+                            <h3 className="font-bold text-gray-800 mb-3">{t('category')}</h3>
                             <div className="space-y-2">
                                 {categories.map(cat => (
                                     <button
@@ -390,17 +392,17 @@ const Products = () => {
                                             : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                                             }`}
                                     >
-                                        {cat === 'all' ? 'All Products' : cat}
+                                        {cat === 'all' ? t('allproducts') : cat}
                                     </button>
                                 ))}
                             </div>
 
-                            <h3 className="font-bold text-gray-800 mt-6 mb-3">Sort By</h3>
+                            <h3 className="font-bold text-gray-800 mt-6 mb-3">{t('sortby')}</h3>
                             <div className="space-y-2">
                                 {[
-                                    { value: 'featured', label: 'Featured' },
-                                    { value: 'price-low', label: 'Price: Low to High' },
-                                    { value: 'price-high', label: 'Price: High to Low' }
+                                    { value: 'featured', label: t('featured') },
+                                    { value: 'price-low', label: t('price_low_high') },
+                                    { value: 'price-high', label: t('price_high_low') }
                                 ].map(opt => (
                                     <button
                                         key={opt.value}
@@ -419,7 +421,7 @@ const Products = () => {
                                 onClick={() => { clearFilters(); setShowMobileFilter(false); }}
                                 className="w-full mt-6 py-3 border-2 border-gray-200 rounded-xl text-gray-600 font-medium"
                             >
-                                Clear All Filters
+                                {t('clearfilters')}
                             </button>
                         </div>
                     </div>
@@ -464,7 +466,7 @@ const Products = () => {
                                 }}
                                 className="w-full py-4 bg-[#0066FF] hover:bg-blue-700 text-white rounded-xl text-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 hover:-translate-y-0.5"
                             >
-                                <ShoppingBag size={20} /> Add to Cart
+                                <ShoppingBag size={20} /> {t('addtocart')}
                             </button>
                         </div>
                     </div>

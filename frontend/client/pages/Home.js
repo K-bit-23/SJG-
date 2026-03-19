@@ -5,6 +5,7 @@ import {
     Copy, BookOpen, Palette, Sparkles, Zap, Star, Package, Phone
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useLanguage } from '../../src/context/LanguageContext';
 import api from '../../src/utils/api';
 
 const DEFAULT_CATEGORIES = [
@@ -52,13 +53,14 @@ const DEFAULT_SERVICES = [
 ];
 
 const TRUST_ITEMS = [
-    { icon: Truck, label: 'Free Delivery', sub: 'On orders above ₹499' },
-    { icon: ShieldCheck, label: 'Secure Payments', sub: 'UPI, Cards & more' },
+    { icon: Truck, label: 'freeshipping', sub: 'On orders above ₹499' },
+    { icon: ShieldCheck, label: 'securepayment', sub: 'UPI, Cards & more' },
     { icon: Package, label: 'Easy Returns', sub: '7-day return policy' },
-    { icon: Phone, label: '24/7 Support', sub: 'Chat or call anytime' },
+    { icon: Phone, label: 'support', sub: 'Chat or call anytime' },
 ];
 
 const Home = () => {
+    const { t } = useLanguage();
     const [bannerContent, setBannerContent] = useState(null);
     const [currentBanner, setCurrentBanner] = useState(0);
     const [banners, setBanners] = useState(DEFAULT_BANNERS);
@@ -134,7 +136,7 @@ const Home = () => {
 
                             {/* Title */}
                             <h1 className="text-4xl md:text-5xl xl:text-6xl font-black text-slate-900 leading-[1.1] mb-5 tracking-tight">
-                                {active.title}
+                                {active.id === 1 ? t('welcome') : active.title}
                             </h1>
 
                             {/* Description */}
@@ -148,7 +150,7 @@ const Home = () => {
                                     to={active.btnLink || '/products'}
                                     className="inline-flex items-center justify-center gap-2 bg-[#5e6ad2] hover:bg-indigo-600 text-white font-semibold px-8 py-3 rounded-full transition-all shadow-md shadow-indigo-200"
                                 >
-                                    {active.btnText || 'Shop Now'}
+                                    {t('shopnow')}
                                     <ArrowRight size={16} />
                                 </Link>
                             </div>
@@ -187,7 +189,7 @@ const Home = () => {
                                     <Icon size={18} />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-bold text-gray-900 leading-tight">{label}</p>
+                                    <p className="text-sm font-bold text-gray-900 leading-tight">{t(label)}</p>
                                     <p className="text-xs text-gray-500 mt-0.5">{sub}</p>
                                 </div>
                             </div>
@@ -201,12 +203,12 @@ const Home = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
                     <div>
                         <div className="flex items-center gap-2 text-indigo-600 font-bold text-xs uppercase tracking-wider mb-2">
-                            <ShoppingBag size={14} /> PRODUCTS
+                            <ShoppingBag size={14} /> {t('products').toUpperCase()}
                         </div>
-                        <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Shop by Category</h2>
+                        <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">{t('shopbycategory')}</h2>
                     </div>
                     <Link to="/products" className="flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
-                        View All <ArrowRight size={15} />
+                        {t('viewall')} <ArrowRight size={15} />
                     </Link>
                 </div>
 
@@ -248,19 +250,19 @@ const Home = () => {
                     </div>
                     <div className="relative z-10 flex flex-col md:flex-row items-center justify-between px-10 py-10 gap-6">
                         <div>
-                            <p className="text-indigo-300 text-sm font-semibold mb-2">Limited Time Offer</p>
+                            <p className="text-indigo-300 text-sm font-semibold mb-2">{t('limitedoffer')}</p>
                             <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-2">
-                                Get 20% off on your first order
+                                {t('getoff')}
                             </h2>
                             <p className="text-white/60 text-sm max-w-sm">
-                                Use code <span className="text-yellow-400 font-bold">SJG20</span> at checkout. Valid on all products.
+                                {t('usecode')}
                             </p>
                         </div>
                         <Link
                             to="/products"
                             className="flex-shrink-0 inline-flex items-center gap-2 bg-white text-indigo-700 font-bold px-8 py-3.5 rounded-xl hover:bg-indigo-50 transition-all shadow-lg"
                         >
-                            Shop Now <ArrowRight size={16} />
+                            {t('shopnow')} <ArrowRight size={16} />
                         </Link>
                     </div>
                 </div>
@@ -270,8 +272,8 @@ const Home = () => {
             <section className="py-16 bg-gray-50">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="mb-10">
-                        <p className="text-indigo-600 font-bold text-sm mb-1">What We Offer</p>
-                        <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Our Services</h2>
+                        <p className="text-indigo-600 font-bold text-sm mb-1">{t('whatweoffer')}</p>
+                        <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">{t('ourservices')}</h2>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -301,23 +303,23 @@ const Home = () => {
             <section className="py-16 px-6">
                 <div className="max-w-3xl mx-auto text-center">
                     <h2 className="text-3xl font-extrabold text-gray-900 mb-3 tracking-tight">
-                        Ready to stock up?
+                        {t('readytostock')}
                     </h2>
                     <p className="text-gray-500 text-base mb-8 max-w-xl mx-auto">
-                        Browse our full range of stationery, art supplies, and office essentials. Fast delivery across Tamil Nadu.
+                        {t('browsefullrange')}
                     </p>
                     <div className="flex flex-wrap gap-3 justify-center">
                         <Link
                             to="/products"
                             className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-600/25 hover:-translate-y-0.5"
                         >
-                            <ShoppingBag size={18} /> Browse Products
+                            <ShoppingBag size={18} /> {t('browseproducts')}
                         </Link>
                         <Link
                             to="/contact"
                             className="inline-flex items-center gap-2 bg-white border border-gray-200 text-gray-700 font-semibold px-8 py-3.5 rounded-xl hover:border-indigo-300 hover:text-indigo-600 transition-all"
                         >
-                            Contact Us
+                            {t('contactus')}
                         </Link>
                     </div>
                 </div>

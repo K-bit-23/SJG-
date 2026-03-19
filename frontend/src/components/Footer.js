@@ -1,8 +1,10 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Facebook, Instagram, Twitter } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 const Footer = () => {
+    const { t } = useLanguage();
     return (
         <footer className="bg-[#0f172a] text-white pt-16 pb-8">
             <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -14,15 +16,14 @@ const Footer = () => {
                         <span className="text-2xl font-bold tracking-tighter">SJG<span className="text-secondary">.</span></span>
                     </div>
                     <p className="text-gray-400 text-sm leading-relaxed">
-                        Elevating your workspace with premium stationery.
-                        Quality, aesthetics, and functionality in every product.
+                        {t('footer_desc')}
                     </p>
                 </div>
 
 
                 {/* Contact Info (Moved from Navbar) */}
                 <div>
-                    <h3 className="text-lg font-bold mb-6">Contact Us</h3>
+                    <h3 className="text-lg font-bold mb-6">{t('contactus')}</h3>
                     <ul className="space-y-4 text-gray-400 text-sm">
                         <li className="flex items-start gap-3">
                             <MapPin size={18} className="text-secondary shrink-0 mt-0.5" />
@@ -44,16 +45,16 @@ const Footer = () => {
 
                 {/* Newsletter */}
                 <div>
-                    <h3 className="text-lg font-bold mb-6">Stay Updated</h3>
-                    <p className="text-gray-400 text-sm mb-4">Subscribe for exclusive offers and new arrivals.</p>
+                    <h3 className="text-lg font-bold mb-6">{t('stayupdated')}</h3>
+                    <p className="text-gray-400 text-sm mb-4">{t('newsletter_desc')}</p>
                     <form className="flex gap-2">
                         <input
                             type="email"
-                            placeholder="Email"
+                            placeholder={t('email')}
                             className="bg-white/10 border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-secondary w-full"
                         />
                         <button className="bg-secondary hover:bg-indigo-600 px-4 py-2 rounded text-sm font-bold transition-colors">
-                            Join
+                            {t('join')}
                         </button>
                     </form>
                     <div className="flex gap-4 mt-6">
@@ -65,10 +66,10 @@ const Footer = () => {
             </div>
 
             <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p className="text-gray-500 text-xs">© 2024 SJG Stationery. All rights reserved.</p>
+                <p className="text-gray-500 text-xs">© 2024 SJG Stationery. {t('allrights')}</p>
                 <div className="flex gap-6 text-gray-500 text-xs">
-                    <Link to="/privacy" className="hover:text-white">Privacy Policy</Link>
-                    <Link to="/terms" className="hover:text-white">Terms of Service</Link>
+                    <Link to="/privacy" className="hover:text-white">{t('privacypolicy')}</Link>
+                    <Link to="/terms" className="hover:text-white">{t('terms')}</Link>
                 </div>
             </div>
         </footer>

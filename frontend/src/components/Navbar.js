@@ -25,7 +25,7 @@ const Navbar = () => {
     const [unreadCount, setUnreadCount] = useState(0);
 
     const { cart } = useCart();
-    const { t } = useLanguage();
+    const { language, setLanguage, t } = useLanguage();
     const [searchTerm, setSearchTerm] = useState('');
 
     // Auth and Admin states
@@ -239,6 +239,25 @@ const Navbar = () => {
 
                         {/* Right: Actions */}
                         <div className="flex items-center gap-4 lg:gap-6">
+                            {/* Language Switcher */}
+                            <div className="relative group/lang">
+                                <button className="p-2.5 hover:bg-gray-100 rounded-full transition-all flex items-center gap-1.5 text-gray-500 hover:text-primary">
+                                    <span className="text-lg">🌐</span>
+                                    <span className="text-xs font-bold uppercase hidden sm:block">{language.slice(0, 2)}</span>
+                                </button>
+                                <div className="absolute right-0 top-full mt-2 w-32 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden opacity-0 invisible group-hover/lang:opacity-100 group-hover/lang:visible transition-all z-[70]">
+                                    {['English', 'Tamil', 'Hindi'].map((lang) => (
+                                        <button
+                                            key={lang}
+                                            onClick={() => setLanguage(lang)}
+                                            className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-gray-50 transition-colors ${language === lang ? 'text-primary bg-blue-50/50' : 'text-gray-600'}`}
+                                        >
+                                            {lang}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                             {/* Notifications */}
                             {user && (
                                 <div className="relative notifications-dropdown flex items-center">

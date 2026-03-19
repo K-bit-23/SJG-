@@ -3,8 +3,10 @@ import { Heart, ShoppingBag, Trash2, ArrowLeft, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../src/context/CartContext';
 import { useWishlist } from '../../src/context/WishlistContext';
+import { useLanguage } from '../../src/context/LanguageContext';
 
 const Wishlist = () => {
+    const { t } = useLanguage();
     const { wishlist, removeFromWishlist, clearWishlist, getProductId } = useWishlist();
     const { addToCart } = useCart();
 
@@ -25,9 +27,9 @@ const Wishlist = () => {
                             </Link>
                             <div>
                                 <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                                    <Heart className="text-red-500" size={22} /> My Wishlist
+                                    <Heart className="text-red-500" size={22} /> {t('mywishlist')}
                                 </h1>
-                                <p className="text-sm text-gray-500">{wishlist.length} items saved</p>
+                                <p className="text-sm text-gray-500">{wishlist.length} {t('itemssaved')}</p>
                             </div>
                         </div>
                         {wishlist.length > 0 && (
@@ -35,7 +37,7 @@ const Wishlist = () => {
                                 onClick={clearWishlist}
                                 className="text-sm text-red-500 hover:text-red-600 font-medium"
                             >
-                                Clear All
+                                {t('clearall')}
                             </button>
                         )}
                     </div>
@@ -48,10 +50,10 @@ const Wishlist = () => {
                         <div className="w-24 h-24 bg-gradient-to-br from-red-100 to-pink-50 rounded-full flex items-center justify-center mx-auto mb-6">
                             <Heart size={40} className="text-red-300" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-800 mb-2">Your wishlist is empty</h2>
-                        <p className="text-gray-500 mb-8 max-w-md mx-auto">Save items you love by clicking the heart icon on products. They'll appear here!</p>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">{t('wishlistempty')}</h2>
+                        <p className="text-gray-500 mb-8 max-w-md mx-auto">{t('wishlistempty_desc')}</p>
                         <Link to="/products" className="inline-flex items-center gap-2 bg-secondary text-white px-8 py-3.5 rounded-full font-semibold hover:bg-indigo-600 transition-all shadow-lg">
-                            <ShoppingBag size={18} /> Browse Products
+                            <ShoppingBag size={18} /> {t('browseproducts')}
                         </Link>
                     </div>
                 ) : (
@@ -89,7 +91,7 @@ const Wishlist = () => {
                                             onClick={() => moveToCart(product)}
                                             className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-white rounded-lg text-sm font-medium hover:bg-indigo-600 transition-all"
                                         >
-                                            <ShoppingBag size={14} /> Add
+                                            <ShoppingBag size={14} /> {t('add')}
                                         </button>
                                     </div>
                                 </div>
@@ -102,7 +104,7 @@ const Wishlist = () => {
                 {wishlist.length > 0 && (
                     <div className="mt-6 text-center">
                         <Link to="/products" className="inline-flex items-center gap-2 text-secondary font-medium hover:underline">
-                            <ArrowLeft size={16} /> Continue Shopping
+                            <ArrowLeft size={16} /> {t('continueshopping')}
                         </Link>
                     </div>
                 )}

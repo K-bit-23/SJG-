@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { CheckCircle, Home, Receipt, ShoppingBag, ArrowRight } from 'lucide-react';
+import { CheckCircle, Home, Receipt, ShoppingBag, ArrowRight, Clock } from 'lucide-react';
 import { useCart } from '../../src/context/CartContext';
+import { useLanguage } from '../../src/context/LanguageContext';
 import confetti from 'canvas-confetti';
 
 const PaymentSuccess = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { clearCart } = useCart();
+    const { t } = useLanguage();
 
     const orderId = searchParams.get('order_id');
     const amount = searchParams.get('amount');
@@ -75,21 +77,21 @@ const PaymentSuccess = () => {
                         </div>
 
                         <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-6 tracking-tighter leading-none">
-                            PAYMENT <span className="text-indigo-600">VERIFIED!</span>
+                            {t('paymentverified')}
                         </h1>
                         
                         <p className="text-slate-500 text-xl mb-12 max-w-lg mx-auto font-bold leading-relaxed">
-                            Your transaction has been secured. We're now curating your stationery experience with love and care.
+                            {t('paymentmsg')}
                         </p>
 
                         {/* Order Identity Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                             <div className="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 group hover:border-indigo-200 transition-all">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 text-center">Receipt Reference</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 text-center">{t('receiptref')}</p>
                                 <p className="text-2xl font-black text-slate-800 tracking-tighter text-center">#{orderId?.split('-').pop() || 'SYNCING'}</p>
                             </div>
                             <div className="bg-slate-50 rounded-[2.5rem] p-8 border border-slate-100 group hover:border-indigo-200 transition-all">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 text-center">Transaction Value</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 text-center">{t('transvalue')}</p>
                                 <p className="text-2xl font-black text-indigo-600 tracking-tighter text-center">₹{amount || '1,436.00'}</p>
                             </div>
                         </div>
@@ -97,11 +99,11 @@ const PaymentSuccess = () => {
                         <div className="flex flex-col items-center justify-center gap-6 mb-12">
                             <div className="flex items-center gap-3 bg-emerald-50 px-6 py-3 rounded-2xl">
                                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
-                                <p className="text-sm font-black text-emerald-700 uppercase tracking-widest">Confirmation email dispatched</p>
+                                <p className="text-sm font-black text-emerald-700 uppercase tracking-widest">{t('emaildispatched')}</p>
                             </div>
                             <div className="flex items-center gap-2 text-indigo-500 font-black text-xs uppercase tracking-[0.3em] bg-indigo-50 px-8 py-4 rounded-full border border-indigo-100/50">
                                 <Clock size={16} className="animate-spin-slow" />
-                                Landing home in {countdown}s
+                                {t('landinghome')} {countdown}s
                             </div>
                         </div>
 
@@ -112,7 +114,7 @@ const PaymentSuccess = () => {
                                 className="group px-10 py-6 bg-slate-900 text-white rounded-[2rem] font-black flex items-center justify-center gap-3 transition-all hover:bg-slate-800 hover:-translate-y-2 active:scale-95 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] text-sm uppercase tracking-widest"
                             >
                                 <Home size={20} />
-                                Back to Base
+                                {t('backtobase')}
                             </button>
 
                             <button
@@ -120,14 +122,14 @@ const PaymentSuccess = () => {
                                 className="group px-10 py-6 bg-white text-slate-900 border-4 border-slate-100 rounded-[2rem] font-black flex items-center justify-center gap-3 transition-all hover:bg-slate-50 hover:border-indigo-100 active:scale-95 text-sm uppercase tracking-widest"
                             >
                                 <Receipt size={20} className="text-indigo-500" />
-                                Track My Box
+                                {t('trackmybox')}
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <p className="mt-8 text-center text-slate-400 text-sm font-medium">
-                    Need help? <button className="text-blue-500 hover:underline">Contact our support team</button>
+                    {t('needhelp')} <button className="text-blue-500 hover:underline">{t('contactsupport')}</button>
                 </p>
             </div>
         </div>
