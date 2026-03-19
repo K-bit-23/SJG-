@@ -302,14 +302,34 @@ def _send(order: dict, delay_seconds: int, status_label: str):
     html_body = _build_html(order, status_label)
     text_body = _build_text(order, status_label)
 
-    # 1. ALWAYS TRY THE HTTP API (RESEND) FIRST ON CLOUD HOSTS
-    api_success, api_error = _send_via_resend(recipients, subject, html_body, text_body)
-    if api_success:
-        print(f"[EMAIL] Sent via HTTP API for order {order_id}")
-        return
+    # 1. OPTIONAL: Prioritize SMTP if requested (Local dev/debugging)
+    prioritize_smtp = getattr(settings, 'EMAIL_PRIORITIZE_SMTP', False)
+    if prioritize_smtp:
+        print(f"[EMAIL] Prioritizing SMTP as requested in settings...")
+        smtp_success = _send_via_smtp(recipients, subject, html_body, text_body)
+        if smtp_success:
+            return
 
-    # 2. FALLBACK TO SMTP (FOR LOCAL DEV OR IF API IS MISSING)
-    print(f"[EMAIL] API failed ({api_error}). Falling back to SMTP...")
+    # 2. DEFAULT: Try Resend API (HTTP) - best for cloud hosting
+    if os.environ.get('RESEND_API_KEY'):
+        print(f"[EMAIL] Trying Resend API for {order_id}...")
+        api_success, api_error = _send_via_resend(recipients, subject, html_body, text_body)
+        if api_success:
+            print(f"[EMAIL] Sent via HTTP API for order {order_id}")
+            return
+        print(f"[EMAIL] API failed ({api_error}). Falling back to SMTP...")
+
+    # 3. FINAL FALLBACK: SMTP (if it wasn't tried before)
+    if not prioritize_smtp:
+        _send_via_smtp(recipients, subject, html_body, text_body)
+
+
+def _send_via_smtp(recipients, subject, html_body, text_body):
+    """Encapsulated SMTP Logic"""
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    
     try:
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
@@ -321,7 +341,7 @@ def _send(order: dict, delay_seconds: int, status_label: str):
         smtp_user = settings.EMAIL_HOST_USER
         smtp_pass = settings.EMAIL_HOST_PASSWORD
 
-        # Attempt SSL then TLS
+        # Attempt SSL (port 465) then TLS (port 587)
         for use_ssl in [True, False]:
             try:
                 if use_ssl:
@@ -333,11 +353,13 @@ def _send(order: dict, delay_seconds: int, status_label: str):
                 server.sendmail(settings.DEFAULT_FROM_EMAIL, recipients, msg.as_string())
                 server.quit()
                 print(f"[EMAIL] Sent via SMTP ({('SSL' if use_ssl else 'TLS')})")
-                return
+                return True
             except:
                 continue
+        return False
     except Exception as exc:
-        print(f"[EMAIL] Final fallback failed: {exc}")
+        print(f"[EMAIL] SMTP critical error: {exc}")
+        return False
 
 
 # ---------------------------------------------------------------------------

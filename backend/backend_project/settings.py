@@ -113,6 +113,8 @@ if not ORDER_NOTIFY_EMAIL and EMAIL_HOST_USER:
 # Frontend URL for emails/redirects
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://sjg-ecom.web.app').rstrip('/')
 
+EMAIL_PRIORITIZE_SMTP = os.environ.get('EMAIL_PRIORITIZE_SMTP', 'False').lower() == 'true'
+
 EMAIL_TIMEOUT = 30  # Increased timeout for cloud stability
 
 AUTH_PASSWORD_VALIDATORS = []
